@@ -67,17 +67,25 @@ git clone https://github.com/9-Security/NAS-Sentinel.git
 cd NAS-Sentinel
 ```
 
-### Step 2: One-Click Launch
+### Step 2: One-Click Launch (Starts Local Web Server)
+*(This launches the local server on your **own computer**—you do NOT need to edit configuration files beforehand; your default browser will open automatically)*
 - **Windows Users**: Double-click [`start-nas-sentinel.bat`](start-nas-sentinel.bat).  
-  *(Runs completely detached in the background without annoying console windows, and automatically opens your default browser)*
+  *(Runs completely detached in the background without annoying console windows, and automatically opens your browser)*
 - **macOS / Linux Users**: Run `./start-nas-sentinel.sh`.
 - **Docker Users**: Run `docker-compose up -d`.
 
-### Step 3: Web Setup Wizard
+### Step 3: Configure NAS Connection in Your Browser (Supports Custom SSH Ports)
 Your browser will open `http://127.0.0.1:8088`. On first launch, the **Setup Wizard** will greet you:
-1. **Host Info**: Enter your Synology NAS IP and SSH username (the wizard automatically detects existing SSH keys in your `~/.ssh/` directory or offers an auto-generation tool).
-2. **Click "⚡ Test SSH Connection & Probe NAS"**: Automatically inspects DSM version, hardware architecture (`x86_64` vs `aarch64`), and Python 3 readiness.
-3. **Click "🛡️ Save & Launch SOC"**: Automatically generates baseline profiles for 1,786 critical system & web files, listening ports, and Linux kernel modules (LKM), then transitions directly into your live Cyber SOC War Room!
+1. **Fill in NAS Connection Details**:
+   - **NAS IP / Hostname**: e.g., `192.168.1.100` or your internal domain.
+   - **SSH Username**: e.g., `admin` or your administrative user.
+   - **SSH Port**: Defaults to `22`. **If you customized your Synology SSH port for security (e.g., `2222`, `5022`, `60022`), simply enter it here!**
+   - **SSH Key**: The dropdown automatically scans keys in your local `~/.ssh/` directory, or click "🔑 Auto-Generate New Key".
+2. **Click "⚡ Test SSH Connection & Probe NAS"**: Validates the connection with your specified IP, user, and custom port, auto-detecting hardware architecture (`x86_64` vs `aarch64`) and DSM version.
+3. **Click "🛡️ Save & Launch SOC"**: Done! Saves securely to `data/config.json`, establishes file and port baselines, and launches into your Cyber SOC command center!
+
+> 💡 **Prefer text configuration files? (Optional)**  
+> If you prefer setting credentials beforehand, copy `.env.example` to `.env` (or copy `nas-sentinel/data/config.example.json` to `data/config.json`) and configure `NAS_HOST`, `NAS_USER`, and `NAS_PORT` prior to Step 2!
 
 ---
 

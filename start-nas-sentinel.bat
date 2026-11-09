@@ -31,10 +31,11 @@ if errorlevel 1 (
     start "" wscript.exe "%~dp0start-nas-sentinel-background.vbs"
 )
 
-echo [OK] Server started in background.
-echo - Dashboard : http://127.0.0.1:8088
-echo - Stop      : stop-nas-sentinel.bat
-echo - Autostart : install-autostart-service.bat
+echo [OK] Local server started in background.
+echo - Opening Web Wizard: http://127.0.0.1:8088
+echo   (Configure your NAS IP, custom SSH Port, and User in browser)
+echo - Stop Service      : stop-nas-sentinel.bat
+echo - Windows Autostart : install-autostart-service.bat
 echo ============================================================
 
 ping 127.0.0.1 -n 2 >nul
