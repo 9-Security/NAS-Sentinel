@@ -169,24 +169,21 @@
     }
 
     .brand-logo-wrap {
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      border: 1px solid var(--border-cyan);
-      background: rgba(0, 229, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.12), 0 0 14px rgba(0, 229, 255, 0.18);
       flex-shrink: 0;
-      overflow: hidden;
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     .brand-logo-img {
-      width: 26px;
-      height: 26px;
+      width: 39px;
+      height: 39px;
       object-fit: contain;
-      filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+      filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.6));
+      transition: filter 0.3s ease;
     }
 
     .brand-info {
@@ -974,12 +971,12 @@
       color: #0f172a;
     }
     [data-theme="light"] .brand-logo-wrap {
-      background: rgba(2, 132, 199, 0.08);
-      border-color: rgba(2, 132, 199, 0.3);
-      box-shadow: inset 0 0 10px rgba(2, 132, 199, 0.1);
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
     [data-theme="light"] .brand-logo-img {
-      filter: drop-shadow(0 0 3px rgba(0, 86, 179, 0.4));
+      filter: hue-rotate(180deg) drop-shadow(0 0 5px rgba(0, 86, 179, 0.4));
     }
     [data-theme="light"] .btn {
       background: #ffffff;
