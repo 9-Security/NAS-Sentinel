@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+
+  <!-- Google Fonts: Inter & JetBrains Mono (Nine-Security Standard) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #050505;
+      --bg-panel: rgba(14, 18, 24, 0.82);
+      --bg-panel-strong: rgba(10, 14, 20, 0.94);
+      --bg-card: rgba(20, 26, 36, 0.72);
+      --bg-card-hover: rgba(28, 36, 50, 0.88);
+      --border: rgba(0, 255, 65, 0.22);
+      --border-muted: rgba(255, 255, 255, 0.08);
+      --border-cyan: rgba(0, 229, 255, 0.28);
+      --text-main: #f0f6fc;
+      --text-secondary: #9ca3af;
+      --text-muted: #6e7681;
+      --accent: #00ff41;           /* Nine-Security Matrix Green */
+      --accent-hover: #00d636;
+      --accent-secondary: #00e5ff; /* Nine-Security Cyber Cyan */
+      --danger: #ff0055;           /* Cyber Crimson */
+      --warning: #fbbf24;          /* Cyber Amber */
+      --ok: #00ff41;
+      --ok-bg: rgba(0, 255, 65, 0.1);
+      --warn-bg: rgba(251, 191, 36, 0.12);
+      --crit-bg: rgba(255, 0, 85, 0.14);
+      --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SFMono-Regular', 'Consolas', monospace;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      --shadow-strong: 0 18px 42px rgba(0, 0, 0, 0.55);
+      --shadow-glow-green: 0 0 20px rgba(0, 255, 65, 0.22);
+      --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.22);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(ellipse 90% 60% at 50% -10%, rgba(0, 229, 255, 0.07), transparent 75%),
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 100% 100%, 36px 36px, 36px 36px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.55;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Cyber Scanlines */
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.09),
+        rgba(0, 0, 0, 0.09) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      opacity: 0.5;
+    }
+
+    /* Custom Sleek Scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(10, 14, 20, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 229, 255, 0.25);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 229, 255, 0.55);
+    }
+
+    /* Blinking Terminal Cursor */
+    .blink {
+      animation: termBlink 1.1s infinite;
+      font-weight: 700;
+    }
+    @keyframes termBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    /* Header / Top Navigation Bar */
+    .topbar {
+      background: rgba(10, 14, 20, 0.88);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-cyan);
+      padding: 12px 28px;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 4px 28px rgba(0, 0, 0, 0.65);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+      flex: 0 1 auto;
+      overflow: hidden;
+    }
+
+    .brand-logo-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border-cyan);
+      background: rgba(0, 229, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 14px rgba(0, 229, 255, 0.12), 0 0 14px rgba(0, 229, 255, 0.18);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .brand-logo-img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 4px rgba(0, 229, 255, 0.5));
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
+
+    .brand-title {
+      font-size: 16.5px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .nine-brand {
+      color: #ffffff;
+      letter-spacing: 0.05em;
+    }
+    .nine-brand .accent {
+      color: var(--accent-secondary);
+    }
+
+    .brand-divider {
+      color: var(--text-muted);
+      font-weight: 300;
+      font-size: 14px;
+      opacity: 0.6;
+    }
+
+    .brand-product {
+      color: var(--text-main);
+      font-size: 15px;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-sub {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+      max-width: 440px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Anti-Fooling Toast Notification */
+    .toast-notice {
+      position: fixed;
+      top: 76px;
+      right: 28px;
+      background: var(--bg-panel-strong);
+      border: 1px solid var(--accent-secondary);
+      color: var(--accent-secondary);
+      padding: 11px 18px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), var(--shadow-glow-cyan);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      animation: toast-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .toast-notice.show {
+      display: flex;
+    }
+    .toast-notice.warn {
+      border-color: var(--warning);
+      color: var(--warning);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(251, 191, 36, 0.25);
+    }
+    .toast-notice.crit {
+      border-color: var(--danger);
+      color: #ff4d88;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75), 0 0 20px rgba(255, 0, 85, 0.3);
+    }
+    @keyframes toast-pop {
+      from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Badges (Nine-Security Cyber Style) */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid currentColor;
+      transition: all 0.2s ease;
+    }
+
+    .badge-ok {
+      background: var(--ok-bg);
+      color: var(--ok);
+      border-color: rgba(0, 255, 65, 0.38);
+    }
+    .badge-warn {
+      background: var(--warn-bg);
+      color: var(--warning);
+      border-color: rgba(251, 191, 36, 0.45);
+    }
+    .badge-crit {
+      background: var(--crit-bg);
+      color: #ff3377;
+      border-color: rgba(255, 0, 85, 0.55);
+      box-shadow: 0 0 12px rgba(255, 0, 85, 0.3);
+      animation: pulse-crit 1.8s infinite;
+    }
+
+    @keyframes pulse-crit {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(255, 0, 85, 0); }
+    }
+
+    /* Standard Buttons */
+    .btn {
+      background: rgba(20, 26, 36, 0.85);
+      color: var(--text-main);
+      border: 1px solid var(--border-muted);
+      padding: 7px 13px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent-secondary);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(0, 229, 255, 0.16);
+    }
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-warn {
+      background: rgba(251, 191, 36, 0.1);
+      border-color: rgba(251, 191, 36, 0.35);
+      color: var(--warning);
+    }
+    .btn-warn:hover {
+      background: rgba(251, 191, 36, 0.2);
+      border-color: var(--warning);
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.22);
+    }
+
+    /* Header Divider */
+    .v-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border-muted);
+      margin: 0 2px;
+    }
+
+    /* Auto-Poll Cyber Switch */
+    .poll-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 13px;
+      background: rgba(14, 18, 24, 0.95);
+      border: 1px solid var(--border-muted);
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    .poll-pill:hover {
+      border-color: var(--accent);
+      background: rgba(0, 255, 65, 0.06);
+    }
+    .poll-pill.active {
+      border-color: rgba(0, 255, 65, 0.45);
+      background: rgba(0, 255, 65, 0.08);
+      color: var(--accent);
+      box-shadow: inset 0 0 12px rgba(0, 255, 65, 0.06);
+    }
+    .poll-pill.paused {
+      border-color: rgba(251, 191, 36, 0.45);
+      background: rgba(251, 191, 36, 0.08);
+      color: var(--warning);
+    }
+    .poll-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      box-shadow: 0 0 8px rgba(0, 255, 65, 0.85);
+      transition: all 0.2s ease;
+    }
+    .poll-pill.paused .poll-dot {
+      background: var(--warning);
+      box-shadow: none;
+    }
+
+    /* Unified Scan Button Group */
+    .scan-group {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 6px;
+      background: rgba(14, 18, 24, 0.9);
+      border: 1px solid rgba(0, 255, 65, 0.4);
+      box-shadow: 0 2px 14px rgba(0, 255, 65, 0.15);
+      overflow: hidden;
+    }
+    .btn-scan-primary {
+      background: var(--accent);
+      color: #000000;
+      border: none;
+      padding: 7px 15px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-scan-primary:hover {
+      background: #33ff66;
+      box-shadow: 0 0 18px rgba(0, 255, 65, 0.45);
+    }
+    .btn-scan-secondary {
+      background: rgba(14, 18, 24, 0.95);
+      color: var(--accent-secondary);
+      border: none;
+      border-left: 1px solid rgba(0, 255, 65, 0.35);
+      padding: 7px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .btn-scan-secondary:hover {
+      background: rgba(0, 229, 255, 0.12);
+      color: #ffffff;
+      box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.18);
+    }
+    .btn-scan-primary:disabled, .btn-scan-secondary:disabled, .btn:disabled, .poll-pill.disabled {
+      opacity: 0.4 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      filter: grayscale(0.5);
+    }
+
+    /* Admin Dropdown Menu */
+    .admin-menu-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    .admin-menu-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background: var(--bg-panel-strong);
+      border: 1px solid var(--border-cyan);
+      border-radius: 8px;
+      padding: 6px;
+      min-width: 255px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), var(--shadow-glow-cyan);
+      z-index: 250;
+      animation: modal-enter 0.15s ease-out;
+    }
+    .admin-menu-dropdown.show {
+      display: block;
+    }
+    .admin-menu-header {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 6px 10px 4px;
+    }
+    .admin-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text-main);
+      border-radius: 5px;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+    .admin-menu-item:hover {
+      background: rgba(0, 229, 255, 0.08);
+      color: var(--accent-secondary);
+    }
+    .admin-menu-item.danger {
+      color: #ff6699;
+    }
+    .admin-menu-item.danger:hover {
+      background: rgba(255, 0, 85, 0.15);
+      color: #ff3377;
+    }
+
+    /* Modal Overlay & Box */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 600;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--bg-panel-strong);
+      border: 1px solid var(--border-cyan);
+      border-radius: 10px;
+      max-width: 520px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), var(--shadow-glow-cyan);
+      animation: modal-enter 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    .modal-box::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--danger), transparent);
+    }
+    @keyframes modal-enter {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .modal-body {
+      font-size: 13.5px;
+      color: #d1d5db;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1580px;
+      margin: 0 auto;
+      padding: 24px 28px 56px;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Active Alert Banner */
+    .alert-banner {
+      display: none;
+      background: rgba(255, 0, 85, 0.1);
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 22px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 0 24px rgba(255, 0, 85, 0.2);
+    }
+
+    /* 6 KPI Grid Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-muted);
+      border-radius: 8px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 229, 255, 0.5), transparent);
+      opacity: 0.4;
+      transition: opacity 0.25s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 229, 255, 0.35);
+      background: var(--bg-card-hover);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(0, 229, 255, 0.1);
+    }
+    .kpi-card:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .kpi-sub {
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.35s ease;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    /* Tabs (Cyber SOC Style) */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border-muted);
+      margin-bottom: 22px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+      border-bottom: 2px solid transparent;
+      border-radius: 6px 6px 0 0;
+      padding: 10px 18px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-color: rgba(0, 255, 65, 0.25) rgba(0, 255, 65, 0.25) transparent;
+      border-bottom: 2px solid var(--accent);
+      background: rgba(0, 255, 65, 0.07);
+      box-shadow: inset 0 4px 12px rgba(0, 255, 65, 0.05);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Layout Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    /* Panel Box (Nine-Security Standard) */
+    .panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-muted);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-strong);
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
+      opacity: 0.55;
+    }
+
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #ffffff;
+    }
+
+    /* Tables (High-Tech Monospace Matrix) */
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 480px;
+      overflow-y: auto;
+      border: 1px solid var(--border-muted);
+      border-radius: 6px;
+      background: rgba(8, 11, 16, 0.6);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(14, 19, 28, 0.95);
+      color: var(--accent-secondary);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.25);
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+
+    tbody tr:hover td {
+      background: rgba(0, 229, 255, 0.035);
+    }
+    .mono {
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    /* Search & Filter Bar */
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .input, .select {
+      background: rgba(14, 18, 24, 0.9);
+      color: var(--text-main);
+      border: 1px solid var(--border-muted);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .input:focus, .select:focus {
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+    }
+    .input-search {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    /* Posture & Event Lists */
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      background: rgba(20, 26, 36, 0.65);
+      border: 1px solid var(--border-muted);
+      border-radius: 6px;
+      padding: 11px 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color 0.2s ease;
+    }
+    .check-item:hover {
+      border-color: rgba(0, 255, 65, 0.3);
+    }
+
+    .event-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+
+    .event-item {
+      background: rgba(18, 23, 32, 0.7);
+      border-left: 3px solid var(--accent-secondary);
+      border-radius: 4px;
+      padding: 9px 13px;
+      font-size: 12.5px;
+      font-family: var(--font-mono);
+    }
+
+    .event-item.CRITICAL {
+      border-left-color: var(--danger);
+      background: rgba(255, 0, 85, 0.08);
+      color: #ff99bb;
+    }
+    .event-item.WARNING {
+      border-left-color: var(--warning);
+      background: rgba(251, 191, 36, 0.08);
+      color: #fed7aa;
+    }
+    .event-item.SUCCESS {
+      border-left-color: var(--ok);
+      color: #a7f3d0;
+    }
+
+    canvas.chart-canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+
+    .target-card {
+      background: rgba(18, 23, 32, 0.75);
+      border: 1px solid var(--border-muted);
+      border-radius: 6px;
+      padding: 14px 16px;
+      transition: all 0.2s ease;
+    }
+    .target-card:hover {
+      border-color: var(--border-cyan);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .container { padding: 16px 14px; }
+      .topbar { padding: 10px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Scanline Grid -->
+  <div class="scanlines"></div>
+
+  <!-- Top Navigation Bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo-wrap">
+        <img src="/logo_v2.png" alt="Nine-Security Logo" class="brand-logo-img" />
+      </div>
+      <div class="brand-info">
+        <div class="brand-title">
+          <span class="nine-brand">Nine<span class="accent">Security</span><span class="blink">_</span></span>
+          <span class="brand-divider">//</span>
+          <span class="brand-product">NAS Sentinel</span>
+          <span id="threatBadge" class="badge badge-ok">連線初檢中...</span>
+        </div>
+        <div class="brand-sub" id="nasIdentity">主機: NAS123 • 載入中...</div>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <!-- Last Updated Timestamp -->
+      <span class="mono" style="font-size:11.5px; color:var(--text-secondary);" id="lastScanTime">--:--:--</span>
+
+      <!-- Auto Poll Pill Switch -->
+      <div id="btnTogglePoll" class="poll-pill active" onclick="toggleAutoPoll()" title="點擊切換 自動定時輪詢 / 暫停">
+        <span class="poll-dot"></span>
+        <span id="pollStatusLabel">自動輪詢</span>
+        <span id="countdownText" style="font-weight:700;">15s</span>
+        <span id="pollIcon" style="font-size:10px;">⏸️</span>
+      </div>
+
+      <div class="v-divider"></div>
+
+      <!-- Unified Scan Button Group -->
+      <div class="scan-group">
+        <button class="btn-scan-primary" id="btnFastScan" onclick="triggerScan('fast')" title="快速掃描：核心系統設定、關鍵網頁與開放埠 (約 0.8 秒)">
+          <span id="scanPrimaryIcon">⚡</span>
+          <span id="scanPrimaryText">快速掃描</span>
+        </button>
+        <button class="btn-scan-secondary" id="btnDeepScan" onclick="triggerScan('deep')" title="深度掃描：全量 DSM 網頁樹與 1,786 檔完整 SHA-256 (約 3.5 秒)">
+          🔍 深度
+        </button>
+      </div>
+
+      <div class="v-divider"></div>
+
+      <!-- Settings Button -->
+      <button class="btn" onclick="openSetupModal()" style="padding:6px 11px; border-color:var(--border-cyan); color:var(--accent-secondary);" title="開啟連線與系統設定精靈">
+        <span class="icon">⚙️</span> 設定
+      </button>
+
+      <div class="v-divider"></div>
+
+      <!-- Admin / Settings Dropdown -->
+      <div class="admin-menu-wrap">
+        <button class="btn" id="btnAdminMenu" onclick="toggleAdminMenu(event)" style="padding:6px 11px;">
+          ⚙️ 管理 ▾
+        </button>
+        <div id="adminDropdown" class="admin-menu-dropdown">
+          <div class="admin-menu-header">安全基準維護</div>
+          <button class="admin-menu-item danger" onclick="openResetBaselineModal()">
+            <span>🛡️</span>
+            <div>
+              <div style="font-weight:600;">重建安全基線...</div>
+              <div style="font-size:11.5px; color:#9ca3af;">將當前狀態寫入為合法基準</div>
+            </div>
+          </button>
+          <div style="height:1px; background:var(--border-muted); margin:5px 0;"></div>
+          <div class="admin-menu-header">快速工具</div>
+          <button class="admin-menu-item" onclick="loadFilesExplorer(); closeAdminMenu(); switchTab('fim');">
+            <span>🗄️</span>
+            <div>檢索 1,786 監控檔案</div>
+          </button>
+          <button class="admin-menu-item" onclick="openCfConfigModal(); closeAdminMenu();">
+            <span>🌐</span>
+            <div>
+              <div style="font-weight:600;">Cloudflare 邊界日誌設定...</div>
+              <div style="font-size:11px; color:#9ca3af;">設定 API Token 撈取刺探情報</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Anti-Fooling Floating Toast Notice -->
+  <div id="toastNotice" class="toast-notice">
+    <span id="toastIcon">⚠️</span>
+    <span id="toastMsg">系統提示訊息</span>
+  </div>
+
+  <main class="container">
+    <!-- Active Alert Banner -->
+    <div id="alertBanner" class="alert-banner">
+      <div>
+        <div style="font-weight:700; font-size:15px; color:#ff99bb; font-family:var(--font-mono);" id="alertBannerTitle">🚨 偵測到檔案完整性或安全異常！</div>
+        <div style="font-size:13px; color:#fecaca; margin-top:2px;" id="alertBannerDesc">請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。</div>
+      </div>
+      <div>
+        <button class="btn" onclick="switchTab('fim')">查看檔案異動詳情</button>
+      </div>
+    </div>
+
+    <!-- 6 KPI Summary Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>網頁與系統檔案監控 (FIM)</span>
+          <span id="kpiFimBadge" class="badge badge-ok">正常</span>
+        </div>
+        <div class="kpi-value" id="kpiFimTotal">--</div>
+        <div class="kpi-sub">
+          <span id="kpiFimDiff">異動: 0 | 新增: 0 | 刪除: 0</span>
+          <span class="mono" id="kpiFimDuration">-- ms</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiFimBar" style="width:100%; background:var(--ok);"></div></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>Nginx 網頁端點與 HTTPS 探測</span>
+          <span id="kpiWebBadge" class="badge badge-ok">正常</span>
+        </div>
+        <div class="kpi-value" id="kpiWebStatus">-- / 6</div>
+        <div class="kpi-sub">
+          <span id="kpiWebLatency">平均回應延遲: -- ms</span>
+          <span id="kpiWebTls">TLS 1.3</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiWebBar" style="width:100%; background:var(--ok);"></div></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>監聽埠與外部網路連線</span>
+          <span id="kpiNetBadge" class="badge badge-ok">符合基線</span>
+        </div>
+        <div class="kpi-value" id="kpiNetConns">--</div>
+        <div class="kpi-sub">
+          <span id="kpiNetDetail">區網: -- | 外網: --</span>
+          <span id="kpiPortUnauth">非授權埠: 0</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiNetBar" style="width:100%; background:var(--accent-secondary);"></div></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>CPU 負載與系統溫度</span>
+          <span id="kpiCpuBadge" class="badge badge-ok">正常</span>
+        </div>
+        <div class="kpi-value" id="kpiCpuVal">--%</div>
+        <div class="kpi-sub">
+          <span id="kpiLoadVal">Load: -- / -- / --</span>
+          <span id="kpiTempVal">🌡️ --°C</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiCpuBar" style="width:0%;"></div></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>記憶體與 Swap 使用率</span>
+          <span class="mono" id="kpiMemMb">-- / -- MB</span>
+        </div>
+        <div class="kpi-value" id="kpiMemVal">--%</div>
+        <div class="kpi-sub">
+          <span id="kpiSwapVal">Swap: --% (-- MB)</span>
+          <span>DS118 1GB</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiMemBar" style="width:0%;"></div></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span>儲存空間 (/volume1) 與服務</span>
+          <span id="kpiDiskBadge" class="badge badge-ok">SMART 通過</span>
+        </div>
+        <div class="kpi-value" id="kpiDiskVal">--%</div>
+        <div class="kpi-sub">
+          <span id="kpiDiskGb">可用: -- GB / -- GB</span>
+          <span id="kpiSvcCount">服務: --/--</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="kpiDiskBar" style="width:0%;"></div></div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">📊 即時視覺化總覽與告警</button>
+      <button class="tab-btn" data-tab="fim" onclick="switchTab('fim')">🕸️ 網頁伺服器與檔案完整性 (FIM) <span id="tabFimCount" class="badge badge-ok" style="margin-left:6px; padding:1px 7px;">0</span></button>
+      <button class="tab-btn" data-tab="network" onclick="switchTab('network')">🌐 網路連線與監聽埠矩陣</button>
+      <button class="tab-btn" data-tab="security" onclick="switchTab('security')">🕵️ Rootkit 偵測、登入活動與守護程序</button>
+    </nav>
+
+    <!-- TAB 1: OVERVIEW -->
+    <section id="tab-overview" class="tab-panel active">
+      <div class="grid-2">
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>📈 系統遙測趨勢 (CPU / 記憶體 / 溫度)</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#00e5ff;">■</span> CPU% &nbsp; <span style="color:#00ff41;">■</span> RAM% &nbsp; <span style="color:#fbbf24;">■</span> 溫度°C</span>
+          </div>
+          <canvas id="chartSystem" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>⚡ Nginx 網頁回應延遲 (ms) 與網路連線數</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#e879f9;">■</span> 延遲 (ms) &nbsp; <span style="color:#38bdf8;">■</span> 連線數</span>
+          </div>
+          <canvas id="chartWeb" class="chart-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Active FIM Anomalies Box on Overview -->
+      <div class="panel" id="overviewAnomaliesPanel" style="display:none; border-color:var(--danger); margin-top:20px;">
+        <div class="panel-title" style="color:#ff6699;">
+          <span>🚨 偵測到網頁或系統檔案異動 / 可疑檔案 (即時比對結果)</span>
+          <button class="btn" onclick="switchTab('fim')">前往完整檔案檢視器 →</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>狀態</th>
+                <th>嚴重度</th>
+                <th>檔案完整路徑</th>
+                <th>異動原因 / 偵測特徵</th>
+                <th>目前權限 / 擁有者</th>
+                <th>目前 SHA-256 雜湊</th>
+              </tr>
+            </thead>
+            <tbody id="overviewAnomaliesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>🛡️ NAS 安全防禦態勢即時檢核 (Security Posture)</span>
+            <span class="mono" id="securityScoreText" style="color:var(--accent);">安全評分: -- / 100</span>
+          </div>
+          <div class="check-list" id="postureList"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>🔔 即時安全與系統事件日誌 (Event Stream)</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);">自動保存最近 150 筆</span>
+          </div>
+          <div class="event-list" id="eventList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: WEB SERVER & FIM -->
+    <section id="tab-fim" class="tab-panel">
+      <!-- Monitored Directories Breakdown -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>📂 受保護之網頁伺服器與關鍵系統目錄範疇</span>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fimBaselineTimestamp">基線建立時間: --</span>
+            <button class="btn btn-warn" style="padding:4px 10px; font-size:12px;" onclick="openResetBaselineModal()">🛡️ 重建/維護基準</button>
+          </div>
+        </div>
+        <div class="grid-3" id="fimTargetsGrid" style="margin-bottom:0;"></div>
+      </div>
+
+      <!-- Real-Time Kernel inotify Event Stream -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>⚡ Linux 核心 inotify 毫秒級即時檔案事件流 (取代 auditd 檔案監控)</span>
+          <span class="mono" style="font-size:12px; color:var(--accent);" id="inotifyPanelSub">即時監聽中：250 個網頁與系統目錄</span>
+        </div>
+        <div class="table-wrap" style="max-height:280px;">
+          <table>
+            <thead>
+              <tr>
+                <th>毫秒時間戳記</th>
+                <th>等級</th>
+                <th>核心事件旗標 (inotify Mask)</th>
+                <th>觸發檔案路徑</th>
+                <th>當下權限 / 擁有者</th>
+                <th>即時計算 SHA-256 / 威脅判定</th>
+              </tr>
+            </thead>
+            <tbody id="inotifyEventsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Active Anomalies Diff Table -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>🔍 檔案完整性異動與可疑 Webshell 告警清單 (FIM Diff)</span>
+          <span style="font-size:12px; color:var(--text-secondary);">比對項目：SHA-256 內容雜湊、Linux 權限模式、擁有者、新增/刪除、Webshell 特徵</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>異動類型</th>
+                <th>嚴重度</th>
+                <th>檔案路徑</th>
+                <th>觸發原因</th>
+                <th>權限變更</th>
+                <th>基線 SHA-256 → 目前 SHA-256</th>
+              </tr>
+            </thead>
+            <tbody id="fimAnomaliesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Web Server Live Endpoints Probe Table -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>🌐 Nginx / DSM 網頁伺服器端點即時探測與回應雜湊驗證</span>
+          <span style="font-size:12px; color:var(--text-secondary);">從本機直接對 NAS 80 / 443 / 5000 / 5001 進行內容防竄改與憑證檢驗</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>端點名稱</th>
+                <th>網址路徑</th>
+                <th>連線狀態</th>
+                <th>回應延遲</th>
+                <th>內容大小</th>
+                <th>回應內容 SHA-256 雜湊</th>
+                <th>TLS 協定 / 憑證指紋</th>
+                <th>基線比對</th>
+              </tr>
+            </thead>
+            <tbody id="webEndpointsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Searchable Monitored Files Explorer -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>🗄️ 網頁伺服器與系統檔案 SHA-256 基線檢索器</span>
+          <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fileExplorerCount">顯示 -- / -- 個檔案</span>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="fileSearchInput" class="input input-search" placeholder="輸入檔名、路徑 (如 login.cgi, nginx.conf, .php) 或 SHA-256 雜湊搜尋..." oninput="debouncedLoadFiles()" />
+          <select id="fileCategorySelect" class="select" onchange="loadFilesExplorer()">
+            <option value="all">所有監控類別 (All Categories)</option>
+            <option value="web_root">DSM 網頁根目錄 (/usr/syno/synoman, html)</option>
+            <option value="web_config">Nginx 設定與樣板 (/etc/nginx, share/nginx)</option>
+            <option value="user_web">自架網站目錄 (/volume1/web)</option>
+            <option value="security_config">系統安全與防火牆設定 (sshd, sysctl, firewall)</option>
+            <option value="system_binary">核心系統執行檔防木馬 (/bin, /usr/bin, /usr/sbin)</option>
+            <option value="shared_watch">共享與暫存敏感區 (/volume1/public, tmp)</option>
+          </select>
+          <button class="btn" onclick="loadFilesExplorer()">🔄 重新整理清單</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>狀態</th>
+                <th>類別</th>
+                <th>檔案完整路徑</th>
+                <th>大小 (Bytes)</th>
+                <th>權限 (Mode)</th>
+                <th>擁有者</th>
+                <th>最後修改時間</th>
+                <th>SHA-256 / 特徵指紋</th>
+              </tr>
+            </thead>
+            <tbody id="fileExplorerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: NETWORK & PORTS -->
+    <section id="tab-network" class="tab-panel">
+      <div class="panel">
+        <div class="panel-title">
+          <span>🔌 活動中網路連線即時監控 (Active TCP/UDP Connections)</span>
+          <span style="font-size:12px; color:var(--text-secondary);">自動標示外部公網 (WAN) 連線與內網管理連線</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>連線範圍</th>
+                <th>協定</th>
+                <th>本機位址與埠號</th>
+                <th>遠端 IP 與埠號</th>
+                <th>狀態</th>
+                <th>關聯程序 (PID/Name)</th>
+              </tr>
+            </thead>
+            <tbody id="activeConnsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>📡 NAS 監聽埠盤點與安全基線比對 (Listening Ports Matrix)</span>
+          <span style="font-size:12px; color:var(--text-secondary);">若出現未在核准基線內的開放埠號，系統將自動發起高風險警報</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>基線狀態</th>
+                <th>協定</th>
+                <th>綁定位址</th>
+                <th>埠號 (Port)</th>
+                <th>狀態</th>
+                <th>執行程序 / 服務說明</th>
+              </tr>
+            </thead>
+            <tbody id="listeningPortsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Cloudflare Edge WAF Threat Intelligence Panel -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>🌐 Cloudflare 邊界網站刺探與 WAF 防禦情資 (Edge Threat Intelligence)</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="cfStatusBadge" class="badge">檢查中...</span>
+            <button class="btn" style="padding:4px 10px; font-size:11.5px;" onclick="triggerCfSync()">🔄 即時同步</button>
+            <button class="btn btn-warn" style="padding:4px 10px; font-size:11.5px;" onclick="openCfConfigModal()">⚙️ 設定 API 權杖</button>
+          </div>
+        </div>
+
+        <!-- 24H KPI Stats & Top Probed Targets -->
+        <div class="grid-2" style="margin-bottom:14px;">
+          <div class="target-card" style="padding:13px 16px;">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">邊界防禦與刺探統計 (24H STATS)</div>
+            <div style="display:flex; gap:16px; align-items:center; margin-top:8px;">
+              <div>
+                <div style="font-size:11px; color:var(--text-muted);">攔截刺探總量</div>
+                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent);" id="cfTotalEvents">0 次</div>
+              </div>
+              <div style="width:1px; height:32px; background:var(--border-muted);"></div>
+              <div>
+                <div style="font-size:11px; color:var(--text-muted);">刺探來源國家數</div>
+                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent-secondary);" id="cfCountriesCount">0 國</div>
+              </div>
+              <div style="width:1px; height:32px; background:var(--border-muted);"></div>
+              <div>
+                <div style="font-size:11px; color:var(--text-muted);">最近邊界同步時間</div>
+                <div style="font-size:12px; font-family:var(--font-mono); color:var(--text-main); margin-top:4px;" id="cfLastSync">尚未同步</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="target-card" style="padding:13px 16px;">
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:8px;">最常被刺探之敏感目錄 TOP 5 (MOST PROBED TARGETS)</div>
+            <div id="cfTopPaths" style="display:flex; flex-wrap:wrap; gap:6px;">
+              <span class="badge" style="color:var(--text-muted);">暫無刺探路徑紀錄</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Edge Probing Events Table -->
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>時間</th>
+                <th>處置動作</th>
+                <th>來源 IP 與國家</th>
+                <th>刺探目標路徑 (Path & Query)</th>
+                <th>威脅判定分類</th>
+                <th>狀態碼</th>
+                <th>客戶端特徵 (User-Agent)</th>
+              </tr>
+            </thead>
+            <tbody id="cfEventsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: AUTH, SERVICES & SMART -->
+    <section id="tab-security" class="tab-panel">
+      <!-- Rootkit (chkrootkit + rkhunter) Native Checks Panel -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>🕵️ DSM Rootkit 與系統指令防木馬即時檢測 (chkrootkit + rkhunter 無套件核心引擎)</span>
+          <span id="rootkitSummaryBadge" class="badge badge-ok">檢測中...</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>狀態</th>
+                <th>對應工具引擎</th>
+                <th>檢測模組 (對標 chkrootkit / rkhunter)</th>
+                <th>即時核心與記憶體比對結果</th>
+              </tr>
+            </thead>
+            <tbody id="rootkitChecksBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>⚙️ 核心守護程序存活狀態 (Core Daemons)</span>
+            <span style="font-size:12px; color:var(--text-secondary);">即時監測 Nginx、SSH、Cloudflared 等服務</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>狀態</th>
+                  <th>服務名稱</th>
+                  <th>功能說明</th>
+                  <th>程序數</th>
+                  <th>執行帳號</th>
+                  <th>PIDs</th>
+                </tr>
+              </thead>
+              <tbody id="servicesBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>🔑 目前登入工作階段 (utmp) 與授權 SSH 公鑰</span>
+          </div>
+          <div style="margin-bottom:14px;">
+            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;">目前活動登入階段 (/var/run/utmp)：</div>
+            <div class="table-wrap" style="max-height:150px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>帳號</th>
+                    <th>終端機 (TTY)</th>
+                    <th>來源主機 IP</th>
+                    <th>登入時間</th>
+                  </tr>
+                </thead>
+                <tbody id="activeSessionsBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;">shar 帳號授權 SSH 公鑰清單 (~/.ssh/authorized_keys)：</div>
+            <div class="table-wrap" style="max-height:160px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>金鑰類型</th>
+                    <th>金鑰備註 / 身分</th>
+                    <th>雜湊識別碼 (SHA-256 前 16 碼)</th>
+                  </tr>
+                </thead>
+                <tbody id="sshKeysBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:20px;">
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>🚫 歷史公網暴力猜測攻擊來源情報 (Auth Log Intelligence)</span>
+            <span class="badge badge-ok">目前已強制改為 SSH 公鑰認證</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>攻擊來源 IP</th>
+                  <th>失敗嘗試次數</th>
+                  <th>最後觀測日期</th>
+                  <th>防禦狀態與備註</th>
+                </tr>
+              </thead>
+              <tbody id="bruteForceBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-title">
+            <span>💽 硬碟儲存空間與 SMART 健康監控</span>
+            <span class="badge badge-ok">PASSED (0 壞軌)</span>
+          </div>
+          <div id="diskSmartBox" class="check-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Dialog for Baseline Reset Confirmation (Anti-Accidental-Click) -->
+  <div id="resetBaselineModal" class="modal-overlay" onclick="onModalOverlayClick(event)">
+    <div class="modal-box">
+      <div class="modal-title">
+        <span>🛡️ 重建 NAS 安全基準確認</span>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:12px; font-weight:600; color:#f0f6fc;">
+          您確定要將 NAS 目前的狀態重設為「受信任安全基準 (Trusted Baseline)」嗎？
+        </p>
+        <div style="background:rgba(255, 0, 85, 0.1); border:1px solid rgba(255, 0, 85, 0.4); border-radius:6px; padding:14px; margin-bottom:14px; font-size:12.5px; color:#ff99bb;">
+          ⚠️ <strong>注意：此操作將會：</strong>
+          <ul style="margin:6px 0 0 18px; line-height:1.6;">
+            <li>將目前 1,786 個系統與網頁檔案的 SHA-256 視為合法基準並清空異動警報</li>
+            <li>將目前開放之網路監聽埠與 105 個核心模組記錄為核准清單</li>
+            <li>此操作僅適用於您<strong>剛完成合法 DSM 韌體更新</strong>或<strong>明確修改設定後</strong></li>
+          </ul>
+        </div>
+        <p style="font-size:12px; color:var(--text-secondary);">
+          若您並未主動變更 NAS 設定，請勿執行此操作，以免掩蓋潛在的未授權竄改！
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeResetBaselineModal()">取消 (Cancel)</button>
+        <button class="btn btn-warn" id="btnConfirmResetBaseline" onclick="confirmResetBaseline()" style="background:rgba(255, 0, 85, 0.2); border-color:#ff0055; color:#ffffff;">
+          ⚠️ 確認重建基準
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+
+  <!-- Modal Dialog for Cloudflare API Configuration -->
+  <div id="cfConfigModal" class="modal-overlay" onclick="onCfModalOverlayClick(event)">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-title">
+        <span>🌐 Cloudflare 邊界日誌 API 連線設定</span>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:14px; font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+          透過 Cloudflare GraphQL API，直接從 Cloudflare 全球邊界節點拉取外部對您網域的「惡意目錄刺探」與「WAF 攔截事件」，完全不耗損 NAS 本地硬碟 I/O。
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:14px;">
+          <div>
+            <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
+              Cloudflare API Token (權杖) <span style="color:var(--danger);">*</span>
+            </label>
+            <input type="password" id="cfApiTokenInput" class="input" placeholder="具有 Zone.Analytics:Read 權限的 API Token" style="width:100%; font-family:var(--font-mono);" />
+            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">至 Cloudflare ➔ My Profile ➔ API Tokens 建立具備「Zone - Analytics - Read」權限之 Token</div>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
+              Zone ID (區域標籤) <span style="color:var(--danger);">*</span>
+            </label>
+            <input type="text" id="cfZoneIdInput" class="input" placeholder="例如：42a1b7... (32 位元十六進位字串)" style="width:100%; font-family:var(--font-mono);" />
+            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">在 Cloudflare 點入網域 ➔ 右下方 Overview 即可複製 Zone ID</div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+            <input type="checkbox" id="cfEnabledCheckbox" checked style="width:auto; cursor:pointer;" />
+            <label for="cfEnabledCheckbox" style="font-size:12.5px; cursor:pointer;">啟用邊界安全情報自動排程同步 (每 60 秒)</label>
+          </div>
+        </div>
+
+        <div id="cfModalMsg" style="display:none; padding:8px 12px; border-radius:6px; font-size:12px; font-family:var(--font-mono); margin-bottom:12px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeCfConfigModal()">取消 (Cancel)</button>
+        <button class="btn" id="btnTestCf" onclick="submitCfConfig(true)">🧪 測試連線 (Test)</button>
+        <button class="btn btn-primary" id="btnSaveCf" onclick="submitCfConfig(false)">💾 儲存並啟用 (Save & Enable)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dialog for Initial Setup Wizard & Connection Settings -->
+  <div id="setupWizardModal" class="modal-overlay" onclick="onSetupModalOverlayClick(event)">
+    <div class="modal-box" style="max-width:680px; border-color:var(--border-cyan); box-shadow: 0 20px 60px rgba(0,0,0,0.85), var(--shadow-glow-cyan);">
+      <div class="modal-title" style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="font-size:20px;">🚀</span>
+          <div>
+            <div style="font-weight:700; color:#fff; font-size:16px;">NAS Sentinel // 系統連線與安裝精靈</div>
+            <div style="font-size:11px; color:var(--text-secondary); font-family:var(--font-sans); font-weight:400;">
+              Zero-Footprint Synology DSM 即時安全監控
+            </div>
+          </div>
+        </div>
+        <button id="btnSetupCloseX" class="btn" onclick="closeSetupModal()" style="padding:2px 8px; font-size:14px; border:none; background:transparent;">✕</button>
+      </div>
+
+      <div class="modal-body" style="max-height:75vh; overflow-y:auto; padding-right:6px;">
+        <!-- Setup Guide Steps -->
+        <div style="background:rgba(0, 229, 255, 0.05); border:1px solid rgba(0, 229, 255, 0.2); border-radius:6px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; line-height:1.5;">
+          <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;">✨ 零技術門檻快速啟用 (Quick Setup)</div>
+          <div style="color:var(--text-secondary);">
+            輸入您的 Synology NAS 內部 IP 與 SSH 帳號，點擊「⚡ 測試連線與自動探測 NAS」，系統將自動檢測 DSM 版本、CPU 架構並在背景初始化安全基線。
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
+          <!-- NAS IP & SSH User Row -->
+          <div style="display:grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap:12px;">
+            <div>
+              <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
+                NAS 主機 IP / 網址 <span style="color:var(--danger);">*</span>
+              </label>
+              <input type="text" id="setupNasHost" class="input" placeholder="例如：192.168.1.100" style="width:100%; font-family:var(--font-mono);" />
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
+                SSH 登入帳號 <span style="color:var(--danger);">*</span>
+              </label>
+              <input type="text" id="setupNasUser" class="input" placeholder="例如：shar 或 admin" style="width:100%; font-family:var(--font-mono);" />
+            </div>
+
+            <div>
+              <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
+                SSH Port
+              </label>
+              <input type="number" id="setupNasPort" class="input" placeholder="22" value="22" style="width:100%; font-family:var(--font-mono);" />
+            </div>
+          </div>
+
+          <!-- SSH Key Selection -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">
+                SSH 私鑰路徑 (Authentication Key)
+              </label>
+              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;">🔑 自動產生新金鑰與教學</a>
+            </div>
+            <select id="setupSshKeySelect" class="input" onchange="onSshKeySelectChange()" style="width:100%; font-family:var(--font-mono); margin-bottom:6px;">
+              <option value="">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>
+            </select>
+            <input type="text" id="setupSshKeyCustom" class="input" placeholder="或手動指定私鑰絕對路徑，例如：C:\Users\user\.ssh\id_ed25519" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+          </div>
+
+          <!-- Quick Test Button & Feedback Panel -->
+          <div>
+            <button type="button" class="btn" id="btnTestNasConnect" onclick="testNasConnection()" style="width:100%; padding:9px; border-color:var(--border-cyan); color:var(--accent-secondary); font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
+              <span id="btnTestNasIcon">⚡</span>
+              <span id="btnTestNasText">測試 SSH 連線並自動探測 NAS</span>
+            </button>
+          </div>
+
+          <!-- Probe Result Badge Box -->
+          <div id="setupProbeResult" style="display:none; padding:12px 14px; border-radius:6px; font-size:12px; font-family:var(--font-mono); line-height:1.5;"></div>
+
+          <!-- One-Click Key Copy Helper Panel (hidden by default) -->
+          <div id="setupKeyHelperPanel" style="display:none; background:rgba(0,0,0,0.5); border:1px dashed var(--border-cyan); border-radius:6px; padding:12px 14px; font-size:11.5px;">
+            <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;">🔑 快速授權此金鑰至 Synology NAS</div>
+            <div style="color:var(--text-secondary); margin-bottom:6px;">登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：</div>
+            <div style="display:flex; gap:6px;">
+              <input type="text" id="setupKeyCommandText" readonly class="input" style="width:100%; font-size:11px; color:#00ff41; background:rgba(0,0,0,0.7);" />
+              <button class="btn" onclick="copySetupKeyCmd()" style="white-space:nowrap; padding:4px 10px;">📋 複製</button>
+            </div>
+          </div>
+
+          <!-- Cloudflare (Optional) Collapsible -->
+          <div style="border-top:1px solid var(--border-muted); padding-top:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSetupCfSection()">
+              <span style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-main);">
+                🌐 Cloudflare 邊界日誌監控 (選填，可稍後設定)
+              </span>
+              <span id="setupCfToggleIcon" style="font-size:11px; color:var(--text-muted);">▶ 展開</span>
+            </div>
+
+            <div id="setupCfSection" style="display:none; margin-top:10px; flex-direction:column; gap:10px;">
+              <div>
+                <label style="display:block; font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:3px;">Cloudflare API Token</label>
+                <input type="password" id="setupCfToken" class="input" placeholder="具備 Zone.Analytics:Read 權限之 Token" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div>
+                <label style="display:block; font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:3px;">Zone ID</label>
+                <input type="text" id="setupCfZone" class="input" placeholder="32 位元 Zone Tag" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <input type="checkbox" id="setupCfEnabled" style="width:auto; cursor:pointer;" />
+                <label for="setupCfEnabled" style="font-size:12px; cursor:pointer;">啟用 Cloudflare 邊界安全情報自動排程同步</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="setupSaveMsg" style="display:none; padding:8px 12px; border-radius:6px; font-size:12px; font-family:var(--font-mono); margin-bottom:12px;"></div>
+      </div>
+
+      <div class="modal-actions" style="justify-content:space-between;">
+        <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
+          <span>🔒 密鑰僅儲存在本地端 data/ 目錄</span>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" id="btnCancelSetup" onclick="closeSetupModal()">關閉</button>
+          <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig()" style="box-shadow:var(--shadow-glow-green);">
+            🛡️ 儲存並進入戰情室 (Save & Launch)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+.env
+
+# User Private Configuration & Real Telemetry Data (KEEP SENSITIVE DATA SAFE)
+nas-sentinel/data/config.json
+nas-sentinel/data/cloudflare_config.json
+nas-sentinel/data/events.json
+nas-sentinel/data/inotify_events.json
+nas-sentinel/data/cloudflare_events.json
+nas-sentinel/data/history.json
+nas-sentinel/data/*.tmp
+
+# Historical private machine audits & scratch experimental scripts
+docs/historical-audit-20261022/
+scripts/
+scratch/
+AGENTS.md
+GEMINI.md
+
+# Keep template and public base structures
+!nas-sentinel/data/config.example.json
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

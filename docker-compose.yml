@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  nas-sentinel:
+    build: .
+    container_name: nas-sentinel
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./nas-sentinel/data:/app/nas-sentinel/data
+      - ~/.ssh:/root/.ssh:ro
+    environment:
+      - MONITOR_HOST=0.0.0.0
+      - MONITOR_PORT=8088

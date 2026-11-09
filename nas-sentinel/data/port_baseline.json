@@ -1,0 +1,347 @@
+{
+  "created_at": "2026-11-07T10:44:34+0800",
+  "ports": {
+    "tcp:22": {
+      "proto": "tcp",
+      "port": 22,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:22": {
+      "proto": "tcp6",
+      "port": 22,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:80": {
+      "proto": "tcp",
+      "port": 80,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:80": {
+      "proto": "tcp6",
+      "port": 80,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:111": {
+      "proto": "tcp",
+      "port": 111,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:111": {
+      "proto": "tcp6",
+      "port": 111,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:111": {
+      "proto": "udp",
+      "port": 111,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:111": {
+      "proto": "udp6",
+      "port": 111,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:123": {
+      "proto": "udp",
+      "port": 123,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:123": {
+      "proto": "udp6",
+      "port": 123,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:137": {
+      "proto": "udp",
+      "port": 137,
+      "process": "",
+      "bind": "10.253.2.255"
+    },
+    "udp:138": {
+      "proto": "udp",
+      "port": 138,
+      "process": "",
+      "bind": "10.253.2.255"
+    },
+    "tcp:161": {
+      "proto": "tcp",
+      "port": 161,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "udp:161": {
+      "proto": "udp",
+      "port": 161,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "tcp:443": {
+      "proto": "tcp",
+      "port": 443,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:443": {
+      "proto": "tcp6",
+      "port": 443,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:662": {
+      "proto": "tcp",
+      "port": 662,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:662": {
+      "proto": "tcp6",
+      "port": 662,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:662": {
+      "proto": "udp",
+      "port": 662,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:662": {
+      "proto": "udp6",
+      "port": 662,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:892": {
+      "proto": "tcp",
+      "port": 892,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:892": {
+      "proto": "tcp6",
+      "port": 892,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:892": {
+      "proto": "udp",
+      "port": 892,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:892": {
+      "proto": "udp6",
+      "port": 892,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:972": {
+      "proto": "udp",
+      "port": 972,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "udp:1900": {
+      "proto": "udp",
+      "port": 1900,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp:2049": {
+      "proto": "tcp",
+      "port": 2049,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:2049": {
+      "proto": "tcp6",
+      "port": 2049,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:2049": {
+      "proto": "udp",
+      "port": 2049,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:2049": {
+      "proto": "udp6",
+      "port": 2049,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp6:3261": {
+      "proto": "tcp6",
+      "port": 3261,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp6:3263": {
+      "proto": "tcp6",
+      "port": 3263,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp6:3264": {
+      "proto": "tcp6",
+      "port": 3264,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:4045": {
+      "proto": "tcp",
+      "port": 4045,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:4045": {
+      "proto": "tcp6",
+      "port": 4045,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:4045": {
+      "proto": "udp",
+      "port": 4045,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:4045": {
+      "proto": "udp6",
+      "port": 4045,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:5000": {
+      "proto": "tcp",
+      "port": 5000,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:5000": {
+      "proto": "tcp6",
+      "port": 5000,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:5001": {
+      "proto": "tcp",
+      "port": 5001,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp6:5001": {
+      "proto": "tcp6",
+      "port": 5001,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:5353": {
+      "proto": "udp",
+      "port": 5353,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:5353": {
+      "proto": "udp6",
+      "port": 5353,
+      "process": "",
+      "bind": "::"
+    },
+    "tcp:5432": {
+      "proto": "tcp",
+      "port": 5432,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "udp:9997": {
+      "proto": "udp",
+      "port": 9997,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp:9998": {
+      "proto": "udp",
+      "port": 9998,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp:9999": {
+      "proto": "udp",
+      "port": 9999,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "tcp:20241": {
+      "proto": "tcp",
+      "port": 20241,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "tcp:33304": {
+      "proto": "tcp",
+      "port": 33304,
+      "process": "",
+      "bind": "127.0.0.1"
+    },
+    "udp6:33653": {
+      "proto": "udp6",
+      "port": 33653,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:39332": {
+      "proto": "udp",
+      "port": 39332,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:55831": {
+      "proto": "udp6",
+      "port": 55831,
+      "process": "",
+      "bind": "::"
+    },
+    "udp6:55965": {
+      "proto": "udp6",
+      "port": 55965,
+      "process": "",
+      "bind": "::"
+    },
+    "udp:56773": {
+      "proto": "udp",
+      "port": 56773,
+      "process": "",
+      "bind": "0.0.0.0"
+    },
+    "udp6:59048": {
+      "proto": "udp6",
+      "port": 59048,
+      "process": "",
+      "bind": "::"
+    },
+    "udp6:59151": {
+      "proto": "udp6",
+      "port": 59151,
+      "process": "",
+      "bind": "::"
+    },
+    "udp6:62022": {
+      "proto": "udp6",
+      "port": 62022,
+      "process": "",
+      "bind": "::"
+    }
+  }
+}

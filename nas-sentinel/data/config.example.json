@@ -1,0 +1,13 @@
+{
+  "is_configured": false,
+  "nas_host": "192.168.1.100",
+  "nas_user": "admin",
+  "nas_port": 22,
+  "ssh_key_path": "",
+  "web_host": "127.0.0.1",
+  "web_port": 8088,
+  "poll_interval_sec": 15,
+  "cloudflare_enabled": false,
+  "cloudflare_api_token": "",
+  "cloudflare_zone_id": ""
+}
