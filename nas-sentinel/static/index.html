@@ -1176,13 +1176,6 @@
 
       <div class="v-divider"></div>
 
-      <!-- Settings Button -->
-      <button class="btn" onclick="openSetupModal()" style="padding:6px 11px; border-color:var(--border-cyan); color:var(--accent-secondary);" data-i18n-title="top.settings_title" title="開啟連線與系統設定精靈">
-        <span class="icon">⚙️</span> <span data-i18n="top.settings">設定</span>
-      </button>
-
-      <div class="v-divider"></div>
-
       <!-- Admin / Settings Dropdown -->
       <div class="admin-menu-wrap">
         <button class="btn" id="btnAdminMenu" onclick="toggleAdminMenu(event)" style="padding:6px 11px;">
@@ -1198,16 +1191,16 @@
             </div>
           </button>
           <div style="height:1px; background:var(--border-muted); margin:5px 0;"></div>
-          <div class="admin-menu-header" data-i18n="admin.tools_header">快速工具</div>
+          <div class="admin-menu-header" data-i18n="admin.tools_header">快速工具與設定</div>
           <button class="admin-menu-item" onclick="loadFilesExplorer(); closeAdminMenu(); switchTab('fim');">
             <span>🗄️</span>
             <div data-i18n="admin.search_files">檢索 1,786 監控檔案</div>
           </button>
-          <button class="admin-menu-item" onclick="openCfConfigModal(); closeAdminMenu();">
-            <span>🌐</span>
+          <button class="admin-menu-item" onclick="openSetupModal(); closeAdminMenu();">
+            <span>⚙️</span>
             <div>
-              <div style="font-weight:600;" data-i18n="admin.cf_settings">Cloudflare 邊界日誌設定...</div>
-              <div style="font-size:11px; color:#9ca3af;" data-i18n="admin.cf_desc">設定 API Token 撈取刺探情報</div>
+              <div style="font-weight:600;" data-i18n="admin.system_settings">系統連線與參數設定...</div>
+              <div style="font-size:11px; color:#9ca3af;" data-i18n="admin.system_settings_desc">設定 NAS IP、SSH 金鑰與 Cloudflare</div>
             </div>
           </button>
         </div>
@@ -1216,8 +1209,8 @@
       <div class="v-divider"></div>
 
       <!-- Theme Toggle (Dark / Light) -->
-      <button id="theme-toggle" class="btn" onclick="toggleTheme()" data-i18n-title="theme.toggle_title" title="切換深色 / 淺色主題 (Toggle Dark/Light Mode)" aria-label="Toggle Theme" style="padding:6px 11px; min-width:76px; justify-content:center;">
-        <span id="theme-icon">🌙</span> <span id="theme-text">DARK</span>
+      <button id="theme-toggle" class="btn" onclick="toggleTheme()" data-i18n-title="theme.toggle_title" title="切換深色 / 淺色主題 (Toggle Dark/Light Mode)" aria-label="Toggle Theme" style="padding:6px 10px; font-size:15px; justify-content:center; min-width:40px;">
+        <span id="theme-icon">🌙</span>
       </button>
 
       <!-- Language Selector Dropdown (zh-TW, EN, JP) -->
@@ -1955,10 +1948,16 @@
                 <label style="display:block; font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:3px;">Zone ID</label>
                 <input type="text" id="setupCfZone" class="input" placeholder="32 位元 Zone Tag" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
               </div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <input type="checkbox" id="setupCfEnabled" style="width:auto; cursor:pointer;" />
-                <label for="setupCfEnabled" style="font-size:12px; cursor:pointer;">啟用 Cloudflare 邊界安全情報自動排程同步</label>
+              <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <input type="checkbox" id="setupCfEnabled" style="width:auto; cursor:pointer;" />
+                  <label for="setupCfEnabled" style="font-size:12px; cursor:pointer;">啟用 Cloudflare 邊界安全情報自動排程同步</label>
+                </div>
+                <button type="button" class="btn" id="btnTestSetupCf" onclick="testSetupCfConnection()" style="padding:4px 10px; font-size:11.5px; font-weight:600; color:var(--accent-secondary); border-color:var(--border-cyan);">
+                  🧪 測試連線 (Test)
+                </button>
               </div>
+              <div id="setupCfMsg" style="display:none; padding:7px 10px; border-radius:4px; font-size:11.5px; font-family:var(--font-mono);"></div>
             </div>
           </div>
         </div>

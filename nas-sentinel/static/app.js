@@ -38,6 +38,8 @@ const I18N = {
     "admin.rebuild_desc": "將當前狀態寫入為合法基準",
     "admin.tools_header": "快速工具",
     "admin.search_files": "檢索 1,786 監控檔案",
+    "admin.system_settings": "系統連線與參數設定...",
+    "admin.system_settings_desc": "設定 NAS IP、SSH 金鑰與 Cloudflare",
     "admin.cf_settings": "Cloudflare 邊界日誌設定...",
     "admin.cf_desc": "設定 API Token 撈取刺探情報",
     "theme.toggle_title": "切換深色 / 淺色主題 (Toggle Dark/Light Mode)",
@@ -113,6 +115,8 @@ const I18N = {
     "admin.rebuild_desc": "Save current NAS state as golden baseline",
     "admin.tools_header": "Quick Tools",
     "admin.search_files": "Search 1,786 Monitored Files",
+    "admin.system_settings": "System Connection & Settings...",
+    "admin.system_settings_desc": "Configure NAS IP, SSH Key & Cloudflare",
     "admin.cf_settings": "Cloudflare Edge Log Settings...",
     "admin.cf_desc": "Set API Token to pull threat intel",
     "theme.toggle_title": "Toggle Dark / Light Mode",
@@ -188,6 +192,8 @@ const I18N = {
     "admin.rebuild_desc": "現在のNAS状態を正規基準として保存",
     "admin.tools_header": "クイックツール",
     "admin.search_files": "監視対象1,786ファイルを検索",
+    "admin.system_settings": "システム接続・基本設定...",
+    "admin.system_settings_desc": "NAS IP、SSH鍵、Cloudflareを設定",
     "admin.cf_settings": "Cloudflare エッジログ設定...",
     "admin.cf_desc": "APIトークンを設定して脅威情報を取得",
     "theme.toggle_title": "ダーク/ライトテーマ切替",
@@ -363,8 +369,17 @@ function toggleTheme() {
 function updateThemeButtonUI(theme) {
   const icon = document.getElementById("theme-icon");
   const text = document.getElementById("theme-text");
+  const btn = document.getElementById("theme-toggle");
   if (icon) icon.textContent = theme === "light" ? "☀️" : "🌙";
   if (text) text.textContent = theme.toUpperCase();
+  if (btn) {
+    const titles = {
+      "zh-TW": theme === "light" ? "切換至深色主題 (Dark Mode)" : "切換至淺色主題 (Light Mode)",
+      "en": theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode",
+      "jp": theme === "light" ? "ダークモードに切り替える" : "ライトモードに切り替える"
+    };
+    btn.title = titles[currentLang] || titles["zh-TW"];
+  }
 }
 
 function showToast(msg, type = "info") {
@@ -1709,6 +1724,74 @@ function toggleSetupCfSection() {
   const isHidden = sec.style.display === "none" || !sec.style.display;
   sec.style.display = isHidden ? "flex" : "none";
   if (icon) icon.textContent = isHidden ? "▼ 收合" : "▶ 展開";
+}
+
+async function testSetupCfConnection() {
+  const token = (document.getElementById("setupCfToken").value || "").trim();
+  const zone = (document.getElementById("setupCfZone").value || "").trim();
+  const msg = document.getElementById("setupCfMsg");
+  const btn = document.getElementById("btnTestSetupCf");
+
+  if (!token || !zone) {
+    if (msg) {
+      msg.style.display = "block";
+      msg.style.background = "rgba(255, 0, 85, 0.15)";
+      msg.style.color = "#ff6699";
+      msg.style.border = "1px solid #ff0055";
+      msg.textContent = "⚠️ 請填寫 Cloudflare API Token 與 Zone ID";
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ 測試中...";
+  }
+  if (msg) {
+    msg.style.display = "block";
+    msg.style.background = "rgba(0, 229, 255, 0.1)";
+    msg.style.color = "#00e5ff";
+    msg.style.border = "1px solid #00e5ff";
+    msg.textContent = "⏳ 正在向 Cloudflare GraphQL API 驗證 Token 權限...";
+  }
+
+  try {
+    const res = await fetch("/api/cloudflare/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ api_token: token, zone_id: zone, enabled: true, test_only: true }),
+    });
+    const json = await res.json();
+    if (json.ok) {
+      if (msg) {
+        msg.style.background = "rgba(0, 255, 65, 0.15)";
+        msg.style.color = "#00ff41";
+        msg.style.border = "1px solid #00ff41";
+        msg.textContent = "✅ Cloudflare API 連線與權限驗證成功！";
+      }
+      showToast("✅ Cloudflare API 驗證成功", "ok");
+    } else {
+      if (msg) {
+        msg.style.background = "rgba(255, 0, 85, 0.15)";
+        msg.style.color = "#ff6699";
+        msg.style.border = "1px solid #ff0055";
+        msg.textContent = "❌ 驗證失敗: " + (json.error || "無法連線至 Cloudflare");
+      }
+      showToast("❌ Cloudflare 驗證失敗", "danger");
+    }
+  } catch (e) {
+    if (msg) {
+      msg.style.background = "rgba(255, 0, 85, 0.15)";
+      msg.style.color = "#ff6699";
+      msg.style.border = "1px solid #ff0055";
+      msg.textContent = "❌ 網路異常: " + e.message;
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "🧪 測試連線 (Test)";
+    }
+  }
 }
 
 async function testNasConnection() {
