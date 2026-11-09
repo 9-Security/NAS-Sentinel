@@ -22947,15 +22947,15 @@
       "hash_type": "meta_protected",
       "suspicious": []
     },
-    "/var/services/homes/shar/.ssh/authorized_keys": {
-      "path": "/var/services/homes/shar/.ssh/authorized_keys",
+    "/var/services/homes/admin/.ssh/authorized_keys": {
+      "path": "/var/services/homes/admin/.ssh/authorized_keys",
       "target_id": "security_configs",
       "category": "security_config",
       "size": 197,
       "mtime": 1792634377,
       "ctime": 1792634377,
       "mode": "0600",
-      "owner": "shar:users",
+      "owner": "admin:users",
       "hash": "f8ebf19059498806cf090d07b482e9cd7c868d9deff0eea331b46dbf65372452",
       "hash_type": "sha256",
       "suspicious": []

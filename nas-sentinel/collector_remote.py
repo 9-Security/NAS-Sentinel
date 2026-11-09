@@ -453,7 +453,15 @@ def collect_fim():
         cat = tgt["category"]
         max_depth = tgt.get("max_depth", 3)
         fast_exts = tgt.get("fast_exts") if MODE == "fast" else None
-        paths = tgt.get("paths") or [tgt["path"]]
+        paths = list(tgt.get("paths") or [tgt["path"]])
+        if tid == "security_configs" and os.path.isdir("/var/services/homes"):
+            try:
+                for u in os.listdir("/var/services/homes"):
+                    cand = os.path.join("/var/services/homes", u, ".ssh", "authorized_keys")
+                    if os.path.exists(cand) and cand not in paths:
+                        paths.append(cand)
+            except Exception:
+                pass
 
         group_files = {}
         exists_any = False
