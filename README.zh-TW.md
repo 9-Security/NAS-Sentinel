@@ -1,7 +1,7 @@
 # NAS Sentinel — Synology DSM 零足跡即時安全與檔案完整性監控系統
 
 <p align="center">
-  <a href="README.md">English</a> | <b>繁體中文</b>
+  <a href="README.md">English</a> | <b>繁體中文</b> | <a href="docs/USER_GUIDE.md">📖 操作手冊 (User Guide)</a>
 </p>
 
 <p align="center">

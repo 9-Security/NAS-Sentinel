@@ -745,6 +745,92 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
+    /* User Guide Modal Styles */
+    .guide-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border-muted);
+      overflow-x: auto;
+      padding: 0 16px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+    .guide-tab-btn {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+      border-bottom: 2px solid transparent;
+      border-radius: 4px 4px 0 0;
+      padding: 9px 15px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .guide-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .guide-tab-btn.active {
+      color: var(--accent-secondary);
+      border-color: var(--border-cyan) var(--border-cyan) transparent;
+      border-bottom: 2px solid var(--accent-secondary);
+      background: rgba(0, 229, 255, 0.08);
+    }
+    .guide-tab-panel {
+      display: none;
+    }
+    .guide-tab-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .guide-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-muted);
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .guide-card-title {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-family: var(--font-mono);
+    }
+    .guide-step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(0, 229, 255, 0.18);
+      color: var(--accent-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .guide-code-box {
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-muted);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: #00ff41;
+      margin: 6px 0;
+      overflow-x: auto;
+      user-select: all;
+    }
+
     /* Layout Grids */
     .grid-2 {
       display: grid;
@@ -1118,6 +1204,28 @@
     [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
       background: rgba(0, 86, 179, 0.6);
     }
+    [data-theme="light"] .guide-tabs {
+      background: #f1f5f9;
+    }
+    [data-theme="light"] .guide-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    [data-theme="light"] .guide-tab-btn.active {
+      color: #0284c7;
+      border-color: rgba(2, 132, 199, 0.3) rgba(2, 132, 199, 0.3) transparent;
+      border-bottom: 2px solid #0284c7;
+      background: rgba(2, 132, 199, 0.08);
+    }
+    [data-theme="light"] .guide-step-badge {
+      background: rgba(2, 132, 199, 0.15);
+      color: #0284c7;
+    }
+    [data-theme="light"] .guide-code-box {
+      background: #0f172a;
+      color: #38bdf8;
+    }
 
     @media (max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
@@ -1198,6 +1306,13 @@
             <div>
               <div style="font-weight:600;" data-i18n="admin.system_settings">系統連線與參數設定...</div>
               <div style="font-size:11px; color:#9ca3af;" data-i18n="admin.system_settings_desc">設定 NAS IP、SSH 金鑰與 Cloudflare</div>
+            </div>
+          </button>
+          <button class="admin-menu-item" onclick="openGuideModal(); closeAdminMenu();">
+            <span>📖</span>
+            <div>
+              <div style="font-weight:600;" data-i18n="admin.user_guide">系統功能操作手冊...</div>
+              <div style="font-size:11px; color:#9ca3af;" data-i18n="admin.user_guide_desc">快速上手、FIM、inotify 與 Cloudflare 指南</div>
             </div>
           </button>
         </div>
@@ -1972,6 +2087,62 @@
             🛡️ 儲存並進入戰情室 (Save & Launch)
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Dialog for User & Operations Guide -->
+  <div id="userGuideModal" class="modal-overlay" onclick="onGuideModalOverlayClick(event)">
+    <div class="modal-box" style="max-width:860px; max-height:88vh; display:flex; flex-direction:column; padding:0; overflow:hidden; border-color:var(--border-cyan); box-shadow:0 25px 60px rgba(0,0,0,0.85), var(--shadow-glow-cyan);">
+      <!-- Header -->
+      <div class="modal-title" style="padding:16px 20px; border-bottom:1px solid var(--border-muted); margin-bottom:0; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:9px;">
+          <span style="font-size:20px;">📖</span>
+          <span style="font-size:15px; font-weight:700; letter-spacing:0.04em;" data-i18n="guide.modal_title">NAS Sentinel 系統功能操作手冊 (Operations Guide)</span>
+        </div>
+        <button class="btn" onclick="closeGuideModal()" style="padding:2px 8px; font-size:14px; border:none; background:transparent; color:var(--text-muted); cursor:pointer;">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="guide-tabs">
+        <button class="guide-tab-btn active" data-guide-tab="quickstart" onclick="switchGuideTab('quickstart')">
+          <span data-i18n="guide.tab_quickstart">🚀 快速上手</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="fim" onclick="switchGuideTab('fim')">
+          <span data-i18n="guide.tab_fim">🔍 檔案完整性 (FIM)</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="inotify" onclick="switchGuideTab('inotify')">
+          <span data-i18n="guide.tab_inotify">⚡ 即時核心串流</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="cf" onclick="switchGuideTab('cf')">
+          <span data-i18n="guide.tab_cf">🌐 Cloudflare 邊界情資</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="audit" onclick="switchGuideTab('audit')">
+          <span data-i18n="guide.tab_audit">🔌 網路與金鑰審計</span>
+        </button>
+        <button class="guide-tab-btn" data-guide-tab="faq" onclick="switchGuideTab('faq')">
+          <span data-i18n="guide.tab_faq">❓ 常見問題 FAQ</span>
+        </button>
+      </div>
+
+      <!-- Content Panels -->
+      <div class="modal-body" style="padding:20px 24px; overflow-y:auto; flex:1 1 auto; line-height:1.6;">
+        <div id="guidePanel-quickstart" class="guide-tab-panel active" data-i18n="guide.content_quickstart"></div>
+        <div id="guidePanel-fim" class="guide-tab-panel" data-i18n="guide.content_fim"></div>
+        <div id="guidePanel-inotify" class="guide-tab-panel" data-i18n="guide.content_inotify"></div>
+        <div id="guidePanel-cf" class="guide-tab-panel" data-i18n="guide.content_cf"></div>
+        <div id="guidePanel-audit" class="guide-tab-panel" data-i18n="guide.content_audit"></div>
+        <div id="guidePanel-faq" class="guide-tab-panel" data-i18n="guide.content_faq"></div>
+      </div>
+
+      <!-- Actions Footer -->
+      <div class="modal-actions" style="padding:12px 20px; border-top:1px solid var(--border-muted); margin-top:0; justify-content:space-between; align-items:center;">
+        <a href="https://github.com/9-Security/NAS-Sentinel/blob/main/docs/USER_GUIDE.md" target="_blank" rel="noopener noreferrer" class="btn" style="padding:5px 12px; font-size:12px; color:var(--accent-secondary); border-color:var(--border-cyan); text-decoration:none;">
+          🔗 <span data-i18n="guide.btn_github">在 GitHub 閱讀完整技術文檔</span>
+        </a>
+        <button class="btn btn-primary" onclick="closeGuideModal()" style="padding:6px 18px; font-size:12.5px;">
+          <span data-i18n="guide.btn_gotit">我知道了 (Got it)</span>
+        </button>
       </div>
     </div>
   </div>
