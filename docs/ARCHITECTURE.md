@@ -1,141 +1,132 @@
-# NAS Sentinel 系統架構與設計規範 (System Architecture)
+# NAS Sentinel — System Architecture & Design Specification
 
-> **版本**：2.0 (整合 Linux Kernel inotify 串流與 DSM Rootkit 無套件核心引擎)  
-> **最後更新**：2026-11-07  
-> **適用目標**：Synology DS118 (DSM 7.4.1-90080 Update 1, Kernel 4.4.302+ aarch64)  
-> **受控主機**：`shar@10.253.2.126` (Ed25519 SSH 認證)
+<p align="center">
+  <b>English</b> | <a href="ARCHITECTURE.zh-TW.md">繁體中文</a>
+</p>
+
+> **Version**: 2.0 (Integrated Linux Kernel inotify Stream & Package-Free Rootkit Engine)  
+> **Target**: Synology DSM 7.x (DSM 7.0 ~ 7.4+ aarch64 / x86_64)  
+> **Protocol**: Ed25519 / RSA SSH Key Authentication (Zero-Footprint Memory Injection Mode)
 
 ---
 
-## 1. 系統架構總覽
+## 1. System Architecture Overview
 
-NAS Sentinel 是一套專為 Synology NAS 設計的**零足跡 (Zero Footprint)、毫秒級即時檔案完整性 (FIM) 與 Rootkit 防木馬安全監控系統**。
+**NAS Sentinel** is an open-source, **agentless, zero-footprint, millisecond-level File Integrity Monitoring (FIM) and Rootkit / Anti-Trojan security watchdog** specifically designed for **Synology NAS (DSM 7.x)** devices.
 
-主控伺服器常駐於本地端 Windows 主機 (`D:\nas\nas-sentinel\`)，透過 SSH 遠端通道對 NAS 進行完全唯讀的遙測與即時核心事件攔截，提供直觀的即時 Web 儀表板 (`http://127.0.0.1:8088`)。
+The central server runs locally on the monitoring host (`nas-sentinel/`), executing non-interactive, read-only telemetry and kernel event streaming on the remote NAS over an encrypted SSH connection, providing an intuitive, high-tech Web SOC Dashboard (`http://127.0.0.1:8088`).
 
 ```
 +---------------------------------------------------------------------------------+
-| Windows 主機 (127.0.0.1)                                                        |
+| Monitoring Controller (Local Host / 127.0.0.1)                                  |
 |                                                                                 |
-|  [ start-nas-sentinel.bat ] -> 雙擊啟動                                         |
+|  [ start-nas-sentinel.bat ] -> Double-click to launch                           |
 |                                                                                 |
 |  +---------------------------------------------------------------------------+  |
-|  | NAS Sentinel 本地端伺服器 (server.py) : Port 8088                           |  |
-|  |  - Web UI / REST API: /api/status, /api/scan, /api/baseline/reset, ...     |  |
-|  |  - MonitorState: 線程安全記憶體狀態、基線比對、安全評分計算                  |  |
-|  |  - Persistent Storage: data/*.json (FIM, Ports, LKM, Events, History)    |  |
+|  | NAS Sentinel Server (server.py) : Port 8088                               |  |
+|  |  - Web UI / REST API: /api/status, /api/scan, /api/setup/save, ...        |  |
+|  |  - MonitorState: Thread-safe state, baseline auditing, security scoring    |  |
+|  |  - Storage: data/*.json (FIM, Ports, LKM, Events, History)                |  |
 |  +---------------------------------------------------------------------------+  |
-|          | (SSH 非交談式 stdin 串流)               ^ (inotify NDJSON stdout 串流)|
+|          | (SSH non-interactive stdin stream)      ^ (inotify NDJSON stdout stream)|
 +----------|-----------------------------------------|----------------------------+
            v                                         |
 +----------------------------------------------------+----------------------------+
-| Synology DS118 NAS (10.253.2.126)                                               |
+| Synology NAS (Target DSM 7.x Host)                                              |
 |                                                                                 |
-|  1. collector_remote.py (定時 15 秒快速 / 手動深度輪詢)                           |
-|     - 系統遙測: CPU、RAM、溫度、磁碟空間、SMART 狀態                             |
-|     - 網頁與系統 FIM: 掃描 1,786 個關鍵檔案 SHA-256、權限、擁有者與 Webshell    |
-|     - 網路與埠矩陣: netstat 連線與監聽埠比對                                     |
-|     - Rootkit 檢測: 6 大核心檢測 (對標 chkrootkit + rkhunter)                    |
+|  1. collector_remote.py (Periodic 15s Fast / Manual Deep Polling)               |
+|     - Telemetry: CPU, RAM, Temperature, Storage Volume, SMART Health             |
+|     - Web & System FIM: 1,786 critical files SHA-256, permissions, Webshells    |
+|     - Ports & Connections: netstat baseline verification                        |
+|     - Rootkit Checks: 6 core security checks (equivalent to rkhunter/chkrootkit) |
 |                                                                                 |
-|  2. inotify_stream_remote.py (Linux 核心 ctypes 毫秒級事件串流)                 |
-|     - 監聽 254 個目錄 (/etc/nginx, /usr/syno/synoman, /bin, /usr/bin...)        |
-|     - 攔截 CREATE, MODIFY, CLOSE_WRITE, ATTRIB, DELETE, MOVE                    |
-|     - 毫秒級 SHA-256 即時重算，免 auditd、零磁碟寫入                            |
+|  2. inotify_stream_remote.py (Linux Kernel ctypes Real-Time Stream)             |
+|     - Watches 254 directories (/etc/nginx, /usr/syno/synoman, /bin, /usr/bin)   |
+|     - Intercepts CREATE, MODIFY, CLOSE_WRITE, ATTRIB, DELETE, MOVE              |
+|     - Sub-second SHA-256 re-computation, zero packages, zero disk writes        |
 +---------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. 核心模組架構
+## 2. Core Modules Architecture
 
-### 2.1 主控服務器 (`nas-sentinel/server.py`)
-- **Web UI & REST API**：使用 Python 內建 `http.server` 構建高效能非同步 API，支援靜態檔案伺服。
-- **基線引擎**：
-  - `fim_baseline.json`：儲存受保護之 1,786 個網頁伺服器與核心執行檔之 SHA-256、權限、擁有者。
-  - `port_baseline.json`：核准開放之 TCP/UDP 監聽埠矩陣。
-  - `http_baseline.json`：Nginx 80/443/5000/5001 端點回應 SHA-256 與 TLS 憑證指紋。
-  - `lkm_baseline.json`：105 個合法載入之 Linux 核心模組白名單。
-- **事件驅動雙軌制**：
-  - 軌道一：15 秒自動輪詢 (`collector_remote.py`)。
-  - 軌道二：後台長連線 inotify 串流線程，即時攔截檔案事件並在記憶體內毫秒級刷新快照與威脅狀態。
+### 2.1 Central Controller Server (`nas-sentinel/server.py`)
+- **Web UI & REST API**: High-performance HTTP daemon built with Python's standard library, serving static assets and dynamic JSON endpoints.
+- **Baseline Engine**:
+  - `fim_baseline.json`: Stores SHA-256 hashes, file modes, and ownership for 1,786 monitored files.
+  - `port_baseline.json`: Authorized TCP/UDP listening ports matrix.
+  - `http_baseline.json`: Nginx HTTP/HTTPS endpoint response hashes and TLS certificate fingerprints.
+  - `lkm_baseline.json`: Whitelist of legitimate Linux Kernel Modules.
+- **Dual-Track Event Engine**:
+  - **Track 1**: Periodic background polling every 15 seconds (`collector_remote.py`).
+  - **Track 2**: Long-lived background inotify stream thread intercepting file changes in real-time.
 
-### 2.2 遠端遙測與 FIM 採集器 (`nas-sentinel/collector_remote.py`)
-- 透過 `ssh shar@10.253.2.126 "python3 - <mode>"` 將程式碼由 stdin 注入執行，不在 NAS 硬碟遺留任何臨時檔案。
-- 監控範疇：
-  - `/etc/nginx`、`/usr/syno/share/nginx`（Nginx 核心設定）
-  - `/usr/syno/synoman`、`/var/tmp/nginx/html`（DSM 系統網頁管理目錄）
-  - `/volume1/web`（自架網站目錄）
-  - `/bin`、`/usr/bin`、`/usr/sbin`、`/usr/syno/bin`、`/usr/syno/sbin`（20 個系統核心指令）
-  - `/etc/sysctl.d`、`/usr/syno/etc/firewall.d`、`/etc/ssh`（安全防護設定）
-  - `/volume1/public`、`/volume1/tmp`（敏感共享與暫存區）
+### 2.2 Remote Telemetry & FIM Collector (`nas-sentinel/collector_remote.py`)
+- Injected into the remote Python runtime via SSH stdin (`ssh <user>@<host> "python3 - <mode>"`), leaving zero temporary files on the NAS.
+- Monitoring Targets:
+  - `/etc/nginx`, `/usr/syno/share/nginx` (Nginx configuration and templates)
+  - `/usr/syno/synoman`, `/var/tmp/nginx/html` (DSM administration desktop web roots)
+  - `/volume1/web` (User website directories)
+  - `/bin`, `/usr/bin`, `/usr/sbin`, `/usr/syno/bin`, `/usr/syno/sbin` (Critical system binaries)
+  - `/etc/sysctl.d`, `/usr/syno/etc/firewall.d`, `/etc/ssh` (Security configurations)
+  - `/volume1/public`, `/volume1/tmp` (Sensitive shared and temporary directories)
 
-### 2.3 DSM Rootkit 檢測引擎 (6 大檢測項目)
-1. **系統核心執行檔防木馬替換**：比對 `/bin/ps`、`/bin/ls`、`/bin/netstat`、`/usr/bin/sudo` 等 20 個關鍵二進位檔之實體 SHA-256（支援 Symlink 目標本體穿透計算）。
-2. **`LD_PRELOAD` 動態連結器劫持檢測**：監控 `/etc/ld.so.preload` 與全系統 `/proc/<pid>/environ`。
-3. **隱藏幽靈程序與無檔案執行檔交叉比對**：比對 `/proc` 核心 PID 快照與 `ps -eo pid`，檢驗 `/proc/<pid>/exe` 指向 `(deleted)` 或從 `/dev/shm/`、`/tmp/` 執行之程序。
-4. **網卡混雜模式封包竊聽檢測**：讀取 `/sys/class/net/*/flags` 驗證 `IFF_PROMISC` (`0x100`)。
-5. **Linux 核心模組基線比對 (LKM Rootkit)**：動態比對 `/proc/modules` 是否載入非基線未知模組或惡意模組。
-6. **已知 Rootkit 後門路徑與暫存區異常掃描**：比對常見 Rootkit 特徵目錄，並以 Magic Bytes 掃描 `/dev/shm`、`/tmp`、`/var/tmp` 是否出現非預期之 ELF 二進位執行檔。
+### 2.3 DSM Rootkit Detection Engine (6 Core Checks)
+1. **Critical Binary Integrity**: Computes SHA-256 for `/bin/ps`, `/bin/ls`, `/bin/netstat`, `/usr/bin/sudo`, etc., with symlink resolution.
+2. **`LD_PRELOAD` Linker Hijacking**: Audits `/etc/ld.so.preload` and inspects `/proc/<pid>/environ` across all processes.
+3. **Hidden / Fileless Processes**: Cross-references `/proc` PIDs against `ps -eo pid`, flagging deleted binary executions and binaries launched from `/dev/shm` or `/tmp`.
+4. **Promiscuous Interface Detection**: Inspects `/sys/class/net/*/flags` for unauthorized packet sniffing (`IFF_PROMISC` `0x100`).
+5. **LKM Kernel Module Baseline**: Compares active `/proc/modules` against the authorized module whitelist.
+6. **Rootkit Backdoor Artifacts**: Scans for known rootkit signatures and verifies unexpected ELF executables in `/dev/shm`, `/tmp`, and `/var/tmp`.
 
-### 2.4 核心 inotify 串流引擎 (`nas-sentinel/inotify_stream_remote.py`)
-- 利用 Python 內建 `ctypes` 調用 Linux 核心 `libc.so.6` 之 `inotify_init1()`、`inotify_add_watch()` 與 `read()`。
-- 監聽 254 個目錄，支援單檔父目錄過濾監聽（即使檔案遭 `vim`/`sed -i` 進行原子性置換，監聽通道依然不中斷）。
-- 每當捕捉到寫入完成 (`IN_CLOSE_WRITE`) 或修改 (`IN_MODIFY`)，立即於 NAS 記憶體內計算 64KB 分塊 SHA-256 與 Webshell 滑動視窗特徵，輸出單行 JSON (NDJSON) 至 stdout 傳回本地端。
+### 2.4 Real-Time inotify Stream Engine (`nas-sentinel/inotify_stream_remote.py`)
+- Direct invocation of Linux kernel `libc.so.6` inotify syscalls (`inotify_init1`, `inotify_add_watch`, `read`) via Python `ctypes`.
+- Monitors 254 system and web directories. Supports single-file parent directory filtering to maintain watch handles even during atomic text editor replacements (`vim`, `sed -i`).
+- Computes SHA-256 hashes and evaluates sliding-window Webshell heuristic patterns upon write completion (`IN_CLOSE_WRITE`), streaming NDJSON lines back to the controller.
 
-### 2.5 Cloudflare 邊界刺探情資引擎 (`nas-sentinel/cloudflare_intel.py`)
-- 針對 NAS 透過 Cloudflare Tunnel 發布至公網之特性，直連 Cloudflare GraphQL Analytics API (`firewallEventsAdaptive`)。
-- 零硬碟耗損、不開 DSM Nginx access log，直接從全球 Cloudflare 邊界拉取公網對網站目錄的探測掃描（包含 `/.env`、`wp-login`、`phpmyadmin`、`/.git`、Webshell 踩點與惡意爬蟲）。
-- 自動分類攻擊行為（敏感設定檔探測、CMS 漏洞掃描、資料庫後台刺探、版本庫源碼洩漏等）並於 Web 儀表板實時告警。
+### 2.5 Cloudflare Edge Threat Intelligence Engine (`nas-sentinel/cloudflare_intel.py`)
+- Queries Cloudflare GraphQL Analytics API (`firewallEventsAdaptive`).
+- Pulls edge WAF blocks, suspicious bot crawls, and path scans (e.g., `/.env`, `wp-login.php`, `phpmyadmin`, `/.git`) without touching NAS disk I/O.
+- Categorizes threat activities automatically and alerts in the dashboard.
 
 ---
 
-## 3. 專案目錄結構
+## 3. Directory Structure
 
 ```
-D:\nas\
-├── start-nas-sentinel.bat       # Windows 一鍵啟動腳本
-├── README.md                    # 專案說明文件
-├── GEMINI.md                    # AI Agent 專案行為規則與禁止讀取過時檔案指南
-├── AGENTS.md                    # 跨平台 Agent 規範
+nas-sentinel-repo/
+├── start-nas-sentinel.bat       # One-click Windows startup script
+├── README.md                    # Project README (English)
+├── README.zh-TW.md              # Project README (Traditional Chinese)
 │
-├── nas-sentinel/                # [核心主程式目錄]
-│   ├── server.py                # 本地端 HTTP 伺服器、狀態管理與 REST API
-│   ├── collector_remote.py      # NAS 遠端唯讀遙測、FIM 與 Rootkit 採集腳本
-│   ├── inotify_stream_remote.py # NAS 遠端 Linux 核心 inotify 串流引擎
-│   ├── cloudflare_intel.py      # Cloudflare 邊界 GraphQL 刺探情資客戶端
-│   ├── static/                  # Web 前端介面
-│   │   ├── index.html           # 視覺化儀表板 (Nine-Security Cyber SOC 風格)
-│   │   ├── app.js               # 前端控制器與即時輪詢邏輯
-│   │   ├── logo_v2.png          # Nine-Security 官方高解析度 Logo
-│   │   └── favicon.png          # 官方 Favicon
-│   └── data/                    # 監控資料與基線儲存區
-│       ├── fim_baseline.json    # 1,786 個檔案之完整性基準
-│       ├── port_baseline.json   # 網路監聽埠基準
-│       ├── http_baseline.json   # Web 端點回應基準
-│       ├── lkm_baseline.json    # 105 個核心模組基準
-│       ├── events.json          # 安全事件日誌
-│       ├── inotify_events.json  # inotify 毫秒事件日誌
-│       ├── cloudflare_config.json # Cloudflare API 權杖與 Zone 設定
-│       ├── cloudflare_events.json # 邊界刺探歷史情資紀錄
-│       └── history.json         # 趨勢圖歷史數據
+├── nas-sentinel/                # [Core Application Directory]
+│   ├── server.py                # Local server, state engine & REST API
+│   ├── collector_remote.py      # Remote read-only telemetry & FIM collector
+│   ├── inotify_stream_remote.py # Remote real-time inotify stream engine
+│   ├── cloudflare_intel.py      # Cloudflare GraphQL edge intel client
+│   ├── static/                  # Web Frontend
+│   │   ├── index.html           # Cyber SOC Dashboard
+│   │   ├── app.js               # Frontend controller & polling logic
+│   │   ├── logo_v2.png          # High-resolution Logo
+│   │   └── favicon.png          # Favicon
+│   └── data/                    # Storage and Baseline Files
+│       ├── config.example.json  # Configuration template
+│       ├── fim_baseline.json    # 1,786-file golden baseline
+│       ├── port_baseline.json   # Network listening ports baseline
+│       ├── http_baseline.json   # Web endpoints baseline
+│       └── lkm_baseline.json    # Kernel modules baseline
 │
-├── docs/                        # [專案文件目錄]
-│   ├── ARCHITECTURE.md          # 系統架構與設計規範 (本文件，最新權威來源)
-│   └── historical-audit-20261022/ # 歷史審計歸檔區 (2026-10-22 過時資料，僅供考古)
-│       ├── README.md            # 歷史歸檔警示說明
-│       ├── *.md                 # 歷史盤點報告
-│       └── *.txt, *.json, *.log # 歷史原始探測日誌
-│
-└── scripts/                     # [輔助與歷史腳本目錄]
-    └── legacy-audit-20261022/   # 2026-10-22 手動加固使用之一次性 Shell / Python 腳本
+└── docs/                        # [Documentation]
+    ├── ARCHITECTURE.md          # Architecture specification (English)
+    ├── ARCHITECTURE.zh-TW.md    # Architecture specification (Traditional Chinese)
+    ├── USER_GUIDE.md            # Feature & operations guide (English)
+    └── USER_GUIDE.zh-TW.md      # Feature & operations guide (Traditional Chinese)
 ```
 
 ---
 
-## 4. 運行與維護指引
+## 4. Operation & Maintenance
 
-- **背景常駐啟動**：雙擊 `D:\nas\start-nas-sentinel.bat`（採用 `pythonw.exe` 於系統純背景常駐，無黑視窗，關閉終端機或 agy 均不受影響），瀏覽器自動開啟 `http://127.0.0.1:8088`。
-- **開機自啟動服務**：雙擊 `D:\nas\install-autostart-service.bat`，系統會自動在 Windows 工作排程器註冊常駐工作 `NAS-Sentinel`，開機登入 Windows 即自動運行。
-- **停止背景服務**：雙擊 `D:\nas\stop-nas-sentinel.bat`，自動終止監聽 8088 埠之背景程序。
-- **解除開機自啟**：雙擊 `D:\nas\uninstall-autostart-service.bat`。
-- **重建基線**：當合法更新 DSM 韌體或修改 Web 設定後，點擊儀表板右上角「🛡️ 重建安全基線」按鈕或呼叫 `POST /api/baseline/reset`。
+- **Start**: Double-click `start-nas-sentinel.bat` to launch in the background. The browser opens `http://127.0.0.1:8088`.
+- **Rebuild Baseline**: When DSM is legitimately upgraded or web configurations are intentionally altered, navigate to **Admin ➔ Rebuild Baseline** or send `POST /api/baseline/reset` to capture a new golden reference.

@@ -1,7 +1,7 @@
 # NAS Sentinel — Zero-Footprint Real-Time Security & File Integrity Monitoring for Synology DSM
 
 <p align="center">
-  <b>English</b> | <a href="README.zh-TW.md">繁體中文</a> | <a href="docs/USER_GUIDE.md">📖 操作手冊 (User Guide)</a>
+  <b>English</b> | <a href="README.zh-TW.md">繁體中文</a> | <a href="docs/USER_GUIDE.md">📖 User Guide</a> | <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a>
 </p>
 
 <p align="center">

@@ -1,115 +1,120 @@
-# NAS Sentinel 功能操作與使用指南 (Feature & Operations Guide)
+# NAS Sentinel — Feature & Operations Guide
 
-本手冊為 **NAS Sentinel** 的完整功能操作與維運指引，涵蓋系統架構原理、快速上手配置、雙遙測引擎操作、安全基準維護及常見問題排查。
+<p align="center">
+  <b>English</b> | <a href="USER_GUIDE.zh-TW.md">繁體中文</a>
+</p>
 
----
-
-## 1. 🚀 快速上手 (Quick Start)
-
-### 1.1 系統運作架構
-NAS Sentinel 採用**主從式無足跡架構 (Agentless Zero-Footprint)**：
-* **控制端 (Local / Windows)**：本地端 Python 伺服器運行於 `http://127.0.0.1:8088`，負責儀表板呈現、基線比對、警報推播與歷史持久化。
-* **受控端 (Synology NAS)**：不需在 NAS 上安裝任何套件（如 auditd, gcc 等），亦不在 NAS 磁碟或根目錄落檔。所有採集指令與腳本均透過 SSH stdin 注入記憶體中執行，輸出由 stdout 導回本地。
-
-### 1.2 首次連線設定
-1. 點擊右上角「**⚙️ 管理 ▾**」➔「**⚙️ 系統連線與參數設定...**」。
-2. 填寫您的 **NAS IP**（如 `192.168.1.100`）與 **SSH 登入帳號**（如 `admin`）。
-3. **自訂 SSH Port**：若您的 NAS 變更過 SSH 監聽埠（例如 `2222`、`5022`），請在此填入對應埠號。
-4. **SSH 金鑰配置**：
-   - 點擊「**🔑 產生專用 Ed25519 金鑰**」，系統會自動在本地端 `data/` 目錄建立高強度非對稱金鑰。
-   - 展開「**快速授權指令**」，複製單行 Shell 指令，貼入 NAS 終端機執行一次即可完成公鑰授權。
-5. 點擊「**🧪 測試 NAS 連線**」，確認連線成功且回傳 NAS 核心與 DSM 版本後，點擊「**🛡️ 儲存並進入戰情室**」。
+This manual provides a comprehensive operational guide for **NAS Sentinel**, detailing architecture principles, initial setup, dual telemetry engines, baseline management, and troubleshooting.
 
 ---
 
-## 2. 🔍 網頁與系統檔案完整性監控 (FIM & Scan)
+## 1. 🚀 Quick Start
 
-### 2.1 掃描模式差異
-* **快速掃描 (Fast Scan ~0.4 秒)**：
-  - 聚焦於高危險副檔名（`.php`, `.sh`, `.cgi`, `.conf`, `.mustache` 等）以及關鍵設定檔（`/etc/passwd`, `/etc/sudoers`, `/etc/ssh/sshd_config`, `authorized_keys`）。
-  - 適合由背景排程（預設每 15 秒）高頻自動探測。
-* **深度掃描 (Deep Scan ~3.5 秒)**：
-  - 對全量 DSM 網頁樹（1,786 檔）與核心二進位執行檔進行完整的 **SHA-256 雜湊值** 計算與對比。
-  - 偵測檔案是否被駭客置換木馬、植入隱蔽後門或變更擁有者權限。
+### 1.1 Architecture & Principles
+NAS Sentinel employs an **agentless, zero-footprint architecture**:
+* **Controller (Local Host / Windows)**: The local Python server runs on `http://127.0.0.1:8088`, managing dashboard presentation, baseline verification, alert dispatching, and historical telemetry persistence.
+* **Target (Synology NAS)**: Zero packages required (no auditd, gcc, etc.). Zero temporary files are written to NAS disks or the root partition `/`. All telemetry scripts are executed via non-interactive SSH stdin in memory, streaming results back through stdout.
 
-### 2.2 檢索監控檔案清單
-- 點擊「**⚙️ 管理 ▾**」➔「**🗄️ 檢索 1,786 監控檔案**」。
-- 可在「檔案完整性監控」分頁中即時過濾、搜尋所有受監控檔案的完整路徑、檔案大小、修改時間 (mtime) 與 SHA-256 雜湊碼。
-
-### 2.3 何時需要「重建安全基線」？
-* 當發生下列**合法維護操作**時，系統會因偵測到檔案變更而觸發警報：
-  1. 剛完成 Synology DSM 官方韌體更新。
-  2. 合法安裝或更新套件（如 Web Station、File Station、Python）。
-  3. 管理員主動編輯了合法設定檔或更新了 SSH 公鑰。
-* **操作步驟**：
-  1. 點擊右上角「**⚙️ 管理 ▾**」➔「**🛡️ 重建安全基線...**」。
-  2. 閱讀確認事項後點擊「**⚠️ 確認重建基準**」。
-  3. 系統將以當前狀態作為全新的「安全黃金基準 (Golden Baseline)」，並清除先前的異動警報。
+### 1.2 Initial Setup & Configuration
+1. Open the dashboard and click **"⚙️ Admin ▾" ➔ "⚙️ System Connection & Settings..."**.
+2. Enter your **NAS IP** (e.g. `192.168.1.100`) and **SSH Username** (e.g. `admin`, must belong to the `administrators` group).
+3. **Custom SSH Port**: If your NAS uses a custom SSH port (e.g. `2222` or `5022`), specify it in the port input.
+4. **SSH Key Setup**:
+   - Click **"🔑 Generate Dedicated Ed25519 Key"** to auto-generate a strong private/public key pair in the local `data/` directory.
+   - Expand the **Quick Authorization Command**, copy the single-line script, and paste it into your NAS terminal once.
+5. Click **"🧪 Test NAS Connection"** to verify communication and fetch DSM / Linux kernel versions, then click **"🛡️ Save & Launch"**.
 
 ---
 
-## 3. ⚡ 即時核心事件串流 (inotify Kernel Stream)
+## 2. 🔍 File Integrity Monitoring (FIM & Scan)
 
-### 3.1 毫秒級事件捕捉原理
-除了週期性輪詢外，NAS Sentinel 支援即時核心串流引擎：
-- 透過 Linux 核心 `inotify` 機制，在檔案被 `IN_CLOSE_WRITE`（寫入完成）、`IN_MOVED_TO`（檔案移入）、`IN_CREATE`（建立）或 `IN_ATTRIB`（權限/屬性變更）的**毫秒瞬間**即時回傳告警。
+### 2.1 Scan Modes
+* **Fast Scan (~0.4s)**:
+  - Focuses on high-risk web extensions (`.php`, `.sh`, `.cgi`, `.conf`, `.mustache`) and key security configs (`/etc/passwd`, `/etc/sudoers`, `/etc/ssh/sshd_config`, `authorized_keys`).
+  - Suitable for automated background polling (default: every 15 seconds).
+* **Deep Scan (~3.5s)**:
+  - Computes complete **SHA-256 hashes** across all 1,786 DSM web files and critical system binaries.
+  - Detects stealthy trojan replacements, unauthorized code alterations, or file ownership tampering.
 
-### 3.2 內建即時威脅特徵庫
-* **Webshell 動態啟發式偵測**：
-  - 針對上傳至 `/volume1/public`、`/volume1/tmp` 或 DSM 網頁目錄的檔案，即時掃描特徵字串（如 `eval(base64_decode(...))`、`passthru`、`shell_exec`、`assert`）。
-* **SUID 提權監控**：
-  - 偵測是否有二進位程式被賦予 `chmod +s` 提權旗標，防止本機權限提升攻擊。
-* **授權金鑰偷渡防護**：
-  - 任何對 `~/.ssh/authorized_keys` 或 `/root/.ssh/authorized_keys` 的非法寫入皆會立即觸發最高危險警報。
+### 2.2 Search Monitored Files
+- Click **"⚙️ Admin ▾" ➔ "🗄️ Search 1,786 Monitored Files"**.
+- In the FIM tab, quickly filter and inspect full paths, file sizes, modification timestamps (mtime), and SHA-256 hashes.
 
----
-
-## 4. 🌐 Cloudflare 邊界日誌監控 (Edge Intel)
-
-### 4.1 邊界刺探情資價值
-* 將攻擊者對您網域的「惡意路徑爆破」與「WAF 攔截事件」擋在 Cloudflare 全球 CDN 邊界，完全不耗損 NAS 本地硬碟 I/O 與 CPU 算力。
-* 即時統計外部攻擊來源 IP、攻擊國家、目標惡意目錄（如 `/.git/config`、`/wp-login.php`、`/.env`）與 WAF 觸發規則。
-
-### 4.2 設定步驟
-1. 進入 Cloudflare Dashboard ➔ **My Profile** ➔ **API Tokens**。
-2. 建立具備 **`Zone - Analytics - Read`** 單一唯讀權限的 API Token。
-3. 進入網域主頁（Overview），從右下方複製 **Zone ID**（32 位元字串）。
-4. 開啟「**⚙️ 管理 ▾**」➔「**系統連線與參數設定...**」，展開 Cloudflare 區塊填入資訊。
-5. 點擊「**🧪 測試連線**」驗證無誤後勾選「啟用自動同步」，點擊儲存即可開始每 60 秒排程拉取情資。
+### 2.3 When to "Rebuild Baseline"?
+* Legitimate system modifications will raise file change alerts:
+  1. Immediately after a Synology DSM firmware update.
+  2. Installing or updating official Synology packages (e.g. Web Station, Python).
+  3. Legitimate administrator edits to configuration files or SSH keys.
+* **Procedure**:
+  1. Click **"⚙️ Admin ▾" ➔ "🛡️ Rebuild Baseline..."**.
+  2. Review the confirmation checklist and click **"⚠️ Confirm Rebuild Baseline"**.
+  3. The system captures the current clean state as the new Golden Baseline and clears anomaly alerts.
 
 ---
 
-## 5. 🔌 網路監聽埠與帳號安全審計
+## 3. ⚡ Real-Time inotify Kernel Stream
 
-### 5.1 監聽埠矩陣 (Listening Ports Matrix)
-* **基準比對機制**：系統內建受信任的網路監聽埠基準（如 SSH、DSM HTTP 5000/5001、Nginx 80/443）。
-* **異常標紅**：若有未授權程序開啟了未知埠（如反向 Shell 監聽埠 4444、9999 或惡意代理），該監聽埠將立即標紅並列入告警清單。
+### 3.1 Millisecond-Level Event Interception
+In addition to periodic polling, NAS Sentinel features a continuous inotify kernel stream:
+- Directly utilizes Linux kernel `inotify` syscalls to intercept `IN_CLOSE_WRITE` (file write complete), `IN_MOVED_TO` (file moved in), `IN_CREATE` (file created), and `IN_ATTRIB` (permissions changed).
+- Alerts are dispatched to the dashboard within milliseconds.
 
-### 5.2 活動工作階段 (utmp) 與公鑰指紋
-* **目前活動登入**：解析 `/var/run/utmp`，即時呈現目前連線中的終端機 (TTY)、來源 IP 與登入時間。
-* **授權公鑰指紋**：自動掃描各用戶目錄下的 `authorized_keys`，核算並列出 SHA-256 指紋前 16 碼，方便管理員隨時盤點是否有幽靈金鑰偷渡。
-
----
-
-## 6. 🎨 主題切換與多語系支援
-
-* **主題切換 (Dark / Light)**：
-  - 點選右上角圖示（`🌙` / `☀️`）即時切換。
-  - 深色主題採用 Cyberpunk 暗黑綠光；淺色主題對齊 Nine-Security 官方標準，透過 180° 色相翻轉技術提供清晰專業的科技商務藍視覺。
-* **多語系切換 (zh-TW / EN / JP)**：
-  - 點選右上角 `🌐 語系選單`，支援 **繁體中文 (TW)**、**English (EN)**、**日本語 (JP)** 三語系即時無縫切換。
+### 3.2 Built-In Threat Heuristics
+* **Dynamic Webshell Detection**:
+  - Automatically inspects files written to `/volume1/public`, `/volume1/tmp`, or DSM web directories for backdoor patterns (e.g., `eval(base64_decode(...))`, `passthru`, `shell_exec`, `assert`).
+* **SUID Privilege Escalation**:
+  - Flags unauthorized binaries granted `chmod +s` execution flags.
+* **Key Injection Defense**:
+  - Traps unauthorized writes to `~/.ssh/authorized_keys` or `/root/.ssh/authorized_keys` in real time.
 
 ---
 
-## 7. ❓ 常見問題排查 (FAQ)
+## 4. 🌐 Cloudflare Edge Threat Intelligence
 
-### Q1：戰情室突然跳出「🚨 偵測到檔案完整性異常」紅框警報？
-1. 檢視首頁的「**檔案異動警報**」表格，確認變更檔案的路徑與修改時間。
-2. **若為本人合法操作**（如剛剛升級 DSM 或編輯設定）：點選「**管理 ➔ 重建安全基線**」即可消除警報。
-3. **若非本人操作**：請立即切斷 NAS 對外連線，檢查該檔案內容並檢查 utmp 登入紀錄。
+### 4.1 Edge Threat Visibility
+* Blocks malicious path scans and WAF violations at Cloudflare's global edge before traffic reaches your NAS, eliminating disk I/O and CPU overhead.
+* Tracks attacker IPs, geographic origin, target malicious paths (e.g. `/.git/config`, `/wp-login.php`, `/.env`), and WAF rules triggered.
 
-### Q2：為什麼快速掃描只需 0.4 秒？會不會漏掉變更？
-- 快速掃描採取目標化設計，直接比對檔案大小與修改時間 (mtime)，並針對核心 Web 執行檔比對雜湊。配合每 15 秒的高頻輪詢與 inotify 核心串流，既確保 0 延遲又保證 CPU 耗用小於 1%。
+### 4.2 Configuration Steps
+1. Navigate to Cloudflare Dashboard ➔ **My Profile** ➔ **API Tokens**.
+2. Create an API Token with a single read-only permission: **`Zone - Analytics - Read`**.
+3. Go to your domain overview page and copy the 32-character **Zone ID** from the bottom right.
+4. Open **"⚙️ Admin ▾" ➔ "System Connection & Settings..."** and expand the Cloudflare section.
+5. Click **"🧪 Test Connection"** to verify your Token and Zone ID before saving. Check "Enable automatic sync" to poll threat intel every 60 seconds.
 
-### Q3：如何手動停止或重新啟動 NAS Sentinel 伺服器？
-- 本地伺服器為獨立進程，直接關閉終端機或重新執行根目錄下的 [`start-nas-sentinel.bat`](file:///D:/nas/start-nas-sentinel.bat) 即可。
+---
+
+## 5. 🔌 Network Ports & Security Auditing
+
+### 5.1 Listening Ports Matrix
+* **Baseline Verification**: Maintains a trusted baseline of legitimate ports (SSH 22, DSM 5000/5001, Nginx 80/443).
+* **Rogue Port Detection**: Any unknown listening port opened by rogue background services or reverse shells (e.g. 4444, 9999) is immediately highlighted in red.
+
+### 5.2 Active Sessions (utmp) & Key Fingerprints
+* **Active Logins**: Parses `/var/run/utmp` in real-time, detailing active terminals (TTY), client IPs, and login timestamps.
+* **SSH Public Key Auditing**: Audits `authorized_keys` across user home directories, computing 16-character SHA-256 fingerprint prefixes to expose unauthorized backdoor keys.
+
+---
+
+## 6. 🎨 Themes & Multilingual Support
+
+* **Dark / Light Mode Toggle**:
+  - Click the top-right icon (`🌙` / `☀️`) to switch instantly.
+  - Dark mode delivers a cyberpunk green SOC aesthetic; Light mode leverages 180° hue rotation to deliver clean, corporate blue (#0056b3) visuals matching Nine-Security standards.
+* **Language Selector (zh-TW / EN / JP)**:
+  - Click the top-right `🌐 Language Selector` to seamlessly switch between **Traditional Chinese (TW)**, **English (EN)**, and **Japanese (JP)**.
+
+---
+
+## 7. ❓ Frequently Asked Questions (FAQ)
+
+### Q1: An alert banner says "🚨 File Integrity or Security Anomaly Detected!". What should I do?
+1. Inspect the "File Change Alerts" table to verify the modified paths and timestamps.
+2. **If it was your legitimate action** (e.g., DSM update or config change): Click **"⚙️ Admin ▾ ➔ Rebuild Baseline"** to acknowledge.
+3. **If unexpected**: Disconnect the NAS from external networks, inspect active utmp sessions, and quarantine suspicious files immediately.
+
+### Q2: Why does a Fast Scan take only 0.4s? Does it miss changes?
+- Fast Scan targets high-risk extensions and critical security configurations while verifying mtime and size. Combined with real-time inotify streaming, it achieves zero-latency defense with less than 1% CPU utilization.
+
+### Q3: How do I stop or restart the service?
+- The local server is an independent process. Close the command window to stop; double-click [`start-nas-sentinel.bat`](file:///D:/nas/start-nas-sentinel.bat) to relaunch.
