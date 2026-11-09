@@ -73,16 +73,26 @@ WATCH_TARGETS = [
 ]
 
 # Parent directories watched with specific filename filter (survives atomic rename/vim/sed -i)
+_user_ssh = os.path.expanduser("~/.ssh")
 FILTERED_DIR_TARGETS = [
     ("/etc/ssh", {"sshd_config"}, "security_config", "security_configs"),
     ("/etc", {"crontab", "chrony.conf.user", "ld.so.preload", "ld.so.conf"}, "security_config", "security_configs"),
-    ("/var/services/homes/shar/.ssh", {"authorized_keys"}, "security_config", "security_configs"),
+    (_user_ssh, {"authorized_keys"}, "security_config", "security_configs"),
+    ("/root/.ssh", {"authorized_keys"}, "security_config", "security_configs"),
     ("/bin", {"sh", "bash", "ps", "ls", "netstat", "login", "kmod"}, "system_binary", "system_binaries"),
     ("/usr/bin", {"sshd", "sudo", "nginx", "find", "top", "kill", "sha256sum"}, "system_binary", "system_binaries"),
     ("/usr/sbin", {"ip", "lsmod", "tcpdump", "aa-status"}, "system_binary", "system_binaries"),
     ("/usr/syno/bin", {"synowebapi"}, "system_binary", "system_binaries"),
     ("/usr/syno/sbin", {"synotifyd"}, "system_binary", "system_binaries"),
 ]
+if os.path.exists("/var/services/homes"):
+    try:
+        for _udir in os.listdir("/var/services/homes"):
+            _ssh_cand = os.path.join("/var/services/homes", _udir, ".ssh")
+            if os.path.isdir(_ssh_cand) and _ssh_cand != _user_ssh:
+                FILTERED_DIR_TARGETS.append((_ssh_cand, {"authorized_keys"}, "security_config", "security_configs"))
+    except Exception:
+        pass
 
 KNOWN_DSM_SPECIAL_FILES = {
     "/usr/syno/synoman/webapi/otp.cgi",

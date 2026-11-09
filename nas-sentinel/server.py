@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 r"""
-NAS Sentinel - Local Monitoring & File Integrity Server for Synology NAS (10.253.2.126)
-Runs locally on Windows (D:\nas\nas-sentinel\server.py) and serves a real-time Web UI on http://127.0.0.1:8088
+NAS Sentinel - Local Monitoring & File Integrity Server for Synology NAS
+Runs locally (server.py) and serves a real-time Web UI on http://127.0.0.1:8088
 Includes both periodic SSH telemetry + real-time Linux kernel inotify millisecond event streaming.
 """
 import copy
@@ -11,6 +11,7 @@ import http.client
 import json
 import os
 from pathlib import Path
+import re
 import ssl
 import subprocess
 import sys
@@ -50,8 +51,8 @@ CONFIG_EXAMPLE_FILE = DATA_DIR / "config.example.json"
 def load_app_config() -> dict:
     default_config = {
         "is_configured": False,
-        "nas_host": os.environ.get("NAS_HOST", "10.253.2.126"),
-        "nas_user": os.environ.get("NAS_USER", "shar"),
+        "nas_host": os.environ.get("NAS_HOST", "192.168.1.100"),
+        "nas_user": os.environ.get("NAS_USER", "admin"),
         "nas_port": int(os.environ.get("NAS_PORT", "22")),
         "ssh_key_path": os.environ.get("SSH_KEY_PATH", ""),
         "web_host": os.environ.get("MONITOR_HOST", "127.0.0.1"),
@@ -93,6 +94,11 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
     if not host or not user:
         return {"ok": False, "error": "NAS 主機 IP 與 SSH 帳號不能為空"}
 
+    if not re.match(r"^[a-zA-Z0-9_.-]+$", user):
+        return {"ok": False, "error": "帳號名稱僅能包含英數字、底線或破折號 (Invalid username)"}
+    if not re.match(r"^[a-zA-Z0-9_.:-]+$", host):
+        return {"ok": False, "error": "NAS 主機僅能包含合法 IP、網域或主機名稱 (Invalid host)"}
+
     cmd = [
         "ssh",
         "-o", "BatchMode=yes",
@@ -105,6 +111,7 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
         exp = os.path.expanduser(key_path)
         if os.path.exists(exp):
             cmd.extend(["-i", exp])
+    cmd.append("--")
     cmd.append(f"{user}@{host}")
     cmd.append("uname -s -m -r; python3 -V; cat /etc.defaults/VERSION 2>/dev/null || cat /etc/VERSION 2>/dev/null")
 
@@ -167,8 +174,8 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
 
 
 INITIAL_CONFIG = load_app_config()
-NAS_HOST = INITIAL_CONFIG.get("nas_host", "10.253.2.126")
-NAS_USER = INITIAL_CONFIG.get("nas_user", "shar")
+NAS_HOST = INITIAL_CONFIG.get("nas_host", "192.168.1.100")
+NAS_USER = INITIAL_CONFIG.get("nas_user", "admin")
 LISTEN_HOST = INITIAL_CONFIG.get("web_host", "127.0.0.1")
 LISTEN_PORT = int(INITIAL_CONFIG.get("web_port", 8088))
 POLL_INTERVAL_SEC = int(INITIAL_CONFIG.get("poll_interval_sec", 15))
@@ -192,6 +199,7 @@ def build_ssh_cmd(remote_cmd: str, timeout: int = 8) -> list:
             cmd.extend(["-i", exp])
     user = cfg.get("nas_user") or "admin"
     host = cfg.get("nas_host") or "127.0.0.1"
+    cmd.append("--")
     cmd.append(f"{user}@{host}")
     cmd.append(remote_cmd)
     return cmd

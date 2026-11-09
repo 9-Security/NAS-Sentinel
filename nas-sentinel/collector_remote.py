@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Remote read-only collector executed on Synology NAS over SSH stdin:
-    ssh shar@10.253.2.126 "python3 - fast" < collector_remote.py
-    ssh shar@10.253.2.126 "python3 - deep" < collector_remote.py
+    ssh <NAS_USER>@<NAS_IP> "python3 - fast" < collector_remote.py
+    ssh <NAS_USER>@<NAS_IP> "python3 - deep" < collector_remote.py
 
 Zero footprint on NAS: writes no files, modifies no state, outputs JSON to stdout.
 Includes Web Server FIM, Network/Port Matrix, and DSM Rootkit Scanner (chkrootkit + rkhunter checks).
@@ -151,7 +151,8 @@ FIM_TARGETS = [
             "/etc/crontab",
             "/etc/chrony.conf.user",
             "/etc/ld.so.conf",
-            "/var/services/homes/shar/.ssh/authorized_keys",
+            os.path.expanduser("~/.ssh/authorized_keys"),
+            "/root/.ssh/authorized_keys",
         ],
         "max_depth": 2,
         "category": "security_config",
@@ -787,21 +788,37 @@ def collect_services_and_security():
     except Exception:
         pass
 
-    ak_path = "/var/services/homes/shar/.ssh/authorized_keys"
     ssh_keys = []
-    if os.path.exists(ak_path):
+    seen_fps = set()
+    ak_candidates = [
+        os.path.expanduser("~/.ssh/authorized_keys"),
+        "/root/.ssh/authorized_keys",
+    ]
+    if os.path.exists("/var/services/homes"):
         try:
-            with open(ak_path, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        parts = line.split()
-                        comment = parts[2] if len(parts) > 2 else "no-comment"
-                        ktype = parts[0]
-                        key_fp = hashlib.sha256(line.encode()).hexdigest()[:16]
-                        ssh_keys.append({"type": ktype, "comment": comment, "id": key_fp})
+            for udir in os.listdir("/var/services/homes"):
+                ak_cand = os.path.join("/var/services/homes", udir, ".ssh", "authorized_keys")
+                if ak_cand not in ak_candidates:
+                    ak_candidates.append(ak_cand)
         except Exception:
             pass
+
+    for ak_path in ak_candidates:
+        if os.path.exists(ak_path):
+            try:
+                with open(ak_path, "r", encoding="utf-8", errors="ignore") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#"):
+                            parts = line.split()
+                            comment = parts[2] if len(parts) > 2 else "no-comment"
+                            ktype = parts[0]
+                            key_fp = hashlib.sha256(line.encode()).hexdigest()[:16]
+                            if key_fp not in seen_fps:
+                                seen_fps.add(key_fp)
+                                ssh_keys.append({"type": ktype, "comment": comment, "id": key_fp})
+            except Exception:
+                pass
 
     sessions = []
     if os.path.exists("/var/run/utmp"):
