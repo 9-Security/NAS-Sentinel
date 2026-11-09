@@ -4,12 +4,368 @@ let pollInterval = 3;
 let countdown = 3;
 let currentSnapshot = null;
 let searchTimer = null;
+let currentLang = "zh-TW";
 
 // Anti-Fooling & Concurrency Controls
 let isOperationBusy = false;
 let lastScanCompletedTime = 0;
 let lastPollToggleTime = 0;
 let toastTimeout = null;
+
+// ==========================================
+// Multilingual Translation Dictionary (I18N)
+// Compatible with Nine-Security Standards
+// ==========================================
+const I18N = {
+  "zh-TW": {
+    "brand.sub_default": "主機: NAS123 • 載入中...",
+    "brand.threat_init": "連線初檢中...",
+    "poll.active": "自動輪詢",
+    "poll.paused": "輪詢暫停",
+    "poll.toggle_title": "點擊切換 自動定時輪詢 / 暫停",
+    "poll.toast_active": "⏱️ 已開啟背景自動輪詢 (每 15 秒更新一次)",
+    "poll.toast_paused": "⏸️ 背景自動輪詢已暫停 (手動模式)",
+    "scan.fast": "快速掃描",
+    "scan.fast_title": "快速掃描：核心系統設定、關鍵網頁與開放埠 (約 0.8 秒)",
+    "scan.deep": "🔍 深度",
+    "scan.deep_title": "深度掃描：全量 DSM 網頁樹與 1,786 檔完整 SHA-256 (約 3.5 秒)",
+    "scan.busy_toast": "⚠️ 目前已有掃描或系統作業正在進行中，請稍候...",
+    "top.settings": "設定",
+    "top.settings_title": "開啟連線與系統設定精靈",
+    "top.admin": "⚙️ 管理 ▾",
+    "admin.baseline_header": "安全基準維護",
+    "admin.rebuild_baseline": "重建安全基線...",
+    "admin.rebuild_desc": "將當前狀態寫入為合法基準",
+    "admin.tools_header": "快速工具",
+    "admin.search_files": "檢索 1,786 監控檔案",
+    "admin.cf_settings": "Cloudflare 邊界日誌設定...",
+    "admin.cf_desc": "設定 API Token 撈取刺探情報",
+    "theme.toggle_title": "切換深色 / 淺色主題 (Toggle Dark/Light Mode)",
+    "lang.toggle_title": "切換語系 (Select Language)",
+    "alert.banner_title": "🚨 偵測到檔案完整性或安全異常！",
+    "alert.banner_desc": "請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。",
+    "alert.btn_details": "查看檔案異動詳情",
+    "kpi.fim_title": "網頁與系統檔案監控 (FIM)",
+    "kpi.web_title": "Nginx 網頁端點與 HTTPS 探測",
+    "kpi.net_title": "監聽埠與外部網路連線",
+    "kpi.cpu_title": "CPU 負載與系統溫度",
+    "kpi.mem_title": "記憶體與 Swap 使用率",
+    "kpi.disk_title": "儲存空間 (/volume1) 與服務",
+    "kpi.status_ok": "正常",
+    "kpi.status_warn": "異常",
+    "kpi.status_crit": "緊急",
+    "kpi.baseline_ok": "符合基線",
+    "kpi.smart_ok": "SMART 通過",
+    "kpi.smart_warn": "SMART 警告",
+    "tabs.overview": "📊 即時視覺化總覽與告警",
+    "tabs.fim": "🕸️ 網頁伺服器與檔案完整性 (FIM)",
+    "tabs.network": "🌐 網路連線與監聽埠矩陣",
+    "tabs.security": "🕵️ Rootkit 偵測、登入活動與守護程序",
+    "overview.trend_title": "📈 系統遙測趨勢 (CPU / 記憶體 / 溫度)",
+    "overview.threat_gauge_title": "🛡️ 當前 NAS 即時威脅綜合評級",
+    "overview.inotify_stream_title": "⚡ 即時檔案異動事件串流 (inotify Remote Stream)",
+    "overview.http_matrix_title": "🌐 Nginx 關鍵網頁端點探測矩陣 (HTTP Baseline & Latency)",
+    "overview.cf_title": "☁️ Cloudflare 邊界安全事件防護",
+    "reset.title": "🛡️ 重建 NAS 安全基準確認",
+    "reset.confirm_question": "您確定要將 NAS 目前的狀態重設為「受信任安全基準 (Trusted Baseline)」嗎？",
+    "reset.btn_confirm": "⚠️ 確認重建基準",
+    "reset.btn_cancel": "取消",
+    "cf.title": "🌐 Cloudflare 邊界日誌 API 連線設定",
+    "cf.btn_test": "🧪 測試連線",
+    "cf.btn_save": "💾 儲存並啟用",
+    "cf.btn_cancel": "取消",
+    "setup.title": "NAS Sentinel // 系統連線與安裝精靈",
+    "setup.sub": "Zero-Footprint Synology DSM 即時安全監控",
+    "setup.quick_title": "✨ 零技術門檻快速啟用 (Quick Setup)",
+    "setup.quick_desc": "輸入您的 Synology NAS 內部 IP 與 SSH 帳號，點擊「⚡ 測試連線與自動探測 NAS」，系統將自動檢測 DSM 版本、CPU 架構並在背景初始化安全基線。",
+    "setup.ssh_help_header": "💡 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？",
+    "setup.ssh_help_show": "▶ 展開教學",
+    "setup.ssh_help_hide": "▼ 收合教學",
+    "setup.host_label": "NAS 主機 IP / 網址",
+    "setup.user_label": "SSH 登入帳號",
+    "setup.port_label": "SSH Port (可自訂)",
+    "setup.key_label": "SSH 私鑰路徑 (Authentication Key)",
+    "setup.keygen_link": "🔑 自動產生新金鑰與教學",
+    "setup.btn_test": "測試 SSH 連線並自動探測 NAS",
+    "setup.cf_header": "🌐 Cloudflare 邊界日誌監控 (選填，可稍後設定)",
+    "setup.btn_save": "🛡️ 儲存並進入戰情室 (Save & Launch)",
+    "setup.btn_close": "關閉",
+    "setup.footnote": "🔒 密鑰僅儲存在本地端 data/ 目錄"
+  },
+  "en": {
+    "brand.sub_default": "Host: NAS123 • Loading...",
+    "brand.threat_init": "Connecting...",
+    "poll.active": "Auto-Poll",
+    "poll.paused": "Paused",
+    "poll.toggle_title": "Toggle Periodic Auto-Poll / Pause",
+    "poll.toast_active": "⏱️ Background auto-polling active (refreshes every 15s)",
+    "poll.toast_paused": "⏸️ Background auto-polling paused (manual mode)",
+    "scan.fast": "Fast Scan",
+    "scan.fast_title": "Fast Scan: Core config, web & listening ports (~0.8s)",
+    "scan.deep": "🔍 Deep",
+    "scan.deep_title": "Deep Scan: Full DSM web tree & 1,786 SHA-256 checks (~3.5s)",
+    "scan.busy_toast": "⚠️ A scan or operation is already in progress, please wait...",
+    "top.settings": "Settings",
+    "top.settings_title": "Open Connection & Settings Wizard",
+    "top.admin": "⚙️ Admin ▾",
+    "admin.baseline_header": "Baseline Maintenance",
+    "admin.rebuild_baseline": "Rebuild Baseline...",
+    "admin.rebuild_desc": "Save current NAS state as golden baseline",
+    "admin.tools_header": "Quick Tools",
+    "admin.search_files": "Search 1,786 Monitored Files",
+    "admin.cf_settings": "Cloudflare Edge Log Settings...",
+    "admin.cf_desc": "Set API Token to pull threat intel",
+    "theme.toggle_title": "Toggle Dark / Light Mode",
+    "lang.toggle_title": "Select Language",
+    "alert.banner_title": "🚨 File Integrity or Security Anomaly Detected!",
+    "alert.banner_desc": "Please inspect the File Change Alerts or Listening Ports list below immediately.",
+    "alert.btn_details": "View File Anomaly Details",
+    "kpi.fim_title": "File Integrity Monitoring (FIM)",
+    "kpi.web_title": "Nginx Web Endpoints & HTTPS Probing",
+    "kpi.net_title": "Listening Ports & Network Conns",
+    "kpi.cpu_title": "CPU Load & System Temp",
+    "kpi.mem_title": "Memory & Swap Utilization",
+    "kpi.disk_title": "Storage (/volume1) & Services",
+    "kpi.status_ok": "NORMAL",
+    "kpi.status_warn": "ANOMALY",
+    "kpi.status_crit": "CRITICAL",
+    "kpi.baseline_ok": "MATCHED",
+    "kpi.smart_ok": "SMART PASSED",
+    "kpi.smart_warn": "SMART WARNING",
+    "tabs.overview": "📊 Real-time Overview & Alerts",
+    "tabs.fim": "🕸️ Web Server & File Integrity (FIM)",
+    "tabs.network": "🌐 Network Conns & Port Matrix",
+    "tabs.security": "🕵️ Rootkit, Logins & Daemons",
+    "overview.trend_title": "📈 System Telemetry Trends (CPU / RAM / Temp)",
+    "overview.threat_gauge_title": "🛡️ Real-time NAS Threat Rating",
+    "overview.inotify_stream_title": "⚡ Real-time Inotify Stream (Remote)",
+    "overview.http_matrix_title": "🌐 Nginx Web Endpoint Matrix (HTTP Baseline & Latency)",
+    "overview.cf_title": "☁️ Cloudflare Edge Threat Defense",
+    "reset.title": "🛡️ Rebuild Security Baseline Confirmation",
+    "reset.confirm_question": "Are you sure you want to overwrite the current NAS state as the trusted baseline?",
+    "reset.btn_confirm": "⚠️ Confirm Rebuild Baseline",
+    "reset.btn_cancel": "Cancel",
+    "cf.title": "🌐 Cloudflare Edge Log API Settings",
+    "cf.btn_test": "🧪 Test Connection",
+    "cf.btn_save": "💾 Save & Enable",
+    "cf.btn_cancel": "Cancel",
+    "setup.title": "NAS Sentinel // Setup & Connection Wizard",
+    "setup.sub": "Zero-Footprint Synology DSM Real-Time Security Monitor",
+    "setup.quick_title": "✨ One-Click Quick Start (Quick Setup)",
+    "setup.quick_desc": "Enter your Synology NAS LAN IP and SSH user, then click '⚡ Test Connection & Probe NAS'. The system auto-detects DSM version, CPU arch, and establishes baseline.",
+    "setup.ssh_help_header": "💡 First time? How to obtain Synology NAS SSH access & key authentication?",
+    "setup.ssh_help_show": "▶ Show Guide",
+    "setup.ssh_help_hide": "▼ Hide Guide",
+    "setup.host_label": "NAS LAN IP / Hostname",
+    "setup.user_label": "SSH Username",
+    "setup.port_label": "SSH Port (Customizable)",
+    "setup.key_label": "SSH Private Key Path",
+    "setup.keygen_link": "🔑 Auto-Generate New Key & Guide",
+    "setup.btn_test": "Test SSH Connection & Probe NAS",
+    "setup.cf_header": "🌐 Cloudflare Edge Log Monitoring (Optional)",
+    "setup.btn_save": "🛡️ Save & Launch Dashboard",
+    "setup.btn_close": "Close",
+    "setup.footnote": "🔒 Credentials stored strictly in local data/ directory"
+  },
+  "jp": {
+    "brand.sub_default": "ホスト: NAS123 • 読込中...",
+    "brand.threat_init": "接続確認中...",
+    "poll.active": "自動更新",
+    "poll.paused": "一時停止",
+    "poll.toggle_title": "自動定期更新 / 一時停止の切替",
+    "poll.toast_active": "⏱️ バックグラウンド自動更新を有効化 (15秒毎)",
+    "poll.toast_paused": "⏸️ 自動更新を一時停止しました (手動モード)",
+    "scan.fast": "クイック走査",
+    "scan.fast_title": "クイック走査：中核設定、主要Web、開放ポート (~0.8秒)",
+    "scan.deep": "🔍 ディープ",
+    "scan.deep_title": "ディープ走査：全DSM Webツリー & 1,786ファイル完全走査 (~3.5秒)",
+    "scan.busy_toast": "⚠️ 現在他の走査または処理が実行中です。少々お待ちください...",
+    "top.settings": "設定",
+    "top.settings_title": "接続・システム設定ウィザードを開く",
+    "top.admin": "⚙️ 管理 ▾",
+    "admin.baseline_header": "セキュリティ基準保守",
+    "admin.rebuild_baseline": "ベースライン再構築...",
+    "admin.rebuild_desc": "現在のNAS状態を正規基準として保存",
+    "admin.tools_header": "クイックツール",
+    "admin.search_files": "監視対象1,786ファイルを検索",
+    "admin.cf_settings": "Cloudflare エッジログ設定...",
+    "admin.cf_desc": "APIトークンを設定して脅威情報を取得",
+    "theme.toggle_title": "ダーク/ライトテーマ切替",
+    "lang.toggle_title": "言語を選択",
+    "alert.banner_title": "🚨 ファイル整合性またはセキュリティ異常を検知しました！",
+    "alert.banner_desc": "直ちに下の「ファイル変更アラート」または「監視ポート」リストを確認してください。",
+    "alert.btn_details": "ファイル変更の詳細を表示",
+    "kpi.fim_title": "ファイル整合性監視 (FIM)",
+    "kpi.web_title": "Nginx Webエンドポイント & HTTPSプローブ",
+    "kpi.net_title": "監視ポート & ネットワーク接続",
+    "kpi.cpu_title": "CPU負荷 & システム温度",
+    "kpi.mem_title": "メモリ & Swap 使用率",
+    "kpi.disk_title": "ストレージ (/volume1) & サービス",
+    "kpi.status_ok": "正常",
+    "kpi.status_warn": "異常",
+    "kpi.status_crit": "緊急",
+    "kpi.baseline_ok": "基準合致",
+    "kpi.smart_ok": "SMART 正常",
+    "kpi.smart_warn": "SMART 警告",
+    "tabs.overview": "📊 リアルタイム概要とアラート",
+    "tabs.fim": "🕸️ Webサーバー & ファイル整合性 (FIM)",
+    "tabs.network": "🌐 ネットワーク接続 & ポートマトリクス",
+    "tabs.security": "🕵️ Rootkit検知・ログイン活動・デーモン",
+    "overview.trend_title": "📈 システムテレメトリ傾向 (CPU / RAM / 温度)",
+    "overview.threat_gauge_title": "🛡️ リアルタイムNAS総合脅威評価",
+    "overview.inotify_stream_title": "⚡ リアルタイムファイル変更ストリーム (inotify)",
+    "overview.http_matrix_title": "🌐 Nginx Webエンドポイントプローブ (HTTP基準 & 応答遅延)",
+    "overview.cf_title": "☁️ Cloudflare エッジセキュリティ保護",
+    "reset.title": "🛡️ NAS セキュリティ基準の再構築確認",
+    "reset.confirm_question": "現在のNAS状態を正規のセキュリティ基準として上書きしますか？",
+    "reset.btn_confirm": "⚠️ 基準再構築を実行",
+    "reset.btn_cancel": "キャンセル",
+    "cf.title": "🌐 Cloudflare エッジログ API 接続設定",
+    "cf.btn_test": "🧪 接続テスト",
+    "cf.btn_save": "💾 保存して有効化",
+    "cf.btn_cancel": "キャンセル",
+    "setup.title": "NAS Sentinel // システム接続・初期設定ウィザード",
+    "setup.sub": "Zero-Footprint Synology DSM リアルタイムセキュリティ監視",
+    "setup.quick_title": "✨ ワンクリック簡単スタート (Quick Setup)",
+    "setup.quick_desc": "Synology NASの内部IPとSSHユーザー名を入力し「⚡ SSH接続テスト & NAS自動検出」をクリックすると、DSMバージョン等を自動検出し基準を作成します。",
+    "setup.ssh_help_header": "💡 初めての方へ：Synology NASのSSH接続と鍵認証を設定する方法",
+    "setup.ssh_help_show": "▶ ガイドを開く",
+    "setup.ssh_help_hide": "▼ ガイドを閉じる",
+    "setup.host_label": "NAS ホスト IP / ホスト名",
+    "setup.user_label": "SSH ログインユーザー",
+    "setup.port_label": "SSH ポート (変更可)",
+    "setup.key_label": "SSH 秘密鍵パス (認証鍵)",
+    "setup.keygen_link": "🔑 新規鍵の自動生成とガイド",
+    "setup.btn_test": "SSH接続テスト & NAS自動検出",
+    "setup.cf_header": "🌐 Cloudflare エッジログ監視 (任意・後で設定可)",
+    "setup.btn_save": "🛡️ 保存してダッシュボードを開く",
+    "setup.btn_close": "閉じる",
+    "setup.footnote": "🔒 認証情報はローカルの data/ ディレクトリのみに保存されます"
+  }
+};
+
+function t(key, fallback = "") {
+  if (I18N[currentLang] && I18N[currentLang][key] !== undefined) {
+    return I18N[currentLang][key];
+  }
+  if (I18N["zh-TW"] && I18N["zh-TW"][key] !== undefined) {
+    return I18N["zh-TW"][key];
+  }
+  return fallback || key;
+}
+
+function initLanguage() {
+  let saved = localStorage.getItem("9sec_lang");
+  if (saved === "tw") saved = "zh-TW";
+  if (saved && I18N[saved]) {
+    currentLang = saved;
+  } else {
+    const nav = (navigator.language || navigator.userLanguage || "").toLowerCase();
+    if (nav.startsWith("ja")) currentLang = "jp";
+    else if (nav.startsWith("en")) currentLang = "en";
+    else currentLang = "zh-TW";
+  }
+  applyLanguage(currentLang, false);
+}
+
+function selectLanguage(lang) {
+  if (!I18N[lang]) return;
+  currentLang = lang;
+  localStorage.setItem("9sec_lang", lang);
+  closeLangMenu();
+  applyLanguage(lang, true);
+}
+
+function applyLanguage(lang, notify = false) {
+  document.documentElement.setAttribute("lang", lang === "zh-TW" ? "zh-Hant" : (lang === "jp" ? "ja" : "en"));
+
+  const labelEl = document.getElementById("currentLangLabel");
+  if (labelEl) {
+    labelEl.textContent = lang === "zh-TW" ? "TW" : lang.toUpperCase();
+  }
+
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const val = t(key);
+    if (val) el.innerHTML = val;
+  });
+
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    const val = t(key);
+    if (val) el.setAttribute("title", val);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    const val = t(key);
+    if (val) el.setAttribute("placeholder", val);
+  });
+
+  if (currentSnapshot) {
+    renderDashboard(currentSnapshot);
+  } else {
+    updateAutoPollUI();
+  }
+
+  if (notify) {
+    const msgs = {
+      "zh-TW": "語系已切換為：繁體中文 (TW)",
+      "en": "Language switched to: English (EN)",
+      "jp": "言語を日本語に切り替えました (JP)"
+    };
+    showToast(msgs[lang] || "Language updated", "info");
+  }
+}
+
+function toggleLangMenu(e) {
+  if (e) e.stopPropagation();
+  const dropdown = document.getElementById("langDropdown");
+  const adminDropdown = document.getElementById("adminDropdown");
+  if (adminDropdown) adminDropdown.classList.remove("show");
+  if (dropdown) dropdown.classList.toggle("show");
+}
+
+function closeLangMenu() {
+  const dropdown = document.getElementById("langDropdown");
+  if (dropdown) dropdown.classList.remove("show");
+}
+
+// ==========================================
+// Theme Controller (Dark / Light Mode)
+// Nine-Security Cyber SOC Standards
+// ==========================================
+function initTheme() {
+  const saved = localStorage.getItem("9sec_theme") || "dark";
+  document.documentElement.setAttribute("data-theme", saved);
+  updateThemeButtonUI(saved);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  const newTheme = current === "light" ? "dark" : "light";
+  document.documentElement.setAttribute("data-theme", newTheme);
+  localStorage.setItem("9sec_theme", newTheme);
+  updateThemeButtonUI(newTheme);
+
+  if (currentSnapshot && currentSnapshot.history) {
+    drawCharts(currentSnapshot.history);
+  }
+
+  const msgs = {
+    "zh-TW": newTheme === "light" ? "已切換為淺色主題 (Light Mode)" : "已切換為深色主題 (Dark Mode)",
+    "en": newTheme === "light" ? "Switched to Light Mode" : "Switched to Dark Mode",
+    "jp": newTheme === "light" ? "ライトモードに切り替えました" : "ダークモードに切り替えました"
+  };
+  showToast(msgs[currentLang] || msgs["zh-TW"], "info");
+}
+
+function updateThemeButtonUI(theme) {
+  const icon = document.getElementById("theme-icon");
+  const text = document.getElementById("theme-text");
+  if (icon) icon.textContent = theme === "light" ? "☀️" : "🌙";
+  if (text) text.textContent = theme.toUpperCase();
+}
 
 function showToast(msg, type = "info") {
   const toast = document.getElementById("toastNotice");
@@ -50,47 +406,122 @@ function setControlsBusy(busy, actionMessage) {
 }
 
 const PORT_DESCRIPTIONS = {
-  22: "OpenSSH 遠端安全管理 (僅公鑰)",
-  53: "Synology DNS Server (named)",
-  80: "Nginx HTTP 入口導向服務",
-  111: "RPCbind (NFS 遠端程序呼叫)",
-  123: "Chrony NTP 時間同步服務",
-  137: "NetBIOS 名稱服務 (nmbd)",
-  138: "NetBIOS 資料報服務 (nmbd)",
-  161: "SNMP 系統監控代理 (僅 Loopback)",
-  323: "Chrony 本機控制埠",
-  443: "Nginx HTTPS 反向代理與安全入口",
-  662: "NFS statd 狀態監聽",
-  892: "NFS mountd 掛載服務",
-  953: "DNS Server 本機控制通道 (rndc)",
-  1900: "SSDP / UPnP 區網裝置探索",
-  2049: "NFS 主檔案服務",
-  3261: "iSCSI Target 儲存服務",
-  3263: "iSCSI / LUN 儲存服務",
-  3264: "iSCSI / VMM 儲存服務",
-  4045: "NFS lockd 鎖定管理",
-  5000: "DSM HTTP 管理介面 (導向 HTTPS 5001)",
-  5001: "DSM HTTPS 網頁管理主介面 (Nginx)",
-  5432: "PostgreSQL 系統資料庫 (僅 Loopback)",
-  6690: "Synology Drive 檔案同步服務 (syncd)",
-  9997: "Synology Assistant 搜尋服務 (findhostd)",
-  9998: "Synology Assistant 搜尋服務 (findhostd)",
-  9999: "Synology Assistant 搜尋服務 (findhostd)",
-  20241: "Cloudflare Tunnel 本機指標端點 (Loopback)",
-  33304: "Synology MIB 本機服務 (Loopback)",
+  "zh-TW": {
+    22: "OpenSSH 遠端安全管理 (僅公鑰)",
+    53: "Synology DNS Server (named)",
+    80: "Nginx HTTP 入口導向服務",
+    111: "RPCbind (NFS 遠端程序呼叫)",
+    123: "Chrony NTP 時間同步服務",
+    137: "NetBIOS 名稱服務 (nmbd)",
+    138: "NetBIOS 資料報服務 (nmbd)",
+    161: "SNMP 系統監控代理 (僅 Loopback)",
+    323: "Chrony 本機控制埠",
+    443: "Nginx HTTPS 反向代理與安全入口",
+    662: "NFS statd 狀態監聽",
+    892: "NFS mountd 掛載服務",
+    953: "DNS Server 本機控制通道 (rndc)",
+    1900: "SSDP / UPnP 區網裝置探索",
+    2049: "NFS 主檔案服務",
+    3261: "iSCSI Target 儲存服務",
+    3263: "iSCSI / LUN 儲存服務",
+    3264: "iSCSI / VMM 儲存服務",
+    4045: "NFS lockd 鎖定管理",
+    5000: "DSM HTTP 管理介面 (導向 HTTPS 5001)",
+    5001: "DSM HTTPS 網頁管理主介面 (Nginx)",
+    5432: "PostgreSQL 系統資料庫 (僅 Loopback)",
+    6690: "Synology Drive 檔案同步服務 (syncd)",
+    9997: "Synology Assistant 搜尋服務 (findhostd)",
+    9998: "Synology Assistant 搜尋服務 (findhostd)",
+    9999: "Synology Assistant 搜尋服務 (findhostd)",
+    20241: "Cloudflare Tunnel 本機指標端點 (Loopback)",
+    33304: "Synology MIB 本機服務 (Loopback)",
+  },
+  "en": {
+    22: "OpenSSH Remote Admin (Key-Auth Only)",
+    53: "Synology DNS Server (named)",
+    80: "Nginx HTTP Redirect Service",
+    111: "RPCbind (NFS Remote Procedure Call)",
+    123: "Chrony NTP Time Synchronization",
+    137: "NetBIOS Name Service (nmbd)",
+    138: "NetBIOS Datagram Service (nmbd)",
+    161: "SNMP Monitoring Agent (Loopback Only)",
+    323: "Chrony Local Control Port",
+    443: "Nginx HTTPS Reverse Proxy & Entry",
+    662: "NFS statd Status Monitor",
+    892: "NFS mountd Mount Daemon",
+    953: "DNS Server Local Control (rndc)",
+    1900: "SSDP / UPnP Device Discovery",
+    2049: "NFS Main File Service",
+    3261: "iSCSI Target Storage Service",
+    3263: "iSCSI / LUN Storage Service",
+    3264: "iSCSI / VMM Storage Service",
+    4045: "NFS lockd Lock Management",
+    5000: "DSM HTTP Web Admin (Redirects to 5001)",
+    5001: "DSM HTTPS Web Admin Interface (Nginx)",
+    5432: "PostgreSQL System DB (Loopback Only)",
+    6690: "Synology Drive File Sync (syncd)",
+    9997: "Synology Assistant Discovery (findhostd)",
+    9998: "Synology Assistant Discovery (findhostd)",
+    9999: "Synology Assistant Discovery (findhostd)",
+    20241: "Cloudflare Tunnel Local Metrics",
+    33304: "Synology MIB Local Service (Loopback)",
+  },
+  "jp": {
+    22: "OpenSSH リモート安全管理 (鍵認証専用)",
+    53: "Synology DNS サーバー (named)",
+    80: "Nginx HTTP リダイレクトサービス",
+    111: "RPCbind (NFS リモートプロシージャ呼出)",
+    123: "Chrony NTP 時刻同期サービス",
+    137: "NetBIOS ネームサービス (nmbd)",
+    138: "NetBIOS データグラムサービス (nmbd)",
+    161: "SNMP 監視エージェント (Loopback専用)",
+    323: "Chrony ローカル制御ポート",
+    443: "Nginx HTTPS リバースプロキシ・安全入口",
+    662: "NFS statd 状態監視",
+    892: "NFS mountd マウントサービス",
+    953: "DNS サーバーローカル制御 (rndc)",
+    1900: "SSDP / UPnP デバイス探索",
+    2049: "NFS メインファイルサービス",
+    3261: "iSCSI ターゲットストレージサービス",
+    3263: "iSCSI / LUN ストレージサービス",
+    3264: "iSCSI / VMM ストレージサービス",
+    4045: "NFS lockd ロック管理",
+    5000: "DSM HTTP 管理画面 (HTTPS 5001へ転送)",
+    5001: "DSM HTTPS Web管理インターフェース (Nginx)",
+    5432: "PostgreSQL システムDB (Loopback専用)",
+    6690: "Synology Drive ファイル同期 (syncd)",
+    9997: "Synology Assistant 探索 (findhostd)",
+    9998: "Synology Assistant 探索 (findhostd)",
+    9999: "Synology Assistant 探索 (findhostd)",
+    20241: "Cloudflare Tunnel メトリクス端点",
+    33304: "Synology MIB ローカルサービス",
+  }
 };
+
+function getPortDescription(port) {
+  const dict = PORT_DESCRIPTIONS[currentLang] || PORT_DESCRIPTIONS["zh-TW"];
+  if (dict && dict[port]) return dict[port];
+  if (PORT_DESCRIPTIONS["zh-TW"] && PORT_DESCRIPTIONS["zh-TW"][port]) return PORT_DESCRIPTIONS["zh-TW"][port];
+  if (port >= 32768) {
+    return currentLang === "en" ? "Dynamic RPC / Outbound QUIC Port" : currentLang === "jp" ? "動的 RPC / 送信 QUIC ポート" : "動態 RPC / 出站 QUIC 埠";
+  }
+  return currentLang === "en" ? "System Service Port" : currentLang === "jp" ? "システムサービスポート" : "系統服務埠";
+}
 
 function formatUptime(sec) {
   const d = Math.floor(sec / 86400);
   const h = Math.floor((sec % 86400) / 3600);
   const m = Math.floor((sec % 3600) / 60);
+  if (currentLang === "en") return `${d}d ${h}h ${m}m`;
+  if (currentLang === "jp") return `${d}日 ${h}時間 ${m}分`;
   return `${d}天 ${h}小時 ${m}分`;
 }
 
 function formatTimeTs(ts) {
   if (!ts) return "--";
   const d = new Date(ts * 1000);
-  return d.toLocaleString("zh-TW", { hour12: false });
+  const loc = currentLang === "en" ? "en-US" : currentLang === "jp" ? "ja-JP" : "zh-TW";
+  return d.toLocaleString(loc, { hour12: false });
 }
 
 function escapeHtml(str) {
@@ -117,42 +548,47 @@ function switchTab(tabId) {
   }
 }
 
+function updateAutoPollUI() {
+  const pill = document.getElementById("btnTogglePoll");
+  const label = document.getElementById("pollStatusLabel");
+  const icon = document.getElementById("pollIcon");
+  const countEl = document.getElementById("countdownText");
+  if (!pill || !label) return;
+  if (autoPoll) {
+    pill.className = "poll-pill active";
+    label.textContent = t("poll.active", "自動輪詢");
+    if (icon) icon.textContent = "⏸️";
+    if (countEl) countEl.style.display = "inline";
+  } else {
+    pill.className = "poll-pill paused";
+    label.textContent = t("poll.paused", "輪詢暫停");
+    if (icon) icon.textContent = "▶️";
+    if (countEl) countEl.style.display = "none";
+  }
+}
+
 function toggleAutoPoll() {
   if (isOperationBusy) {
-    showToast("⚠️ 系統正在進行掃描或維護作業，暫時無法切換輪詢", "warn");
+    showToast(t("scan.busy_toast", "⚠️ 目前已有掃描或系統作業正在進行中，請稍候..."), "warn");
     return;
   }
 
   const now = Date.now();
   if (now - lastPollToggleTime < 600) {
-    return; // Ignore rapid clicking
+    return;
   }
   lastPollToggleTime = now;
 
   autoPoll = !autoPoll;
-  const pill = document.getElementById("btnTogglePoll");
-  const label = document.getElementById("pollStatusLabel");
-  const icon = document.getElementById("pollIcon");
-  const countEl = document.getElementById("countdownText");
+  updateAutoPollUI();
 
   if (autoPoll) {
     countdown = pollInterval;
-    pill.className = "poll-pill active";
-    label.textContent = "自動監控中";
-    icon.textContent = "⏸️";
-    if (countEl) {
-      countEl.style.display = "inline";
-      countEl.textContent = `${countdown}s`;
-    }
-    showToast("⏱️ 已開啟背景自動輪詢 (每 15 秒更新一次)", "info");
+    const countEl = document.getElementById("countdownText");
+    if (countEl) countEl.textContent = `${countdown}s`;
+    showToast(t("poll.toast_active", "⏱️ 已開啟背景自動輪詢 (每 15 秒更新一次)"), "info");
   } else {
-    pill.className = "poll-pill paused";
-    label.textContent = "輪詢已暫停";
-    icon.textContent = "▶️ 恢復";
-    if (countEl) {
-      countEl.style.display = "none";
-    }
-    showToast("⏸️ 背景自動輪詢已暫停 (手動模式)", "warn");
+    showToast(t("poll.toast_paused", "⏸️ 背景自動輪詢已暫停 (手動模式)"), "warn");
   }
 }
 
@@ -354,7 +790,15 @@ function renderDashboard(data) {
   } else {
     threatBadge.className = "badge badge-ok";
   }
-  threatBadge.textContent = `${data.threat_label} | 評分 ${data.security_score}`;
+  const levelLabels = {
+    "CRITICAL": { "zh-TW": "🚨 緊急威脅", "en": "🚨 CRITICAL", "jp": "🚨 緊急異常" },
+    "WARNING": { "zh-TW": "⚠️ 注意警戒", "en": "⚠️ WARNING", "jp": "⚠️ 警戒中" },
+    "SECURE": { "zh-TW": "🛡️ 系統正常", "en": "🛡️ SYSTEM SECURE", "jp": "🛡️ システム正常" }
+  };
+  const labelKey = data.threat_level || "SECURE";
+  const localizedLabel = (levelLabels[labelKey] && levelLabels[labelKey][currentLang]) || data.threat_label;
+  const scoreText = currentLang === "en" ? `Score ${data.security_score}` : currentLang === "jp" ? `スコア ${data.security_score}` : `評分 ${data.security_score}`;
+  threatBadge.textContent = `${localizedLabel} | ${scoreText}`;
 
   // inotify status badge
   const inotify = data.inotify || { status: {}, recent_events: [] };
@@ -363,25 +807,33 @@ function renderDashboard(data) {
   if (inoBadge) {
     if (inoStat.connected) {
       inoBadge.className = "badge badge-ok";
-      inoBadge.textContent = `⚡ inotify 即時監聽: ${inoStat.watches_count || 0} 目錄`;
+      inoBadge.textContent = currentLang === "en"
+        ? `⚡ inotify Live: ${inoStat.watches_count || 0} dirs`
+        : currentLang === "jp"
+        ? `⚡ inotify 監視中: ${inoStat.watches_count || 0} ディレクトリ`
+        : `⚡ inotify 即時監聽: ${inoStat.watches_count || 0} 目錄`;
     } else {
       inoBadge.className = "badge badge-warn";
-      inoBadge.textContent = `⚡ inotify 重連中...`;
+      inoBadge.textContent = currentLang === "en" ? `⚡ inotify reconnecting...` : currentLang === "jp" ? `⚡ inotify 再接続中...` : `⚡ inotify 重連中...`;
     }
   }
 
   const inoSub = document.getElementById("inotifyPanelSub");
   if (inoSub) {
     inoSub.textContent = inoStat.connected
-      ? `🟢 核心串流連線正常 | 監聽目錄數: ${inoStat.watches_count} | 累計攔截事件: ${inoStat.total_captured || 0}`
-      : `🟡 正在建立 SSH inotify 串流...`;
+      ? (currentLang === "en"
+          ? `🟢 Stream connected | Monitored dirs: ${inoStat.watches_count} | Captured events: ${inoStat.total_captured || 0}`
+          : currentLang === "jp"
+          ? `🟢 ストリーム正常 | 監視ディレクトリ数: ${inoStat.watches_count} | キャプチャ総数: ${inoStat.total_captured || 0}`
+          : `🟢 核心串流連線正常 | 監聽目錄數: ${inoStat.watches_count} | 累計攔截事件: ${inoStat.total_captured || 0}`)
+      : (currentLang === "en" ? `🟡 Establishing SSH inotify stream...` : currentLang === "jp" ? `🟡 SSH inotify ストリームを確立中...` : `🟡 正在建立 SSH inotify 串流...`);
   }
 
   const inoBody = document.getElementById("inotifyEventsBody");
   if (inoBody) {
     const inoEvents = inotify.recent_events || [];
     if (inoEvents.length === 0) {
-      inoBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">⚡ 目前受監控之 250 個網頁與安全目錄尚無任何即時檔案寫入/修改/刪除事件 (毫秒級監聽待命中)。</td></tr>`;
+      inoBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">${currentLang === "en" ? "⚡ No file change events captured currently (standby)." : currentLang === "jp" ? "⚡ 現在ファイル変更イベントは検知されていません (待機中)。" : "⚡ 目前受監控之 250 個網頁與安全目錄尚無任何即時檔案寫入/修改/刪除事件 (毫秒級監聽待命中)。"}</td></tr>`;
     } else {
       inoBody.innerHTML = inoEvents.map((ev) => {
         const bCls = ev.severity === "CRITICAL" ? "badge-crit" : ev.severity === "WARNING" ? "badge-warn" : "badge-ok";
@@ -400,28 +852,50 @@ function renderDashboard(data) {
     }
   }
 
+  const hostPrefix = currentLang === "en" ? "Host: " : currentLang === "jp" ? "ホスト: " : "主機: ";
+  const upPrefix = currentLang === "en" ? "Uptime: " : currentLang === "jp" ? "稼働: " : "連續運作: ";
   document.getElementById("nasIdentity").textContent =
-    `主機: ${sys.hostname || "NAS123"} • ${sys.dsm_version.split("-")[0] || "DSM 7.4.1"} • 連續運作: ${formatUptime(sys.uptime_seconds)}`;
+    `${hostPrefix}${sys.hostname || "NAS123"} • ${sys.dsm_version ? sys.dsm_version.split("-")[0] : "DSM 7.4.1"} • ${upPrefix}${formatUptime(sys.uptime_seconds)}`;
+
+  const updPrefix = currentLang === "en" ? "Updated: " : currentLang === "jp" ? "更新: " : "更新: ";
+  const timeLoc = currentLang === "en" ? "en-US" : currentLang === "jp" ? "ja-JP" : "zh-TW";
   document.getElementById("lastScanTime").textContent =
-    `更新: ${new Date(data.timestamp * 1000).toLocaleTimeString("zh-TW", { hour12: false })} (${data.scan_elapsed_ms}ms)`;
+    `${updPrefix}${new Date(data.timestamp * 1000).toLocaleTimeString(timeLoc, { hour12: false })} (${data.scan_elapsed_ms}ms)`;
 
   // Alert Banner
   const rk = data.rootkit || { checks: [], alert_count: 0 };
   const banner = document.getElementById("alertBanner");
   if (fim.anomaly_count > 0 || net.unauthorized_ports.length > 0 || (rk.alert_count || 0) > 0) {
     banner.style.display = "flex";
-    document.getElementById("alertBannerTitle").textContent =
-      `🚨 安全警報：偵測到 ${fim.anomaly_count} 項檔案異動、${net.unauthorized_ports.length} 個非基線埠、${rk.alert_count || 0} 項 Rootkit 異常！`;
+    if (currentLang === "en") {
+      document.getElementById("alertBannerTitle").textContent =
+        `🚨 Security Alert: Detected ${fim.anomaly_count} file anomalies, ${net.unauthorized_ports.length} unapproved ports, ${rk.alert_count || 0} rootkit flags!`;
+    } else if (currentLang === "jp") {
+      document.getElementById("alertBannerTitle").textContent =
+        `🚨 セキュリティ警告：${fim.anomaly_count} 件のファイル変更、${net.unauthorized_ports.length} 件の未承認ポート、${rk.alert_count || 0} 件のRootkit異常を検知！`;
+    } else {
+      document.getElementById("alertBannerTitle").textContent =
+        `🚨 安全警報：偵測到 ${fim.anomaly_count} 項檔案異動、${net.unauthorized_ports.length} 個非基線埠、${rk.alert_count || 0} 項 Rootkit 異常！`;
+    }
     const firstReasons = (fim.anomalies || []).slice(0, 2).map((a) => `${a.path} (${a.reasons.join(", ")})`).join(" ； ");
-    document.getElementById("alertBannerDesc").textContent = firstReasons || "請立即檢查檔案完整性、Rootkit 檢測或監聽埠異動清單。";
+    document.getElementById("alertBannerDesc").textContent = firstReasons || (currentLang === "en" ? "Please inspect file integrity, rootkit checks, or listening port lists immediately." : currentLang === "jp" ? "直ちにファイル整合性、Rootkit検知、監視ポートリストを確認してください。" : "請立即檢查檔案完整性、Rootkit 檢測或監聽埠異動清單。");
   } else {
     banner.style.display = "none";
   }
 
   // KPI 1: FIM
-  document.getElementById("kpiFimTotal").textContent = `${fim.total_monitored_files.toLocaleString()} 檔`;
-  document.getElementById("kpiFimDiff").textContent =
-    `異動: ${fim.modified_count} | 新增: ${fim.added_count} | 刪除: ${fim.deleted_count}`;
+  const fileUnit = currentLang === "en" ? " files" : currentLang === "jp" ? " ファイル" : " 檔";
+  document.getElementById("kpiFimTotal").textContent = `${fim.total_monitored_files.toLocaleString()}${fileUnit}`;
+  if (currentLang === "en") {
+    document.getElementById("kpiFimDiff").textContent =
+      `Modified: ${fim.modified_count} | Added: ${fim.added_count} | Deleted: ${fim.deleted_count}`;
+  } else if (currentLang === "jp") {
+    document.getElementById("kpiFimDiff").textContent =
+      `変更: ${fim.modified_count} | 追加: ${fim.added_count} | 削除: ${fim.deleted_count}`;
+  } else {
+    document.getElementById("kpiFimDiff").textContent =
+      `異動: ${fim.modified_count} | 新增: ${fim.added_count} | 刪除: ${fim.deleted_count}`;
+  }
   document.getElementById("kpiFimDuration").textContent = `${data.scan_elapsed_ms} ms`;
   const kpiFimBadge = document.getElementById("kpiFimBadge");
   const tabFimCount = document.getElementById("tabFimCount");
@@ -429,12 +903,12 @@ function renderDashboard(data) {
   tabFimCount.textContent = fim.anomaly_count;
   if (fim.anomaly_count > 0) {
     kpiFimBadge.className = "badge badge-crit";
-    kpiFimBadge.textContent = `${fim.anomaly_count} 異常`;
+    kpiFimBadge.textContent = currentLang === "en" ? `${fim.anomaly_count} Anomaly` : currentLang === "jp" ? `${fim.anomaly_count} 異常` : `${fim.anomaly_count} 異常`;
     tabFimCount.className = "badge badge-crit";
     kpiFimBar.style.background = "var(--crit)";
   } else {
     kpiFimBadge.className = "badge badge-ok";
-    kpiFimBadge.textContent = "100% 完整";
+    kpiFimBadge.textContent = currentLang === "en" ? "100% Intact" : currentLang === "jp" ? "100% 正常" : "100% 完整";
     tabFimCount.className = "badge badge-ok";
     kpiFimBar.style.background = "var(--ok)";
   }
@@ -442,29 +916,33 @@ function renderDashboard(data) {
   // KPI 2: Web Endpoints
   const eps = data.web_endpoints || [];
   const okEps = eps.filter((e) => e.reachable && e.baseline_match).length;
-  document.getElementById("kpiWebStatus").textContent = `${okEps} / ${eps.length} 正常`;
+  const okUnit = currentLang === "en" ? " OK" : currentLang === "jp" ? " 正常" : " 正常";
+  document.getElementById("kpiWebStatus").textContent = `${okEps} / ${eps.length}${okUnit}`;
   const avgLat = eps.filter((e) => e.latency_ms).reduce((a, b) => a + b.latency_ms, 0) / Math.max(1, eps.length);
-  document.getElementById("kpiWebLatency").textContent = `平均延遲: ${Math.round(avgLat)} ms`;
+  const latPrefix = currentLang === "en" ? "Avg Latency: " : currentLang === "jp" ? "平均遅延: " : "平均延遲: ";
+  document.getElementById("kpiWebLatency").textContent = `${latPrefix}${Math.round(avgLat)} ms`;
   const kpiWebBadge = document.getElementById("kpiWebBadge");
   if (okEps === eps.length) {
     kpiWebBadge.className = "badge badge-ok";
-    kpiWebBadge.textContent = "雜湊吻合";
+    kpiWebBadge.textContent = currentLang === "en" ? "Hash Matched" : currentLang === "jp" ? "ハッシュ合致" : "雜湊吻合";
   } else {
     kpiWebBadge.className = "badge badge-warn";
-    kpiWebBadge.textContent = "端點異動";
+    kpiWebBadge.textContent = currentLang === "en" ? "Endpoints Changed" : currentLang === "jp" ? "変更あり" : "端點異動";
   }
 
   // KPI 3: Network
-  document.getElementById("kpiNetConns").textContent = `${net.connections.length} 條連線`;
-  document.getElementById("kpiNetDetail").textContent = `區網: ${net.lan_conn_count} | 外網: ${net.external_conn_count}`;
-  document.getElementById("kpiPortUnauth").textContent = `非授權埠: ${net.unauthorized_ports.length}`;
+  const connsUnit = currentLang === "en" ? " conns" : currentLang === "jp" ? " 接続" : " 條連線";
+  document.getElementById("kpiNetConns").textContent = `${net.connections.length}${connsUnit}`;
+  document.getElementById("kpiNetDetail").textContent = `LAN: ${net.lan_conn_count} | WAN: ${net.external_conn_count}`;
+  const unauthPrefix = currentLang === "en" ? "Unauth: " : currentLang === "jp" ? "未承認: " : "非授權埠: ";
+  document.getElementById("kpiPortUnauth").textContent = `${unauthPrefix}${net.unauthorized_ports.length}`;
   const kpiNetBadge = document.getElementById("kpiNetBadge");
   if (net.unauthorized_ports.length > 0) {
     kpiNetBadge.className = "badge badge-crit";
-    kpiNetBadge.textContent = "新開放埠!";
+    kpiNetBadge.textContent = currentLang === "en" ? "New Ports!" : currentLang === "jp" ? "新規開放!" : "新開放埠!";
   } else {
     kpiNetBadge.className = "badge badge-ok";
-    kpiNetBadge.textContent = `${net.listeners.length} 監聽埠正常`;
+    kpiNetBadge.textContent = currentLang === "en" ? `${net.listeners.length} Ports OK` : currentLang === "jp" ? `${net.listeners.length} 正常` : `${net.listeners.length} 監聽埠正常`;
   }
 
   // KPI 4: CPU & Temp
@@ -475,10 +953,10 @@ function renderDashboard(data) {
   const kpiCpuBadge = document.getElementById("kpiCpuBadge");
   if ((sys.temp_c || 0) >= 70 || sys.cpu_percent >= 85) {
     kpiCpuBadge.className = "badge badge-warn";
-    kpiCpuBadge.textContent = "高負載/高溫";
+    kpiCpuBadge.textContent = currentLang === "en" ? "High Load" : currentLang === "jp" ? "高負荷" : "高負載/高溫";
   } else {
     kpiCpuBadge.className = "badge badge-ok";
-    kpiCpuBadge.textContent = "正常";
+    kpiCpuBadge.textContent = currentLang === "en" ? "NORMAL" : currentLang === "jp" ? "正常" : "正常";
   }
 
   // KPI 5: Memory
@@ -490,10 +968,12 @@ function renderDashboard(data) {
   // KPI 6: Disk & Services
   const vol1 = (sys.disks || []).find((d) => d.mount === "/volume1") || (sys.disks || [])[0] || {};
   document.getElementById("kpiDiskVal").textContent = `${vol1.percent ?? "--"}%`;
-  document.getElementById("kpiDiskGb").textContent = `可用: ${vol1.avail_gb ?? "--"} / ${vol1.total_gb ?? "--"} GB`;
+  const availPrefix = currentLang === "en" ? "Avail: " : currentLang === "jp" ? "空き: " : "可用: ";
+  document.getElementById("kpiDiskGb").textContent = `${availPrefix}${vol1.avail_gb ?? "--"} / ${vol1.total_gb ?? "--"} GB`;
   document.getElementById("kpiDiskBar").style.width = `${Math.min(100, vol1.percent || 0)}%`;
   const runningSvcs = (sec.services || []).filter((s) => s.running).length;
-  document.getElementById("kpiSvcCount").textContent = `服務: ${runningSvcs}/${(sec.services || []).length}`;
+  const svcPrefix = currentLang === "en" ? "Services: " : currentLang === "jp" ? "サービス: " : "服務: ";
+  document.getElementById("kpiSvcCount").textContent = `${svcPrefix}${runningSvcs}/${(sec.services || []).length}`;
 
   // Render Overview Anomalies Panel
   const ovPanel = document.getElementById("overviewAnomaliesPanel");
@@ -622,9 +1102,9 @@ function renderDashboard(data) {
   // Render Tab 3: Listening Ports
   document.getElementById("listeningPortsBody").innerHTML = (net.listeners || []).map((l) => {
     const bBadge = l.in_baseline
-      ? `<span class="badge badge-ok">核准基線</span>`
-      : `<span class="badge badge-crit">非基線新埠</span>`;
-    const desc = PORT_DESCRIPTIONS[l.port] || (l.port >= 32768 ? "動態 RPC / 出站 QUIC 埠" : "系統服務埠");
+      ? `<span class="badge badge-ok">${currentLang === "en" ? "BASELINE" : currentLang === "jp" ? "承認済" : "核准基線"}</span>`
+      : `<span class="badge badge-crit">${currentLang === "en" ? "UNAUTH PORT" : currentLang === "jp" ? "未承認ポート" : "非基線新埠"}</span>`;
+    const desc = getPortDescription(l.port);
     return `<tr>
       <td>${bBadge}</td>
       <td class="mono">${escapeHtml(l.proto.toUpperCase())}</td>
@@ -788,10 +1268,12 @@ function drawMultiLineChart(canvasId, history, seriesConfig, maxValOverride) {
     maxVal = Math.ceil(maxVal * 1.15);
   }
 
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+
   // Nine-Security Cyber Grid lines
-  ctx.strokeStyle = "rgba(0, 229, 255, 0.12)";
+  ctx.strokeStyle = isLight ? "rgba(0, 86, 179, 0.15)" : "rgba(0, 229, 255, 0.12)";
   ctx.lineWidth = 1;
-  ctx.fillStyle = "#8b949e";
+  ctx.fillStyle = isLight ? "#475569" : "#8b949e";
   ctx.font = "10.5px 'JetBrains Mono', Consolas, monospace";
   for (let i = 0; i <= 4; i++) {
     const y = padT + (plotH * i) / 4;
@@ -875,12 +1357,16 @@ window.addEventListener("click", (e) => {
   if (!e.target.closest(".admin-menu-wrap")) {
     closeAdminMenu();
   }
+  if (!e.target.closest(".lang-selector-wrap")) {
+    closeLangMenu();
+  }
 });
 
 window.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closeResetBaselineModal();
     closeAdminMenu();
+    closeLangMenu();
   }
 });
 
@@ -1101,6 +1587,8 @@ async function triggerCfSync() {
 }
 
 // Initial load
+initTheme();
+initLanguage();
 loadAppConfig();
 fetchStatus();
 
@@ -1201,7 +1689,9 @@ function toggleSetupSshHelp() {
   if (!content) return;
   const isHidden = content.style.display === "none" || !content.style.display;
   content.style.display = isHidden ? "block" : "none";
-  if (toggle) toggle.textContent = isHidden ? "▼ 收合" : "▶ 展開教學";
+  if (toggle) {
+    toggle.textContent = isHidden ? t("setup.ssh_help_hide", "▼ 收合教學") : t("setup.ssh_help_show", "▶ 展開教學");
+  }
 }
 
 function onSshKeySelectChange() {

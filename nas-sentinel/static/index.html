@@ -1,10 +1,23 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心</title>
   <link rel="icon" type="image/png" href="/favicon.png">
+
+  <!-- Immediate Theme & Language Initialization (Zero-Flicker) -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('9sec_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+        var l = localStorage.getItem('9sec_lang') || 'zh-TW';
+        if (l === 'tw') l = 'zh-TW';
+        document.documentElement.setAttribute('lang', l === 'zh-TW' ? 'zh-Hant' : (l === 'jp' ? 'ja' : 'en'));
+      } catch (e) {}
+    })();
+  </script>
 
   <!-- Google Fonts: Inter & JetBrains Mono (Nine-Security Standard) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,6 +51,33 @@
       --shadow-strong: 0 18px 42px rgba(0, 0, 0, 0.55);
       --shadow-glow-green: 0 0 20px rgba(0, 255, 65, 0.22);
       --shadow-glow-cyan: 0 0 20px rgba(0, 229, 255, 0.22);
+    }
+
+    /* Nine-Security Standard Light Mode */
+    [data-theme="light"] {
+      --bg-base: #f0f2f5;
+      --bg-panel: rgba(255, 255, 255, 0.95);
+      --bg-panel-strong: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --bg-card-hover: rgba(241, 245, 249, 0.98);
+      --border: rgba(0, 86, 179, 0.28);
+      --border-muted: rgba(0, 0, 0, 0.1);
+      --border-cyan: rgba(0, 68, 148, 0.35);
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #0056b3;
+      --accent-hover: #004494;
+      --accent-secondary: #0284c7;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --ok: #059669;
+      --ok-bg: rgba(5, 150, 105, 0.12);
+      --warn-bg: rgba(217, 119, 6, 0.12);
+      --crit-bg: rgba(220, 38, 38, 0.14);
+      --shadow-strong: 0 10px 30px rgba(0, 0, 0, 0.08);
+      --shadow-glow-green: 0 0 16px rgba(5, 150, 105, 0.15);
+      --shadow-glow-cyan: 0 0 16px rgba(2, 132, 199, 0.15);
     }
 
     * {
@@ -907,6 +947,181 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     }
 
+    /* Nine-Security Light Theme Component Styles */
+    [data-theme="light"] body {
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(ellipse 90% 60% at 50% -10%, rgba(2, 132, 199, 0.08), transparent 75%),
+        linear-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+      color: var(--text-main);
+    }
+    [data-theme="light"] .scanlines {
+      opacity: 0.03;
+    }
+    [data-theme="light"] .topbar {
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom-color: rgba(0, 86, 179, 0.2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
+    [data-theme="light"] .nine-brand {
+      color: #0f172a;
+    }
+    [data-theme="light"] .nine-brand .accent {
+      color: #0284c7;
+    }
+    [data-theme="light"] .brand-product {
+      color: #0f172a;
+    }
+    [data-theme="light"] .brand-logo-wrap {
+      background: rgba(2, 132, 199, 0.08);
+      border-color: rgba(2, 132, 199, 0.3);
+      box-shadow: inset 0 0 10px rgba(2, 132, 199, 0.1);
+    }
+    [data-theme="light"] .brand-logo-img {
+      filter: drop-shadow(0 0 3px rgba(0, 86, 179, 0.4));
+    }
+    [data-theme="light"] .btn {
+      background: #ffffff;
+      color: #1e293b;
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="light"] .btn:hover {
+      background: #f1f5f9;
+      color: #0056b3;
+      border-color: #0056b3;
+      box-shadow: 0 2px 10px rgba(0, 86, 179, 0.12);
+    }
+    [data-theme="light"] .btn-scan-primary {
+      background: #0056b3;
+      color: #ffffff;
+    }
+    [data-theme="light"] .btn-scan-primary:hover {
+      background: #004494;
+      box-shadow: 0 0 16px rgba(0, 86, 179, 0.35);
+    }
+    [data-theme="light"] .btn-scan-secondary {
+      background: #ffffff;
+      color: #0284c7;
+      border-color: rgba(0, 86, 179, 0.25);
+    }
+    [data-theme="light"] .btn-scan-secondary:hover {
+      background: #f0f9ff;
+      color: #0056b3;
+    }
+    [data-theme="light"] .poll-pill {
+      background: #ffffff;
+      color: #334155;
+      border-color: rgba(0, 0, 0, 0.14);
+    }
+    [data-theme="light"] .poll-pill:hover {
+      background: #f8fafc;
+      border-color: #0056b3;
+    }
+    [data-theme="light"] .poll-pill.active {
+      background: rgba(5, 150, 105, 0.08);
+      border-color: rgba(5, 150, 105, 0.4);
+      color: #059669;
+    }
+    [data-theme="light"] .admin-menu-dropdown {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="light"] .admin-menu-item {
+      color: #1e293b;
+    }
+    [data-theme="light"] .admin-menu-item:hover {
+      background: #f1f5f9;
+      color: #0056b3;
+    }
+    [data-theme="light"] .admin-menu-header {
+      color: #64748b;
+    }
+    [data-theme="light"] .modal-box {
+      background: #ffffff;
+      border-color: rgba(0, 86, 179, 0.25);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="light"] .modal-title {
+      color: #0f172a;
+    }
+    [data-theme="light"] .modal-body {
+      color: #334155;
+    }
+    [data-theme="light"] .kpi-card {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    }
+    [data-theme="light"] .kpi-value {
+      color: #0f172a;
+    }
+    [data-theme="light"] .panel-title {
+      color: #0f172a;
+    }
+    [data-theme="light"] .table-wrap {
+      background: #ffffff;
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    [data-theme="light"] th {
+      background: #f8fafc;
+      color: #0056b3;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    [data-theme="light"] td {
+      border-bottom-color: #f1f5f9;
+      color: #1e293b;
+    }
+    [data-theme="light"] tbody tr:hover td {
+      background: rgba(2, 132, 199, 0.04);
+    }
+    [data-theme="light"] .input, [data-theme="light"] .select {
+      background: #ffffff;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    [data-theme="light"] .input:focus, [data-theme="light"] .select:focus {
+      border-color: #0056b3;
+      box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.12);
+    }
+    [data-theme="light"] .tab-btn {
+      color: #64748b;
+    }
+    [data-theme="light"] .tab-btn:hover {
+      color: #0056b3;
+      background: rgba(0, 86, 179, 0.04);
+    }
+    [data-theme="light"] .tab-btn.active {
+      color: #0056b3;
+      border-color: rgba(0, 86, 179, 0.25) rgba(0, 86, 179, 0.25) transparent;
+      border-bottom-color: #0056b3;
+      background: rgba(0, 86, 179, 0.06);
+    }
+    [data-theme="light"] .check-item {
+      background: #ffffff;
+      border-color: #e2e8f0;
+    }
+    [data-theme="light"] .target-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+    }
+    [data-theme="light"] .event-item {
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    [data-theme="light"] .toast-notice {
+      background: #ffffff;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="light"] ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    [data-theme="light"] ::-webkit-scrollbar-thumb {
+      background: rgba(0, 86, 179, 0.3);
+    }
+    [data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 86, 179, 0.6);
+    }
+
     @media (max-width: 768px) {
       .grid-2 { grid-template-columns: 1fr; }
       .container { padding: 16px 14px; }
@@ -941,9 +1156,9 @@
       <span class="mono" style="font-size:11.5px; color:var(--text-secondary);" id="lastScanTime">--:--:--</span>
 
       <!-- Auto Poll Pill Switch -->
-      <div id="btnTogglePoll" class="poll-pill active" onclick="toggleAutoPoll()" title="點擊切換 自動定時輪詢 / 暫停">
+      <div id="btnTogglePoll" class="poll-pill active" onclick="toggleAutoPoll()" data-i18n-title="poll.toggle_title" title="點擊切換 自動定時輪詢 / 暫停">
         <span class="poll-dot"></span>
-        <span id="pollStatusLabel">自動輪詢</span>
+        <span id="pollStatusLabel" data-i18n="poll.active">自動輪詢</span>
         <span id="countdownText" style="font-weight:700;">15s</span>
         <span id="pollIcon" style="font-size:10px;">⏸️</span>
       </div>
@@ -952,20 +1167,20 @@
 
       <!-- Unified Scan Button Group -->
       <div class="scan-group">
-        <button class="btn-scan-primary" id="btnFastScan" onclick="triggerScan('fast')" title="快速掃描：核心系統設定、關鍵網頁與開放埠 (約 0.8 秒)">
+        <button class="btn-scan-primary" id="btnFastScan" onclick="triggerScan('fast')" data-i18n-title="scan.fast_title" title="快速掃描：核心系統設定、關鍵網頁與開放埠 (約 0.8 秒)">
           <span id="scanPrimaryIcon">⚡</span>
-          <span id="scanPrimaryText">快速掃描</span>
+          <span id="scanPrimaryText" data-i18n="scan.fast">快速掃描</span>
         </button>
-        <button class="btn-scan-secondary" id="btnDeepScan" onclick="triggerScan('deep')" title="深度掃描：全量 DSM 網頁樹與 1,786 檔完整 SHA-256 (約 3.5 秒)">
-          🔍 深度
+        <button class="btn-scan-secondary" id="btnDeepScan" onclick="triggerScan('deep')" data-i18n-title="scan.deep_title" title="深度掃描：全量 DSM 網頁樹與 1,786 檔完整 SHA-256 (約 3.5 秒)">
+          <span data-i18n="scan.deep">🔍 深度</span>
         </button>
       </div>
 
       <div class="v-divider"></div>
 
       <!-- Settings Button -->
-      <button class="btn" onclick="openSetupModal()" style="padding:6px 11px; border-color:var(--border-cyan); color:var(--accent-secondary);" title="開啟連線與系統設定精靈">
-        <span class="icon">⚙️</span> 設定
+      <button class="btn" onclick="openSetupModal()" style="padding:6px 11px; border-color:var(--border-cyan); color:var(--accent-secondary);" data-i18n-title="top.settings_title" title="開啟連線與系統設定精靈">
+        <span class="icon">⚙️</span> <span data-i18n="top.settings">設定</span>
       </button>
 
       <div class="v-divider"></div>
@@ -973,29 +1188,57 @@
       <!-- Admin / Settings Dropdown -->
       <div class="admin-menu-wrap">
         <button class="btn" id="btnAdminMenu" onclick="toggleAdminMenu(event)" style="padding:6px 11px;">
-          ⚙️ 管理 ▾
+          <span data-i18n="top.admin">⚙️ 管理 ▾</span>
         </button>
         <div id="adminDropdown" class="admin-menu-dropdown">
-          <div class="admin-menu-header">安全基準維護</div>
+          <div class="admin-menu-header" data-i18n="admin.baseline_header">安全基準維護</div>
           <button class="admin-menu-item danger" onclick="openResetBaselineModal()">
             <span>🛡️</span>
             <div>
-              <div style="font-weight:600;">重建安全基線...</div>
-              <div style="font-size:11.5px; color:#9ca3af;">將當前狀態寫入為合法基準</div>
+              <div style="font-weight:600;" data-i18n="admin.rebuild_baseline">重建安全基線...</div>
+              <div style="font-size:11.5px; color:#9ca3af;" data-i18n="admin.rebuild_desc">將當前狀態寫入為合法基準</div>
             </div>
           </button>
           <div style="height:1px; background:var(--border-muted); margin:5px 0;"></div>
-          <div class="admin-menu-header">快速工具</div>
+          <div class="admin-menu-header" data-i18n="admin.tools_header">快速工具</div>
           <button class="admin-menu-item" onclick="loadFilesExplorer(); closeAdminMenu(); switchTab('fim');">
             <span>🗄️</span>
-            <div>檢索 1,786 監控檔案</div>
+            <div data-i18n="admin.search_files">檢索 1,786 監控檔案</div>
           </button>
           <button class="admin-menu-item" onclick="openCfConfigModal(); closeAdminMenu();">
             <span>🌐</span>
             <div>
-              <div style="font-weight:600;">Cloudflare 邊界日誌設定...</div>
-              <div style="font-size:11px; color:#9ca3af;">設定 API Token 撈取刺探情報</div>
+              <div style="font-weight:600;" data-i18n="admin.cf_settings">Cloudflare 邊界日誌設定...</div>
+              <div style="font-size:11px; color:#9ca3af;" data-i18n="admin.cf_desc">設定 API Token 撈取刺探情報</div>
             </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="v-divider"></div>
+
+      <!-- Theme Toggle (Dark / Light) -->
+      <button id="theme-toggle" class="btn" onclick="toggleTheme()" data-i18n-title="theme.toggle_title" title="切換深色 / 淺色主題 (Toggle Dark/Light Mode)" aria-label="Toggle Theme" style="padding:6px 11px; min-width:76px; justify-content:center;">
+        <span id="theme-icon">🌙</span> <span id="theme-text">DARK</span>
+      </button>
+
+      <!-- Language Selector Dropdown (zh-TW, EN, JP) -->
+      <div class="lang-selector-wrap" style="position:relative;">
+        <button class="btn" id="btnLangMenu" onclick="toggleLangMenu(event)" style="padding:6px 11px; min-width:82px; justify-content:center;" data-i18n-title="lang.toggle_title" title="切換語系 (Select Language)">
+          🌐 <span id="currentLangLabel">TW</span> ▾
+        </button>
+        <div id="langDropdown" class="admin-menu-dropdown" style="min-width:150px; right:0;">
+          <button class="admin-menu-item" onclick="selectLanguage('zh-TW')">
+            <span style="font-size:15px;">🇹🇼</span>
+            <div style="font-weight:600;">TW [繁體中文]</div>
+          </button>
+          <button class="admin-menu-item" onclick="selectLanguage('en')">
+            <span style="font-size:15px;">🇺🇸</span>
+            <div style="font-weight:600;">EN [English]</div>
+          </button>
+          <button class="admin-menu-item" onclick="selectLanguage('jp')">
+            <span style="font-size:15px;">🇯🇵</span>
+            <div style="font-weight:600;">JP [日本語]</div>
           </button>
         </div>
       </div>
@@ -1012,11 +1255,11 @@
     <!-- Active Alert Banner -->
     <div id="alertBanner" class="alert-banner">
       <div>
-        <div style="font-weight:700; font-size:15px; color:#ff99bb; font-family:var(--font-mono);" id="alertBannerTitle">🚨 偵測到檔案完整性或安全異常！</div>
-        <div style="font-size:13px; color:#fecaca; margin-top:2px;" id="alertBannerDesc">請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。</div>
+        <div style="font-weight:700; font-size:15px; color:#ff99bb; font-family:var(--font-mono);" id="alertBannerTitle" data-i18n="alert.banner_title">🚨 偵測到檔案完整性或安全異常！</div>
+        <div style="font-size:13px; color:#fecaca; margin-top:2px;" id="alertBannerDesc" data-i18n="alert.banner_desc">請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。</div>
       </div>
       <div>
-        <button class="btn" onclick="switchTab('fim')">查看檔案異動詳情</button>
+        <button class="btn" onclick="switchTab('fim')" data-i18n="alert.btn_details">查看檔案異動詳情</button>
       </div>
     </div>
 
@@ -1024,7 +1267,7 @@
     <section class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>網頁與系統檔案監控 (FIM)</span>
+          <span data-i18n="kpi.fim_title">網頁與系統檔案監控 (FIM)</span>
           <span id="kpiFimBadge" class="badge badge-ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiFimTotal">--</div>
@@ -1037,7 +1280,7 @@
 
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>Nginx 網頁端點與 HTTPS 探測</span>
+          <span data-i18n="kpi.web_title">Nginx 網頁端點與 HTTPS 探測</span>
           <span id="kpiWebBadge" class="badge badge-ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiWebStatus">-- / 6</div>
@@ -1050,7 +1293,7 @@
 
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>監聽埠與外部網路連線</span>
+          <span data-i18n="kpi.net_title">監聽埠與外部網路連線</span>
           <span id="kpiNetBadge" class="badge badge-ok">符合基線</span>
         </div>
         <div class="kpi-value" id="kpiNetConns">--</div>
@@ -1063,7 +1306,7 @@
 
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>CPU 負載與系統溫度</span>
+          <span data-i18n="kpi.cpu_title">CPU 負載與系統溫度</span>
           <span id="kpiCpuBadge" class="badge badge-ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiCpuVal">--%</div>
@@ -1076,7 +1319,7 @@
 
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>記憶體與 Swap 使用率</span>
+          <span data-i18n="kpi.mem_title">記憶體與 Swap 使用率</span>
           <span class="mono" id="kpiMemMb">-- / -- MB</span>
         </div>
         <div class="kpi-value" id="kpiMemVal">--%</div>
@@ -1089,7 +1332,7 @@
 
       <div class="kpi-card">
         <div class="kpi-header">
-          <span>儲存空間 (/volume1) 與服務</span>
+          <span data-i18n="kpi.disk_title">儲存空間 (/volume1) 與服務</span>
           <span id="kpiDiskBadge" class="badge badge-ok">SMART 通過</span>
         </div>
         <div class="kpi-value" id="kpiDiskVal">--%</div>
@@ -1103,10 +1346,10 @@
 
     <!-- Navigation Tabs -->
     <nav class="tabs">
-      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">📊 即時視覺化總覽與告警</button>
-      <button class="tab-btn" data-tab="fim" onclick="switchTab('fim')">🕸️ 網頁伺服器與檔案完整性 (FIM) <span id="tabFimCount" class="badge badge-ok" style="margin-left:6px; padding:1px 7px;">0</span></button>
-      <button class="tab-btn" data-tab="network" onclick="switchTab('network')">🌐 網路連線與監聽埠矩陣</button>
-      <button class="tab-btn" data-tab="security" onclick="switchTab('security')">🕵️ Rootkit 偵測、登入活動與守護程序</button>
+      <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')" data-i18n="tabs.overview">📊 即時視覺化總覽與告警</button>
+      <button class="tab-btn" data-tab="fim" onclick="switchTab('fim')"><span data-i18n="tabs.fim">🕸️ 網頁伺服器與檔案完整性 (FIM)</span> <span id="tabFimCount" class="badge badge-ok" style="margin-left:6px; padding:1px 7px;">0</span></button>
+      <button class="tab-btn" data-tab="network" onclick="switchTab('network')" data-i18n="tabs.network">🌐 網路連線與監聽埠矩陣</button>
+      <button class="tab-btn" data-tab="security" onclick="switchTab('security')" data-i18n="tabs.security">🕵️ Rootkit 偵測、登入活動與守護程序</button>
     </nav>
 
     <!-- TAB 1: OVERVIEW -->
