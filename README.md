@@ -18,6 +18,16 @@ Equipped with a built-in **Web Setup Wizard**, it requires zero Linux hacking sk
 
 ---
 
+## 📋 Prerequisites
+
+Before running NAS Sentinel, ensure your Synology NAS has SSH enabled:
+1. Log in to your Synology DSM as an administrator.
+2. Go to **Control Panel ➔ Terminal & SNMP**.
+3. Check **"Enable SSH service"** (Default Port: `22`).
+> *Note: Synology DSM 7.x includes Python 3 natively in system firmware. You do NOT need to install any packages on the NAS!*
+
+---
+
 ## ⚡ 3-Minute Quickstart (Beginner-Friendly)
 
 ### Step 1: Clone or Download

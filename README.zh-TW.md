@@ -18,6 +18,16 @@ NAS Sentinel 是一套專為 **Synology NAS (DSM 7.x)** 量身打造的**開源�
 
 ---
 
+## 📋 事前準備 (只需 30 秒)
+
+在啟動 NAS Sentinel 之前，請確認您的 Synology NAS 已開啟 SSH 服務：
+1. 以管理員身分登入 Synology DSM 網頁桌面。
+2. 前往 **「控制台」➔「終端機與 SNMP」**。
+3. 勾選 **「啟用 SSH 服務」**（預設連接埠為 `22`）。
+> *註：Synology DSM 7.x 系統韌體已原生內建 Python 3，NAS 端完全無需安裝任何套件！*
+
+---
+
 ## ⚡ 3 步驟生手快速上手 (3-Minute Quickstart)
 
 ### 步驟 1：下載專案

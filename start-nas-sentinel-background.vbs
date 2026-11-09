@@ -28,7 +28,3 @@ WshShell.CurrentDirectory = strCurrentDir & "\nas-sentinel"
 
 ' Launch server detached with window hidden (0 = hidden, False = return immediately)
 WshShell.Run strCmd, 0, False
-
-' Wait 2 seconds for server to bind port and launch browser
-WScript.Sleep 2000
-WshShell.Run "http://127.0.0.1:8088", 1, False

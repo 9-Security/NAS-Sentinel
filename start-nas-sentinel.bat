@@ -6,16 +6,21 @@ echo   Starting NAS Sentinel Standalone Background Server...
 echo   Dashboard URL: http://127.0.0.1:8088
 echo ============================================================
 
-where python.exe >nul 2>&1
+python -c "import sys" >nul 2>&1
 if errorlevel 1 (
     if not exist "%USERPROFILE%\AppData\Local\Programs\Python\Python312\pythonw.exe" (
         if not exist "%USERPROFILE%\AppData\Local\Programs\Python\Python311\pythonw.exe" (
             if not exist "%USERPROFILE%\AppData\Local\Programs\Python\Python313\pythonw.exe" (
-                echo [!] Python 3 not found in PATH or standard AppData directories.
-                echo [!] Please install Python from: https://www.python.org/downloads/
-                echo [!] (Remember to check "Add Python to PATH" during installation)
-                pause
-                exit /b 1
+                if not exist "%USERPROFILE%\AppData\Local\Programs\Python\Python310\pythonw.exe" (
+                    echo ============================================================
+                    echo [!] Python 3 not found in PATH or standard AppData folders.
+                    echo [!] Please install Python from: https://www.python.org/downloads/
+                    echo [!] (Important: Check "Add Python to PATH" during installation)
+                    echo ============================================================
+                    start "" https://www.python.org/downloads/
+                    pause
+                    exit /b 1
+                )
             )
         )
     )
@@ -32,5 +37,5 @@ echo - Stop      : stop-nas-sentinel.bat
 echo - Autostart : install-autostart-service.bat
 echo ============================================================
 
-start "" http://127.0.0.1:8088
 ping 127.0.0.1 -n 2 >nul
+start "" http://127.0.0.1:8088
