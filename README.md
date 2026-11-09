@@ -18,17 +18,47 @@ Equipped with a built-in **Web Setup Wizard**, it requires zero Linux hacking sk
 
 ---
 
-## 📋 Prerequisites
+## 📋 Step 1: Enable SSH Access on Synology DSM (Prerequisites)
 
-Before running NAS Sentinel, ensure your Synology NAS has SSH enabled:
-1. Log in to your Synology DSM as an administrator.
-2. Go to **Control Panel ➔ Terminal & SNMP**.
-3. Check **"Enable SSH service"** (Default Port: `22`).
-> *Note: Synology DSM 7.x includes Python 3 natively in system firmware. You do NOT need to install any packages on the NAS!*
+NAS Sentinel performs zero-footprint security telemetry over an encrypted SSH connection. Complete these 3 quick checks on your NAS:
+
+### 1. Enable DSM SSH Service
+1. Log in to your Synology DSM web desktop with an administrator account.
+2. Go to **Control Panel ➔ Terminal & SNMP ➔ Terminal**.
+3. Check **"Enable SSH service"** (Default Port: `22`) and click **Apply**.
+
+### 2. Ensure User is in `administrators` Group
+By default, Synology DSM security policies **only allow users in the `administrators` group to log in via SSH**. Ensure your account belongs to the `administrators` group in **Control Panel ➔ User & Group**.
+
+### 3. Set Up Passwordless SSH Key Authentication (Choose One)
+Because NAS Sentinel operates as a silent background daemon, it requires SSH Key authentication (`BatchMode=yes`). Choose whichever method is easiest:
+
+- **Method A: Via DSM Web UI (Recommended for Beginners - No Terminal Required)**:
+  1. Retrieve your SSH public key (`~/.ssh/id_ed25519.pub`, beginning with `ssh-ed25519 AAAA...`). *If you don't have one, click "🔑 Auto-Generate New Key" inside the NAS Sentinel Web Setup Wizard.*
+  2. Log in to DSM, open **Control Panel ➔ Task Scheduler**.
+  3. Click **Create ➔ Scheduled Task ➔ User-defined script**:
+     - General: Task Name `Add-SSH-Key`, **User: Select your login username** (e.g., `admin`).
+     - Task Settings: In User-defined script, paste this single line (replace with your actual public key):
+       ```bash
+       mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "YOUR_PUBLIC_KEY_HERE (e.g. ssh-ed25519 AAAA...)" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+       ```
+  4. Click **OK**, select the task in the list, and click **Run** once. Your key is permanently authorized!
+
+- **Method B: Via Your Computer's Terminal (PowerShell / macOS)**:
+  Run this one-liner from your local terminal (enter your NAS password once when prompted):
+  ```bash
+  # Windows PowerShell:
+  type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <USER>@<NAS-IP> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+
+  # macOS / Linux:
+  ssh-copy-id -i ~/.ssh/id_ed25519.pub <USER>@<NAS-IP>
+  ```
+
+> *Note: Synology DSM 7.x firmware includes Python 3 natively. You do NOT need to install anything from Package Center on the NAS!*
 
 ---
 
-## ⚡ 3-Minute Quickstart (Beginner-Friendly)
+## ⚡ Step 2: 3-Minute Quickstart & Launch SOC
 
 ### Step 1: Clone or Download
 Clone this repository or download and extract the release zip:

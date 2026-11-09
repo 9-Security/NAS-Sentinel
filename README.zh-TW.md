@@ -18,17 +18,47 @@ NAS Sentinel 是一套專為 **Synology NAS (DSM 7.x)** 量身打造的**開源�
 
 ---
 
-## 📋 事前準備 (只需 30 秒)
+## 📋 第一步：取得 Synology NAS 的 SSH 連線權限 (事前準備)
 
-在啟動 NAS Sentinel 之前，請確認您的 Synology NAS 已開啟 SSH 服務：
-1. 以管理員身分登入 Synology DSM 網頁桌面。
-2. 前往 **「控制台」➔「終端機與 SNMP」**。
-3. 勾選 **「啟用 SSH 服務」**（預設連接埠為 `22`）。
+NAS Sentinel 透過 SSH 通道對 NAS 進行零足跡安全遙測，請依序確認以下 3 個簡單設定：
+
+### 1. 開啟 DSM 的 SSH 服務
+1. 以管理員帳號登入 Synology DSM 網頁桌面。
+2. 前往 **「控制台」➔「終端機與 SNMP」➔「終端機」**。
+3. 勾選 **「啟用 SSH 服務」**（連接埠預設維持 `22` 即可），點擊「套用」。
+
+### 2. 確認使用者具備管理員權限
+Synology DSM 原廠安全策略規定**僅允許隸屬於 `administrators` 群組的帳號透過 SSH 連線**。請至 DSM **「控制台」➔「使用者與群組」**，確認您的登入帳號已加入 `administrators` 群組。
+
+### 3. 設定免密碼 SSH 金鑰登入 (二選一)
+NAS Sentinel 採用自動化零黑視窗背景常駐，需使用 SSH 金鑰進行身分驗證。若您的 NAS 尚未授權電腦金鑰，請選擇以下任一簡易方式設定：
+
+- **方法 A：透過 DSM 網頁介面一鍵設定（最推薦生手，免開終端機黑視窗）**：
+  1. 在您的電腦中（或在 NAS Sentinel 網頁安裝精靈點擊「🔑 自動產生新金鑰」），取得您的 SSH 公鑰內容（即 `id_ed25519.pub` 的內容，格式如 `ssh-ed25519 AAAA...`）。
+  2. 登入 DSM 網頁桌面，進入 **「控制台」➔「任務排程表」**。
+  3. 點擊 **「新增」➔「使用者定義的指令碼」**：
+     - 一般設定：任務名稱填寫 `Add-SSH-Key`，**使用者請選擇您的登入帳號**（例如 `shar` 或 `admin`）。
+     - 任務設定：在「使用者定義的指令碼」貼上下列單行指令（請將括號內容替換成您的公鑰）：
+       ```bash
+       mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "您的公鑰內容(如 ssh-ed25519 AAAA...)" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
+       ```
+  4. 點擊「確定」儲存後，選取該任務並點擊上方的 **「執行」** 一次即可永久授權！
+
+- **方法 B：透過電腦終端機單行指令傳送 (PowerShell / macOS)**：
+  在電腦終端機執行下列指令（系統會提示輸入一次 NAS 密碼）：
+  ```bash
+  # Windows PowerShell:
+  type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <帳號>@<NAS-IP> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
+
+  # macOS / Linux:
+  ssh-copy-id -i ~/.ssh/id_ed25519.pub <帳號>@<NAS-IP>
+  ```
+
 > *註：Synology DSM 7.x 系統韌體已原生內建 Python 3，NAS 端完全無需安裝任何套件！*
 
 ---
 
-## ⚡ 3 步驟生手快速上手 (3-Minute Quickstart)
+## ⚡ 第二步：3 步驟快速上手與啟用戰情室
 
 ### 步驟 1：下載專案
 下載本專案原始碼並解壓縮至本機任意目錄。

@@ -1621,6 +1621,21 @@
           </div>
         </div>
 
+        <!-- Collapsible First-Time SSH Setup Helper -->
+        <div style="background:rgba(251, 191, 36, 0.07); border:1px solid rgba(251, 191, 36, 0.28); border-radius:6px; padding:10px 14px; margin-bottom:15px; font-size:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSetupSshHelp()">
+            <span style="font-weight:600; color:var(--warning); display:flex; align-items:center; gap:6px;">
+              <span>💡</span> 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？
+            </span>
+            <span id="setupSshHelpToggle" style="color:var(--text-muted); font-size:11px;">▶ 展開教學</span>
+          </div>
+          <div id="setupSshHelpContent" style="display:none; margin-top:8px; color:var(--text-secondary); line-height:1.65; border-top:1px dashed rgba(251, 191, 36, 0.2); padding-top:8px;">
+            <div style="margin-bottom:4px;"><strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。</div>
+            <div style="margin-bottom:4px;"><strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。</div>
+            <div><strong>3. 授權 SSH 免密碼金鑰（免開終端機黑視窗）</strong>：點擊下方「🔑 自動產生新金鑰」，將產生的單行指令至 DSM「控制台」➔「任務排程表」新增「使用者定義的指令碼」貼上執行一次即可永久授權！</div>
+          </div>
+        </div>
+
         <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
           <!-- NAS IP & SSH User Row -->
           <div style="display:grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap:12px;">

@@ -1195,6 +1195,15 @@ function onSetupModalOverlayClick(e) {
   }
 }
 
+function toggleSetupSshHelp() {
+  const content = document.getElementById("setupSshHelpContent");
+  const toggle = document.getElementById("setupSshHelpToggle");
+  if (!content) return;
+  const isHidden = content.style.display === "none" || !content.style.display;
+  content.style.display = isHidden ? "block" : "none";
+  if (toggle) toggle.textContent = isHidden ? "▼ 收合" : "▶ 展開教學";
+}
+
 function onSshKeySelectChange() {
   const select = document.getElementById("setupSshKeySelect");
   const custom = document.getElementById("setupSshKeyCustom");
