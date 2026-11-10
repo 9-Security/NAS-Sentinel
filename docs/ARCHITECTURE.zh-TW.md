@@ -36,12 +36,12 @@ NAS Sentinel 是一套專為 Synology NAS 設計的**零足跡 (Zero Footprint)�
 |                                                                                 |
 |  1. collector_remote.py (定時 15 秒快速 / 手動深度輪詢)                           |
 |     - 系統遙測: CPU、RAM、溫度、磁碟空間、SMART 狀態                             |
-|     - 網頁與系統 FIM: 掃描 1,786 個關鍵檔案 SHA-256、權限、擁有者與 Webshell    |
+|     - 網頁與系統 FIM: 數千個關鍵檔案 SHA-256、權限、擁有者與 Webshell（依基線／DSM） |
 |     - 網路與埠矩陣: netstat 連線與監聽埠比對                                     |
 |     - Rootkit 檢測: 6 大核心檢測 (對標 chkrootkit + rkhunter)                    |
 |                                                                                 |
 |  2. inotify_stream_remote.py (Linux 核心 ctypes 毫秒級事件串流)                 |
-|     - 監聽 254 個目錄 (/etc/nginx, /usr/syno/synoman, /bin, /usr/bin...)        |
+|     - 監聽關鍵網頁／系統目錄 (/etc/nginx, /usr/syno/synoman, /bin, /usr/bin...)  |
 |     - 攔截 CREATE, MODIFY, CLOSE_WRITE, ATTRIB, DELETE, MOVE                    |
 |     - 毫秒級 SHA-256 即時重算，免 auditd、零磁碟寫入                            |
 +---------------------------------------------------------------------------------+
@@ -54,7 +54,7 @@ NAS Sentinel 是一套專為 Synology NAS 設計的**零足跡 (Zero Footprint)�
 ### 2.1 主控服務器 (`nas-sentinel/server.py`)
 - **Web UI & REST API**：使用 Python 內建 `http.server` 構建高效能非同步 API，支援靜態檔案伺服。
 - **基線引擎**：
-  - `fim_baseline.json`：儲存受保護之 1,786 個網頁伺服器與核心執行檔之 SHA-256、權限、擁有者。
+  - `fim_baseline.json`：儲存受保護之網頁伺服器與核心執行檔之 SHA-256、權限、擁有者（數量依基線／DSM 而定）。
   - `port_baseline.json`：核准開放之 TCP/UDP 監聽埠矩陣。
   - `http_baseline.json`：Nginx 80/443/5000/5001 端點回應 SHA-256 與 TLS 憑證指紋。
   - `lkm_baseline.json`：合法載入之 Linux 核心模組白名單。
@@ -82,7 +82,7 @@ NAS Sentinel 是一套專為 Synology NAS 設計的**零足跡 (Zero Footprint)�
 
 ### 2.4 核心 inotify 串流引擎 (`nas-sentinel/inotify_stream_remote.py`)
 - 利用 Python 內建 `ctypes` 調用 Linux 核心 `libc.so.6` 之 `inotify_init1()`、`inotify_add_watch()` 與 `read()`。
-- 監聽 254 個目錄，支援單檔父目錄過濾監聽（即使檔案遭 `vim`/`sed -i` 進行原子性置換，監聽通道依然不中斷）。
+- 監聽數百個系統與網頁目錄（精確範圍依 DSM／基線而定），支援單檔父目錄過濾監聽（即使檔案遭 `vim`/`sed -i` 進行原子性置換，監聽通道依然不中斷）。
 - 每當捕捉到寫入完成 (`IN_CLOSE_WRITE`) 或修改 (`IN_MODIFY`)，立即於 NAS 記憶體內計算 64KB 分塊 SHA-256 與 Webshell 滑動視窗特徵，輸出單行 JSON (NDJSON) 至 stdout 傳回本地端。
 
 ### 2.5 Cloudflare 邊界刺探情資引擎 (`nas-sentinel/cloudflare_intel.py`)
@@ -96,7 +96,7 @@ NAS Sentinel 是一套專為 Synology NAS 設計的**零足跡 (Zero Footprint)�
 
 ```
 nas-sentinel-repo/
-├── start-nas-sentinel.bat       # Windows 一鍵啟動腳本
+├── start-nas-sentinel.bat       # Windows 啟動腳本
 ├── README.md                    # 專案首頁說明文件 (英文)
 ├── README.zh-TW.md              # 專案首頁說明文件 (繁體中文)
 │
@@ -112,7 +112,7 @@ nas-sentinel-repo/
 │   │   └── favicon.png          # 官方 Favicon
 │   └── data/                    # 監控資料與基線儲存區
 │       ├── config.example.json  # 設定檔樣板
-│       ├── fim_baseline.json    # 1,786 個檔案之完整性基準
+│       ├── fim_baseline.json    # FIM 完整性基準（數量依 DSM 而定）
 │       ├── port_baseline.json   # 網路監聽埠基準
 │       ├── http_baseline.json   # Web 端點回應基準
 │       └── lkm_baseline.json    # 核心模組基準

@@ -12,17 +12,30 @@ This manual provides a comprehensive operational guide for **NAS Sentinel**, det
 
 ### 1.1 Architecture & Principles
 NAS Sentinel employs an **agentless, zero-footprint architecture**:
-* **Controller (Local Host / Windows)**: The local Python server runs on `http://127.0.0.1:8088`, managing dashboard presentation, baseline verification, alert dispatching, and historical telemetry persistence.
+* **Controller (Local Host)**: The local Python server runs on `http://127.0.0.1:8088`, managing dashboard presentation, baseline verification, alert dispatching, and historical telemetry persistence.
 * **Target (Synology NAS)**: Zero packages required (no auditd, gcc, etc.). Zero temporary files are written to NAS disks or the root partition `/`. All telemetry scripts are executed via non-interactive SSH stdin in memory, streaming results back through stdout.
 
-### 1.2 Initial Setup & Configuration
-1. Open the dashboard and click **"⚙️ Admin ▾" ➔ "⚙️ System Connection & Settings..."**.
-2. Enter your **NAS IP** (e.g. `192.168.1.100`) and **SSH Username** (e.g. `admin`, must belong to the `administrators` group).
+Labels below match the in-app Setup Wizard / Admin menus. For Docker, portable Windows Python, and OpenSSH Client details, see the project [README](../README.md).
+
+### 1.2 First launch on this PC (localhost unlock)
+1. Start the local server (`start-nas-sentinel.bat` on Windows, or `./start-nas-sentinel.sh` on macOS/Linux). Your browser opens `http://127.0.0.1:8088`.
+2. **Preferred:** visiting from this machine auto-loads the API token (loopback only — `127.0.0.1` / `::1`). You should not need to open `api_token.txt` on the happy path.
+3. **Backup:** the server still prints the token and writes `nas-sentinel/data/api_token.txt` (or set `API_TOKEN` in `.env`) if you must paste it manually. Every other `/api/*` call still requires `Authorization: Bearer <token>`.
+
+### 1.3 Initial Setup & Configuration (first NAS connection)
+**Prerequisites (same as the wizard step cards):** enable SSH in DSM (**Control Panel ➔ Terminal & SNMP ➔ Terminal**), and use an account in the `administrators` group. On Windows, keep **OpenSSH Client** enabled so the wizard can run `ssh` / `ssh-keygen`.
+
+1. Open the dashboard and click **"⚙️ Admin ▾" ➔ "⚙️ System Connection & Settings..."** (or follow the first-run Setup Wizard).
+2. Enter your **NAS LAN IP** (e.g. `192.168.1.100` — never `127.0.0.1`, that is this PC’s UI) and **SSH Username** (must belong to `administrators`).
 3. **Custom SSH Port**: If your NAS uses a custom SSH port (e.g. `2222` or `5022`), specify it in the port input.
-4. **SSH Key Setup**:
-   - Click **"🔑 Generate Dedicated Ed25519 Key"** to auto-generate a strong private/public key pair in the local `data/` directory.
-   - Expand the **Quick Authorization Command**, copy the single-line script, and paste it into your NAS terminal once.
-5. Click **"🧪 Test NAS Connection"** to verify communication and fetch DSM / Linux kernel versions, then click **"🛡️ Save & Launch"**.
+4. **SSH Key Setup** (wizard path — recommended):
+   - Click **"🔑 Generate key"** and set a protection passphrase (**at least 8 characters**; empty passphrases are refused). The private key is written to **`~/.ssh/nas_sentinel_ed25519`** on this PC (not under `data/`). Config, API token, and known_hosts live under `nas-sentinel/data/`.
+   - Click **Copy**, then in DSM open **Control Panel ➔ Task Scheduler** → **Create ➔ Scheduled Task ➔ User-defined script**. Set the task user to your admin account, paste the one-liner, save, and **Run once**.
+   - Unlock the key once on this PC with **`ssh-agent`** so background BatchMode scans can use it.
+5. Click **"Test connection & probe NAS"** to verify communication and fetch DSM / arch (on success the host-key fingerprint is pinned). On failure, the UI maps the error to what to do next.
+6. Click **"🛡️ Test & go live"** to save `data/config.json`, establish baselines when SSH works, and open the SOC. You can also **Save connection settings** first and go live later.
+
+> **Optional / advanced:** authorizing via a computer terminal (PowerShell / macOS) is a backup path — see the README Method B samples. Those examples use a personal key such as `id_ed25519`; the wizard’s dedicated key is always `nas_sentinel_ed25519`.
 
 ---
 
@@ -33,11 +46,11 @@ NAS Sentinel employs an **agentless, zero-footprint architecture**:
   - Focuses on high-risk web extensions (`.php`, `.sh`, `.cgi`, `.conf`, `.mustache`) and key security configs (`/etc/passwd`, `/etc/sudoers`, `/etc/ssh/sshd_config`, `authorized_keys`).
   - Suitable for automated background polling (default: every 15 seconds).
 * **Deep Scan (~3.5s)**:
-  - Computes complete **SHA-256 hashes** across all 1,786 DSM web files and critical system binaries.
+  - Computes complete **SHA-256 hashes** across the DSM web tree and critical system binaries (thousands of paths on a typical DSM — exact count is baseline/DSM-dependent).
   - Detects stealthy trojan replacements, unauthorized code alterations, or file ownership tampering.
 
 ### 2.2 Search Monitored Files
-- Click **"⚙️ Admin ▾" ➔ "🗄️ Search 1,786 Monitored Files"**.
+- Click **"⚙️ Admin ▾" ➔ "🗄️ Search Monitored Files"** (the menu may show the count from your current baseline).
 - In the FIM tab, quickly filter and inspect full paths, file sizes, modification timestamps (mtime), and SHA-256 hashes.
 
 ### 2.3 When to "Rebuild Baseline"?
@@ -114,7 +127,9 @@ In addition to periodic polling, NAS Sentinel features a continuous inotify kern
 3. **If unexpected**: Disconnect the NAS from external networks, inspect active utmp sessions, and quarantine suspicious files immediately.
 
 ### Q2: Why does a Fast Scan take only 0.4s? Does it miss changes?
-- Fast Scan targets high-risk extensions and critical security configurations while verifying mtime and size. Combined with real-time inotify streaming, it achieves zero-latency defense with less than 1% CPU utilization.
+- Fast Scan targets high-risk extensions and critical security configurations while verifying mtime and size. Combined with real-time inotify streaming, it keeps detection responsive with low NAS overhead.
 
 ### Q3: How do I stop or restart the service?
-- The local server is an independent process. Close the command window to stop; double-click [`start-nas-sentinel.bat`](file:///D:/nas/start-nas-sentinel.bat) to relaunch.
+- **Windows:** the launcher runs a detached background process — closing a command window does **not** stop it. Double-click [`stop-nas-sentinel.bat`](../stop-nas-sentinel.bat) to terminate the server and free port 8088, then [`start-nas-sentinel.bat`](../start-nas-sentinel.bat) to relaunch.
+- **macOS / Linux:** stop the Python process listening on port 8088 (for example kill the PID from `./start-nas-sentinel.sh`), then run `./start-nas-sentinel.sh` again.
+- **Docker:** `docker compose down` / `docker compose up -d` from the project root (Compose binds `127.0.0.1:8088` only).
