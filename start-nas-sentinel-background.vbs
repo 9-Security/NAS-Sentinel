@@ -2,11 +2,17 @@ Set WshShell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
 strCurrentDir = fso.GetParentFolderName(WScript.ScriptFullName)
 
-' Resolve pythonw: env override → portable runtime → common installs → PATH name
+Function IsWindowsAppsStub(path)
+    IsWindowsAppsStub = False
+    If path = "" Then Exit Function
+    If InStr(1, LCase(path), "\windowsapps\", vbTextCompare) > 0 Then IsWindowsAppsStub = True
+End Function
+
+' Resolve pythonw: env override → portable runtime → common installs (never bare PATH / WindowsApps)
 strPythonw = ""
 envOverride = WshShell.ExpandEnvironmentStrings("%NAS_SENTINEL_PYTHONW%")
 If envOverride <> "%NAS_SENTINEL_PYTHONW%" And envOverride <> "" Then
-    If fso.FileExists(envOverride) Then strPythonw = envOverride
+    If fso.FileExists(envOverride) And Not IsWindowsAppsStub(envOverride) Then strPythonw = envOverride
 End If
 
 portable = strCurrentDir & "\runtime\python\pythonw.exe"
@@ -29,9 +35,12 @@ If strPythonw = "" Then
         strPythonw = candidate3
     ElseIf fso.FileExists(candidate4) Then
         strPythonw = candidate4
-    Else
-        strPythonw = "pythonw.exe"
     End If
+End If
+
+' Do not fall back to bare "pythonw.exe" — Windows Store stubs break silent launch.
+If strPythonw = "" Or IsWindowsAppsStub(strPythonw) Then
+    WScript.Quit 1
 End If
 
 strServerPy = strCurrentDir & "\nas-sentinel\server.py"

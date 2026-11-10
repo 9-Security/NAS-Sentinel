@@ -15,6 +15,7 @@ and this project follows semantic versioning once tagged releases begin.
 
 ### Fixed
 
+- **P2 launcher review (#10):** pin SHA-256 for `python-3.12.10-embed-{amd64,arm64,win32}.zip` and fail closed on mismatch; constrain `-Version` to `x.y.z` with in-repo pins only; path-contained zip extract; reject Windows Store `WindowsApps` python stubs so PATH aliases no longer skip portable fetch.
 - EN/JP leftover audit after #6: `t()` no longer falls back to Traditional Chinese under EN/JP (fail closed); after dashboard render only id-less chrome `data-i18n` is refreshed (never clobber live KPI/badge/banner fields); server-fed labels (FIM targets, services, endpoints, rootkit/posture checks, CF probe classes, anomaly/inotify phrases) localized via stable-id maps; theme toggle titles de-bilingualized; duplicate `setup.keygen_link` removed.
 - EN / JP UI localization: expanded `I18N` tables (~287 keys), wired previously Chinese-only dashboard / setup / admin / Cloudflare strings via `data-i18n`, and localized JS toasts/errors (including #5 skip / save / go-live). Moved `/app.js` to end of `index.html` so initial language apply covers setup modals. Language-menu labels use native names only (`繁體中文`, `日本語`, `English`) — no bilingual `TW […]` / `EN […]` style.
 - Setup wizard no longer dead-ends without a reachable NAS: added **Skip / offline SOC** (`POST /api/setup/skip-offline` + UI button) that sets `is_configured=true` with `offline_mode=true`, dismisses the modal, and pauses SSH poller/inotify until a real Save & Launch succeeds.

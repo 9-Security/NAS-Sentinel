@@ -15,15 +15,17 @@ rem 1) Portable embed next to the repo (no system Python / PATH needed)
 if exist "%~dp0runtime\python\pythonw.exe" set "NS_PYTHONW=%~dp0runtime\python\pythonw.exe"
 if exist "%~dp0runtime\python\python.exe"  set "NS_PYTHON=%~dp0runtime\python\python.exe"
 
-rem 2) PATH
+rem 2) PATH — skip Windows Store WindowsApps stubs (alias that is not a real Python)
 if not defined NS_PYTHONW (
-    where pythonw >nul 2>&1 && for /f "delims=" %%P in ('where pythonw 2^>nul') do (
-        if not defined NS_PYTHONW set "NS_PYTHONW=%%P"
+    for /f "delims=" %%P in ('where pythonw 2^>nul') do (
+        echo %%P | findstr /i /c:"\WindowsApps\" >nul
+        if errorlevel 1 if not defined NS_PYTHONW set "NS_PYTHONW=%%P"
     )
 )
 if not defined NS_PYTHON (
-    where python >nul 2>&1 && for /f "delims=" %%P in ('where python 2^>nul') do (
-        if not defined NS_PYTHON set "NS_PYTHON=%%P"
+    for /f "delims=" %%P in ('where python 2^>nul') do (
+        echo %%P | findstr /i /c:"\WindowsApps\" >nul
+        if errorlevel 1 if not defined NS_PYTHON set "NS_PYTHON=%%P"
     )
 )
 
@@ -38,15 +40,39 @@ if not defined NS_PYTHON if exist "%USERPROFILE%\AppData\Local\Programs\Python\P
 if not defined NS_PYTHON if exist "%USERPROFILE%\AppData\Local\Programs\Python\Python311\python.exe" set "NS_PYTHON=%USERPROFILE%\AppData\Local\Programs\Python\Python311\python.exe"
 if not defined NS_PYTHON if exist "%USERPROFILE%\AppData\Local\Programs\Python\Python310\python.exe" set "NS_PYTHON=%USERPROFILE%\AppData\Local\Programs\Python\Python310\python.exe"
 
+rem Reject WindowsApps if it slipped in via AppData-style paths; smoke-test console python
+if defined NS_PYTHON (
+    echo %NS_PYTHON% | findstr /i /c:"\WindowsApps\" >nul
+    if not errorlevel 1 set "NS_PYTHON="
+)
+if defined NS_PYTHONW (
+    echo %NS_PYTHONW% | findstr /i /c:"\WindowsApps\" >nul
+    if not errorlevel 1 set "NS_PYTHONW="
+)
+
+rem Prefer smoke-testing a console interpreter before accepting PATH/AppData
+if defined NS_PYTHON (
+    echo %NS_PYTHON% | findstr /i /c:"\runtime\python\" >nul
+    if errorlevel 1 (
+        "%NS_PYTHON%" -c "import sys" >nul 2>&1
+        if errorlevel 1 (
+            echo [!] Ignoring non-working Python: %NS_PYTHON%
+            set "NS_PYTHON="
+            set "NS_PYTHONW="
+        )
+    )
+)
+
 if not defined NS_PYTHONW if defined NS_PYTHON set "NS_PYTHONW=%NS_PYTHON%"
 
 if not defined NS_PYTHONW (
-    echo [!] No Python found. Fetching official portable embed from python.org...
-    echo     ^(no installer, PATH unchanged — see scripts\PORTABLE-WINDOWS.md^)
+    echo [!] No usable Python found ^(Windows Store stubs ignored^).
+    echo [!] Fetching official portable embed from python.org...
+    echo     ^(SHA-256 pinned in scripts\ensure-portable-python.ps1 — see scripts\PORTABLE-WINDOWS.md^)
     powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\ensure-portable-python.ps1" -RepoRoot "%~dp0."
     if errorlevel 1 (
         echo ============================================================
-        echo [!] Portable Python setup failed.
+        echo [!] Portable Python setup failed ^(hash mismatch / network / extract^).
         echo [!] Fix network / retry, OR install Python 3 from:
         echo [!]   https://www.python.org/downloads/
         echo [!] ^(Optional: check "Add Python to PATH"^)
