@@ -12,6 +12,10 @@
   <a href="http://127.0.0.1:8088"><img src="https://img.shields.io/badge/UI-Cyber%20SOC%20Dashboard-purple.svg" alt="UI Dashboard"></a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/dashboard-hero.png" alt="NAS Sentinel 資安戰情室儀表板" width="100%">
+</p>
+
 NAS Sentinel 是一套專為 **Synology NAS (DSM 7.x)** 量身打造的**開源、生手友善、零足跡 (Zero Footprint)、毫秒級即時檔案完整性 (FIM) 與 Rootkit 防木馬安全監控系統**。
 
 具備網頁版安裝引導精靈（Web Setup Wizard），不需要複雜的 Linux 技術，只要輸入 NAS IP，3 步驟即可在 3 分鐘內建立專屬的高科技 Cyberpunk 資安戰情室！

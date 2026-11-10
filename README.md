@@ -12,6 +12,10 @@
   <a href="http://127.0.0.1:8088"><img src="https://img.shields.io/badge/UI-Cyber%20SOC%20Dashboard-purple.svg" alt="Cyber SOC Dashboard"></a>
 </p>
 
+<p align="center">
+  <img src="docs/assets/dashboard-hero.png" alt="NAS Sentinel Cyber SOC dashboard" width="100%">
+</p>
+
 **NAS Sentinel** is an open-source, beginner-friendly, **zero-footprint, millisecond-level File Integrity Monitoring (FIM) and Rootkit / Anti-Trojan security watchdog** specifically engineered for **Synology NAS (DSM 7.x)** devices.
 
 Equipped with a built-in **Web Setup Wizard**, it requires zero Linux hacking skills. Simply enter your NAS IP, click "Test & Probe", and your high-tech Cyberpunk Security Operations Center (SOC) dashboard is up and running in **under 3 minutes**!
