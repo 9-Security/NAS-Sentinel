@@ -12,9 +12,10 @@ let lastScanCompletedTime = 0;
 let lastPollToggleTime = 0;
 let toastTimeout = null;
 
-// API auth (Authorization Bearer — CSRF-resistant; required for all /api/* except /api/auth/status)
+// API auth (Authorization Bearer — CSRF-resistant; required for all /api/* except public auth helpers)
 const API_TOKEN_STORAGE_KEY = "nas_sentinel_api_token";
 let apiAuthPromptOpen = false;
+let apiAuthBootstrapInFlight = null;
 
 function getApiToken() {
   try {
@@ -40,20 +41,66 @@ function apiAuthHeaders(extra) {
   return headers;
 }
 
+/** Loopback-only: server returns the token when TCP peer is 127.0.0.1 / ::1. */
+async function bootstrapLocalApiToken() {
+  if (getApiToken()) return true;
+  if (apiAuthBootstrapInFlight) return apiAuthBootstrapInFlight;
+  apiAuthBootstrapInFlight = (async () => {
+    try {
+      const res = await fetch("/api/auth/local-token", { cache: "no-store" });
+      if (!res.ok) return false;
+      const json = await res.json();
+      if (json && json.ok && json.api_token) {
+        setApiToken(json.api_token);
+        return true;
+      }
+    } catch (_) {
+      /* offline / not loopback */
+    }
+    return false;
+  })();
+  try {
+    return await apiAuthBootstrapInFlight;
+  } finally {
+    apiAuthBootstrapInFlight = null;
+  }
+}
+
+async function ensureApiAuthReady(options) {
+  const opts = options || {};
+  if (getApiToken()) return true;
+  const unlocked = await bootstrapLocalApiToken();
+  if (unlocked) {
+    if (opts.toast !== false) {
+      showToast("🔐 Localhost unlock — API token saved in this browser", "info");
+    }
+    return true;
+  }
+  if (opts.showModal !== false) {
+    showApiAuthModal(
+      opts.reason ||
+        "Could not auto-unlock (open http://127.0.0.1:8088 on this PC). Paste the token as a backup."
+    );
+  }
+  return false;
+}
+
 function showApiAuthModal(reason) {
   const modal = document.getElementById("apiAuthModal");
   const input = document.getElementById("apiAuthTokenInput");
   const msg = document.getElementById("apiAuthMsg");
   if (!modal) {
     const pasted = window.prompt(
-      "API token required. Paste from data/api_token.txt or server console / API_TOKEN env:",
+      "API token required. Prefer http://127.0.0.1:8088 for auto-unlock. Backup: server console / data/api_token.txt / API_TOKEN:",
       getApiToken()
     );
     if (pasted) setApiToken(pasted);
     return;
   }
   if (msg) {
-    msg.textContent = reason || "All /api/* routes require Authorization: Bearer <token>.";
+    msg.textContent =
+      reason ||
+      "On this PC, open http://127.0.0.1:8088 — the dashboard unlocks automatically. Backup: paste token below.";
     msg.style.display = "block";
   }
   if (input) input.value = getApiToken();
@@ -82,13 +129,59 @@ function saveApiAuthTokenFromModal() {
   fetchStatus();
 }
 
+async function retryLocalhostUnlockFromModal() {
+  const ok = await bootstrapLocalApiToken();
+  if (ok) {
+    closeApiAuthModal();
+    showToast("🔐 Localhost unlock — API token saved in this browser", "info");
+    loadAppConfig();
+    fetchStatus();
+    return;
+  }
+  showToast("⚠️ Localhost unlock unavailable — open http://127.0.0.1:8088 or paste the token", "warn");
+}
+
+async function copyApiTokenFromModal() {
+  const input = document.getElementById("apiAuthTokenInput");
+  const token = (input && input.value.trim()) || getApiToken();
+  if (!token) {
+    const unlocked = await bootstrapLocalApiToken();
+    if (unlocked) {
+      if (input) input.value = getApiToken();
+    }
+  }
+  const value = (input && input.value.trim()) || getApiToken();
+  if (!value) {
+    showToast("⚠️ No token to copy yet", "warn");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(value);
+    showToast("📋 API token copied", "info");
+  } catch (_) {
+    if (input) {
+      input.type = "text";
+      input.select();
+      showToast("Select the token and copy (Ctrl/Cmd+C)", "info");
+    }
+  }
+}
+
 async function apiFetch(url, options) {
   const opts = Object.assign({}, options || {});
   const baseHeaders = opts.body ? { "Content-Type": "application/json" } : {};
   opts.headers = apiAuthHeaders(Object.assign(baseHeaders, opts.headers || {}));
   const res = await fetch(url, opts);
   if (res.status === 401 && !apiAuthPromptOpen) {
-    showApiAuthModal("Unauthorized — enter the API token from data/api_token.txt or API_TOKEN.");
+    setApiToken("");
+    const recovered = await bootstrapLocalApiToken();
+    if (recovered) {
+      opts.headers = apiAuthHeaders(Object.assign(baseHeaders, (options && options.headers) || {}));
+      return fetch(url, opts);
+    }
+    showApiAuthModal(
+      "Unauthorized — use Localhost unlock on http://127.0.0.1:8088, or paste the token (console / api_token.txt / API_TOKEN)."
+    );
   }
   return res;
 }
@@ -1871,10 +1964,7 @@ function toggleAutoPoll() {
 async function fetchStatus() {
   if (isOperationBusy) return; // Prevent concurrent polling collisions
   try {
-    if (!getApiToken()) {
-      showApiAuthModal("Enter API token to unlock the dashboard (from data/api_token.txt).");
-      return;
-    }
+    if (!(await ensureApiAuthReady({ toast: false }))) return;
     const res = await apiFetch("/api/status");
     if (res.status === 401) return;
     const json = await res.json();
@@ -2930,11 +3020,15 @@ async function triggerCfSync() {
   }
 }
 
-// Initial load
+// Initial load — loopback bootstrap unlocks without digging api_token.txt
 initTheme();
 initLanguage();
-loadAppConfig();
-fetchStatus();
+(async () => {
+  const ready = await ensureApiAuthReady({ toast: true });
+  if (!ready) return;
+  loadAppConfig();
+  fetchStatus();
+})();
 
 // ==========================================
 // Setup Wizard & System Settings Controller
@@ -2944,10 +3038,7 @@ let isSetupInitial = false;
 
 async function loadAppConfig() {
   try {
-    if (!getApiToken()) {
-      showApiAuthModal("Enter API token to load configuration (data/api_token.txt).");
-      return;
-    }
+    if (!(await ensureApiAuthReady({ toast: false }))) return;
     const res = await apiFetch("/api/config");
     if (res.status === 401) return;
     const json = await res.json();
@@ -3252,8 +3343,9 @@ async function skipSetupOffline() {
   const btnSkip = document.getElementById("btnSkipSetupOffline");
   const msgBox = document.getElementById("setupSaveMsg");
 
-  if (!getApiToken()) {
-    showApiAuthModal("Enter API token before skipping setup (data/api_token.txt).");
+  if (!(await ensureApiAuthReady({
+    reason: "Unlock before skipping setup — use Localhost unlock or paste a backup token.",
+  }))) {
     return;
   }
   if (btnSkip) {
@@ -3325,8 +3417,9 @@ async function saveSetupConfig(options) {
     return;
   }
 
-  if (!getApiToken()) {
-    showApiAuthModal("Enter API token before saving settings (data/api_token.txt).");
+  if (!(await ensureApiAuthReady({
+    reason: "Unlock before saving settings — use Localhost unlock or paste a backup token.",
+  }))) {
     return;
   }
 
@@ -3359,7 +3452,7 @@ async function saveSetupConfig(options) {
       body: JSON.stringify(payload),
     });
     if (res.status === 401) {
-      showApiAuthModal("Unauthorized — paste API token, then save again.");
+      showApiAuthModal("Unauthorized — use Localhost unlock or paste the token, then save again.");
       return;
     }
     const json = await res.json();

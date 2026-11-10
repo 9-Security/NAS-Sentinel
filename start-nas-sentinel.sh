@@ -8,8 +8,10 @@ cd "$SCRIPT_DIR/nas-sentinel"
 echo "============================================================"
 echo "  Starting NAS Sentinel Server (Linux / macOS)..."
 echo "  Dashboard URL: http://127.0.0.1:8088"
-echo "  API token: printed below / written to data/api_token.txt"
-echo "  Paste the token in the browser auth gate (Bearer auth)."
+echo "  Unlock: browser on this PC auto-loads the API token"
+echo "          (loopback only — no need to open api_token.txt)."
+echo "  Backup: token also printed by the server / data/api_token.txt"
+echo "  APIs still require Authorization: Bearer <token>."
 echo "============================================================"
 
 # Check Python 3

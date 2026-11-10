@@ -75,11 +75,12 @@ cd NAS-Sentinel
 - **Docker Users**: Copy `.env.example` → `.env`, set a high-entropy `API_TOKEN`, then run `docker compose up -d`.  
   Compose **binds `127.0.0.1:8088` only** (not `0.0.0.0`). Mount a **single dedicated SSH key** if needed — never the entire `~/.ssh` directory. Publishing the port on all interfaces without auth is **unsupported**.
 
-### Step 3: Unlock the UI with your API token, then configure NAS
-Your browser will open `http://127.0.0.1:8088`. **All `/api/*` routes require** `Authorization: Bearer <API_TOKEN>`:
-1. On first start the server prints the token and writes `nas-sentinel/data/api_token.txt` (or use `API_TOKEN` from `.env`).
-2. Paste that token into the auth gate in the browser (stored in localStorage for this origin only).
-3. The **Setup Wizard** then asks for NAS connection details:
+### Step 3: Dashboard unlocks on this PC, then configure NAS
+Your browser will open `http://127.0.0.1:8088`.
+1. **Localhost unlock (preferred):** visiting from this machine auto-loads the API token into the browser (loopback TCP only — `127.0.0.1` / `::1`). You should **not** need to dig `api_token.txt` on the happy path.
+2. **Backup:** the server still prints the token and writes `nas-sentinel/data/api_token.txt` (or set `API_TOKEN` in `.env`) if you must paste manually.
+3. **APIs stay Bearer-protected:** every other `/api/*` call still sends `Authorization: Bearer <token>` from localStorage (CSRF-resistant). Remote / non-loopback clients never receive the bootstrap token.
+4. The **Setup Wizard** then asks for NAS connection details:
    - **NAS IP / Hostname**: e.g., `192.168.1.100` or your internal domain.
    - **SSH Username**: e.g., `admin` or your administrative user.
    - **SSH Port**: Defaults to `22`. **If you customized your Synology SSH port for security (e.g., `2222`, `5022`, `60022`), simply enter it here!**
@@ -195,7 +196,7 @@ NAS-Sentinel/
 
 NAS Sentinel is built with strict privacy-preserving principles:
 - **Localhost-first**: Default bind is `127.0.0.1`. Docker Compose publishes `127.0.0.1:8088` only. **Network exposure without authentication is unsupported.**
-- **API authentication**: Every `/api/*` route (except `/api/auth/status`) requires `Authorization: Bearer <API_TOKEN>` (header-based, CSRF-resistant). Cloudflare tokens are never returned in API responses (masked/presence only).
+- **API authentication**: Every `/api/*` route requires `Authorization: Bearer <API_TOKEN>` (header-based, CSRF-resistant), except `/api/auth/status` and loopback-only `/api/auth/local-token` (TCP peer `127.0.0.1` / `::1` only; never trusts proxy headers). Cloudflare tokens are never returned in API responses (masked/presence only).
 - **SSH hardening**: Key paths must stay under `~/.ssh`; auto-generated keys require a passphrase; host-key fingerprints are pinned after first successful setup.
 - **Zero Cloud Telemetry**: None of your telemetry or scan results leave your local machine.
 - **Git-Safe Credentials**: Live configs, API token file, known_hosts, and machine baselines are gitignored; only `*.example.json` templates are tracked.

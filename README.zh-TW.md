@@ -75,11 +75,12 @@ cd NAS-Sentinel
 - **Docker 用戶**：先複製 `.env.example` → `.env` 並設定高熵 `API_TOKEN`，再執行 `docker compose up -d`。  
   Compose 預設只綁定 `127.0.0.1:8088`（不會對外開放 `0.0.0.0`）。若需 SSH 金鑰，請掛載**單一專用私鑰**，**禁止**掛載整個 `~/.ssh`。未認證的網路暴露不受支援。
 
-### 步驟 3：先輸入 API Token，再設定 NAS 連線
-啟動後瀏覽器將自動開啟 `http://127.0.0.1:8088`。**所有 `/api/*` 路由皆需** `Authorization: Bearer <API_TOKEN>`：
-1. 首次啟動時伺服器會在主控台印出 Token，並寫入 `nas-sentinel/data/api_token.txt`（或使用 `.env` 的 `API_TOKEN`）。
-2. 在瀏覽器驗證視窗貼上 Token（僅存於此站的 localStorage）。
-3. 接著在 **安裝精靈** 填寫 NAS 連線參數：
+### 步驟 3：本機自動解鎖儀表板，再設定 NAS 連線
+啟動後瀏覽器將自動開啟 `http://127.0.0.1:8088`。
+1. **本機自動解鎖（建議）**：從此電腦開啟時，瀏覽器會自動取得並儲存 API Token（僅限迴路位址 `127.0.0.1` / `::1`）。正常流程**不必**再開 `api_token.txt`。
+2. **備援**：伺服器仍會在主控台印出 Token，並寫入 `nas-sentinel/data/api_token.txt`（或使用 `.env` 的 `API_TOKEN`），供手動貼上。
+3. **API 仍採 Bearer**：其餘 `/api/*` 請求仍以 `Authorization: Bearer <token>` 驗證（抗 CSRF）。非本機客戶端不會取得自動解鎖 Token。
+4. 接著在 **安裝精靈** 填寫 NAS 連線參數：
    - **NAS 主機 IP / 網址**、**SSH 帳號**、**SSH Port**（可自訂）。
    - **SSH 私鑰**：路徑必須位於 `~/.ssh/`；精靈可產生**受 Passphrase 保護**的金鑰（禁止空白密碼；BatchMode 掃描請搭配 `ssh-agent`）。
 4. 測試連線會顯示並釘選 SSH Host Key 指紋；儲存後寫入 `data/config.json`（權限 `0600`）並建立基線。
