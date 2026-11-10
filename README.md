@@ -63,11 +63,12 @@ cd NAS-Sentinel
 
 ### Step 2: One-Click Launch (Starts Local Web Server)
 *(This launches the local server on your **own computer**—you do NOT need to edit configuration files beforehand; your default browser will open automatically)*
-- **Windows Users**: Double-click [`start-nas-sentinel.bat`](start-nas-sentinel.bat).  
-  *(Runs completely detached in the background without annoying console windows, and automatically opens your browser)*
-- **macOS / Linux Users**: Run `./start-nas-sentinel.sh`.
+- **Windows Users (novice path)**: Double-click [`start-nas-sentinel.bat`](start-nas-sentinel.bat).  
+  That is the only required click after extract/clone. It prefers a portable Python under `runtime\python\` (downloads the official embeddable build from python.org on first run if needed — **no “Add Python to PATH” installer**). Runs detached in the background and opens your browser. Details: [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md).
+- **macOS / Linux Users**: Run `./start-nas-sentinel.sh` (system `python3` still required on this slice).
 - **Docker Users**: Copy `.env.example` → `.env`, set a high-entropy `API_TOKEN`, then run `docker compose up -d`.  
   Compose **binds `127.0.0.1:8088` only** (not `0.0.0.0`). Mount a **single dedicated SSH key** if needed — never the entire `~/.ssh` directory. Publishing the port on all interfaces without auth is **unsupported**.
+- **NAS SSH from Windows**: keep **OpenSSH Client** enabled (Optional features) so the wizard can probe your Synology. Portable Python does not replace `ssh` / `ssh-keygen`.
 
 ### Step 3: Dashboard unlocks on this PC, then configure NAS
 Your browser will open `http://127.0.0.1:8088`.
@@ -92,11 +93,12 @@ Your browser will open `http://127.0.0.1:8088`.
 NAS Sentinel runs as an independent daemon decoupled from your terminal or IDE:
 
 ### 1. Manual Background Start
-Double-click `start-nas-sentinel.bat` to run silently in the background:
+**Double-click `start-nas-sentinel.bat`** (novice one-click). It runs silently in the background:
 ```bat
 start-nas-sentinel.bat
 ```
 - **Dashboard URL**: `http://127.0.0.1:8088`
+- First run without system Python fetches portable CPython into `runtime\python\` (or ship that folder in a release zip for offline use).
 
 ### 2. Auto-Start on Windows Logon (Recommended)
 Register NAS Sentinel as a Windows Scheduled Task that launches silently whenever you log in:
@@ -171,11 +173,15 @@ NAS-Sentinel/
 │       ├── port_baseline.json   # Listening ports baseline
 │       └── lkm_baseline.json    # Kernel modules baseline
 │
-├── start-nas-sentinel.bat       # Windows one-click silent background launcher
+├── start-nas-sentinel.bat       # Windows one-click silent background launcher ← double-click this
 ├── stop-nas-sentinel.bat        # Windows stop server script
 ├── install-autostart-service.bat# Windows register Scheduled Task on logon
 ├── uninstall-autostart-service.bat # Windows unregister Scheduled Task
 ├── start-nas-sentinel.sh        # Linux / macOS one-click launcher
+├── scripts/                     # Portable Windows helpers (embeddable Python)
+│   ├── ensure-portable-python.ps1
+│   └── PORTABLE-WINDOWS.md
+├── runtime/                     # Optional local portable CPython (gitignored; auto-fetched)
 ├── Dockerfile                   # Docker container definition
 ├── docker-compose.yml           # Docker Compose deployment file
 ├── LICENSE                      # MIT Open-Source License

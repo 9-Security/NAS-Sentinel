@@ -27,10 +27,13 @@ secrets/
 
 # Historical private machine audits & scratch experimental scripts
 docs/historical-audit-20261022/
-scripts/
 scratch/
+scripts/_local/
 AGENTS.md
 GEMINI.md
+
+# Portable Windows embeddable CPython (downloaded by scripts/ensure-portable-python.ps1)
+runtime/
 
 # Keep template and public base structures
 !nas-sentinel/data/config.example.json
