@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心</title>
+  <title data-i18n="page.title">Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心</title>
   <link rel="icon" type="image/png" href="/favicon.png">
 
   <!-- Immediate Theme & Language Initialization (Zero-Flicker) -->
@@ -1248,9 +1248,9 @@
       <div class="brand-info">
         <div class="brand-title">
           <span class="nine-brand">NAS<span class="accent">Sentinel</span><span class="blink">_</span></span>
-          <span id="threatBadge" class="badge badge-ok">連線初檢中...</span>
+          <span id="threatBadge" class="badge badge-ok" data-i18n="brand.threat_init">連線初檢中...</span>
         </div>
-        <div class="brand-sub" id="nasIdentity">主機: NAS123 • 載入中...</div>
+        <div class="brand-sub" id="nasIdentity" data-i18n="brand.sub_default">主機: NAS123 • 載入中...</div>
       </div>
     </div>
 
@@ -1327,21 +1327,21 @@
 
       <!-- Language Selector Dropdown (zh-TW, EN, JP) -->
       <div class="lang-selector-wrap" style="position:relative;">
-        <button class="btn" id="btnLangMenu" onclick="toggleLangMenu(event)" style="padding:6px 11px; min-width:82px; justify-content:center;" data-i18n-title="lang.toggle_title" title="切換語系 (Select Language)">
+        <button class="btn" id="btnLangMenu" onclick="toggleLangMenu(event)" style="padding:6px 11px; min-width:82px; justify-content:center;" data-i18n-title="lang.toggle_title" title="切換語系">
           🌐 <span id="currentLangLabel">TW</span> ▾
         </button>
         <div id="langDropdown" class="admin-menu-dropdown" style="min-width:150px; right:0;">
           <button class="admin-menu-item" onclick="selectLanguage('zh-TW')">
             <span style="font-size:15px;">🇹🇼</span>
-            <div style="font-weight:600;">TW [繁體中文]</div>
+            <div style="font-weight:600;">繁體中文</div>
           </button>
           <button class="admin-menu-item" onclick="selectLanguage('en')">
             <span style="font-size:15px;">🇺🇸</span>
-            <div style="font-weight:600;">EN [English]</div>
+            <div style="font-weight:600;">English</div>
           </button>
           <button class="admin-menu-item" onclick="selectLanguage('jp')">
             <span style="font-size:15px;">🇯🇵</span>
-            <div style="font-weight:600;">JP [日本語]</div>
+            <div style="font-weight:600;">日本語</div>
           </button>
         </div>
       </div>
@@ -1351,7 +1351,7 @@
   <!-- Anti-Fooling Floating Toast Notice -->
   <div id="toastNotice" class="toast-notice">
     <span id="toastIcon">⚠️</span>
-    <span id="toastMsg">系統提示訊息</span>
+    <span id="toastMsg" data-i18n="toast.placeholder">系統提示訊息</span>
   </div>
 
   <main class="container">
@@ -1371,11 +1371,11 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <span data-i18n="kpi.fim_title">網頁與系統檔案監控 (FIM)</span>
-          <span id="kpiFimBadge" class="badge badge-ok">正常</span>
+          <span id="kpiFimBadge" class="badge badge-ok" data-i18n="kpi.status_ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiFimTotal">--</div>
         <div class="kpi-sub">
-          <span id="kpiFimDiff">異動: 0 | 新增: 0 | 刪除: 0</span>
+          <span id="kpiFimDiff" data-i18n="kpi.diff_init">異動: 0 | 新增: 0 | 刪除: 0</span>
           <span class="mono" id="kpiFimDuration">-- ms</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="kpiFimBar" style="width:100%; background:var(--ok);"></div></div>
@@ -1384,11 +1384,11 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <span data-i18n="kpi.web_title">Nginx 網頁端點與 HTTPS 探測</span>
-          <span id="kpiWebBadge" class="badge badge-ok">正常</span>
+          <span id="kpiWebBadge" class="badge badge-ok" data-i18n="kpi.status_ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiWebStatus">-- / 6</div>
         <div class="kpi-sub">
-          <span id="kpiWebLatency">平均回應延遲: -- ms</span>
+          <span id="kpiWebLatency" data-i18n="kpi.latency_init">平均回應延遲: -- ms</span>
           <span id="kpiWebTls">TLS 1.3</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="kpiWebBar" style="width:100%; background:var(--ok);"></div></div>
@@ -1397,12 +1397,12 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <span data-i18n="kpi.net_title">監聽埠與外部網路連線</span>
-          <span id="kpiNetBadge" class="badge badge-ok">符合基線</span>
+          <span id="kpiNetBadge" class="badge badge-ok" data-i18n="kpi.baseline_ok">符合基線</span>
         </div>
         <div class="kpi-value" id="kpiNetConns">--</div>
         <div class="kpi-sub">
-          <span id="kpiNetDetail">區網: -- | 外網: --</span>
-          <span id="kpiPortUnauth">非授權埠: 0</span>
+          <span id="kpiNetDetail" data-i18n="kpi.net_detail_init">區網: -- | 外網: --</span>
+          <span id="kpiPortUnauth" data-i18n="kpi.unauth_init">非授權埠: 0</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="kpiNetBar" style="width:100%; background:var(--accent-secondary);"></div></div>
       </div>
@@ -1410,7 +1410,7 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <span data-i18n="kpi.cpu_title">CPU 負載與系統溫度</span>
-          <span id="kpiCpuBadge" class="badge badge-ok">正常</span>
+          <span id="kpiCpuBadge" class="badge badge-ok" data-i18n="kpi.status_ok">正常</span>
         </div>
         <div class="kpi-value" id="kpiCpuVal">--%</div>
         <div class="kpi-sub">
@@ -1436,12 +1436,12 @@
       <div class="kpi-card">
         <div class="kpi-header">
           <span data-i18n="kpi.disk_title">儲存空間 (/volume1) 與服務</span>
-          <span id="kpiDiskBadge" class="badge badge-ok">SMART 通過</span>
+          <span id="kpiDiskBadge" class="badge badge-ok" data-i18n="kpi.smart_ok">SMART 通過</span>
         </div>
         <div class="kpi-value" id="kpiDiskVal">--%</div>
         <div class="kpi-sub">
-          <span id="kpiDiskGb">可用: -- GB / -- GB</span>
-          <span id="kpiSvcCount">服務: --/--</span>
+          <span id="kpiDiskGb" data-i18n="kpi.disk_gb_init">可用: -- GB / -- GB</span>
+          <span id="kpiSvcCount" data-i18n="kpi.svc_init">服務: --/--</span>
         </div>
         <div class="progress-bar"><div class="progress-fill" id="kpiDiskBar" style="width:0%;"></div></div>
       </div>
@@ -1460,16 +1460,16 @@
       <div class="grid-2">
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>📈 系統遙測趨勢 (CPU / 記憶體 / 溫度)</span>
-            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#00e5ff;">■</span> CPU% &nbsp; <span style="color:#00ff41;">■</span> RAM% &nbsp; <span style="color:#fbbf24;">■</span> 溫度°C</span>
+            <span data-i18n="overview.trend_title">📈 系統遙測趨勢 (CPU / 記憶體 / 溫度)</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#00e5ff;">■</span> CPU% &nbsp; <span style="color:#00ff41;">■</span> RAM% &nbsp; <span style="color:#fbbf24;">■</span> <span data-i18n="overview.chart_temp_legend">溫度°C</span></span>
           </div>
           <canvas id="chartSystem" class="chart-canvas"></canvas>
         </div>
 
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>⚡ Nginx 網頁回應延遲 (ms) 與網路連線數</span>
-            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#e879f9;">■</span> 延遲 (ms) &nbsp; <span style="color:#38bdf8;">■</span> 連線數</span>
+            <span data-i18n="overview.web_latency_title">⚡ Nginx 網頁回應延遲 (ms) 與網路連線數</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);"><span style="color:#e879f9;">■</span> <span data-i18n="overview.web_latency_legend">延遲 (ms)</span> &nbsp; <span style="color:#38bdf8;">■</span> <span data-i18n="overview.web_conns_legend">連線數</span></span>
           </div>
           <canvas id="chartWeb" class="chart-canvas"></canvas>
         </div>
@@ -1478,19 +1478,19 @@
       <!-- Active FIM Anomalies Box on Overview -->
       <div class="panel" id="overviewAnomaliesPanel" style="display:none; border-color:var(--danger); margin-top:20px;">
         <div class="panel-title" style="color:#ff6699;">
-          <span>🚨 偵測到網頁或系統檔案異動 / 可疑檔案 (即時比對結果)</span>
-          <button class="btn" onclick="switchTab('fim')">前往完整檔案檢視器 →</button>
+          <span data-i18n="overview.anom_title">🚨 偵測到網頁或系統檔案異動 / 可疑檔案 (即時比對結果)</span>
+          <button class="btn" onclick="switchTab('fim')" data-i18n="overview.anom_goto">前往完整檔案檢視器 →</button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>狀態</th>
-                <th>嚴重度</th>
-                <th>檔案完整路徑</th>
-                <th>異動原因 / 偵測特徵</th>
-                <th>目前權限 / 擁有者</th>
-                <th>目前 SHA-256 雜湊</th>
+                <th data-i18n="th.status">狀態</th>
+                <th data-i18n="th.severity">嚴重度</th>
+                <th data-i18n="th.file_path">檔案完整路徑</th>
+                <th data-i18n="th.reason">異動原因 / 偵測特徵</th>
+                <th data-i18n="th.perms_owner">目前權限 / 擁有者</th>
+                <th data-i18n="th.sha256">目前 SHA-256 雜湊</th>
               </tr>
             </thead>
             <tbody id="overviewAnomaliesBody"></tbody>
@@ -1501,16 +1501,16 @@
       <div class="grid-2" style="margin-top:20px;">
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>🛡️ NAS 安全防禦態勢即時檢核 (Security Posture)</span>
-            <span class="mono" id="securityScoreText" style="color:var(--accent);">安全評分: -- / 100</span>
+            <span data-i18n="overview.posture_title">🛡️ NAS 安全防禦態勢即時檢核 (Security Posture)</span>
+            <span class="mono" id="securityScoreText" style="color:var(--accent);" data-i18n="overview.score_prefix">安全評分: -- / 100</span>
           </div>
           <div class="check-list" id="postureList"></div>
         </div>
 
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>🔔 即時安全與系統事件日誌 (Event Stream)</span>
-            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);">自動保存最近 150 筆</span>
+            <span data-i18n="overview.events_title">🔔 即時安全與系統事件日誌 (Event Stream)</span>
+            <span style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary);" data-i18n="overview.events_sub">自動保存最近 150 筆</span>
           </div>
           <div class="event-list" id="eventList"></div>
         </div>
@@ -1522,10 +1522,10 @@
       <!-- Monitored Directories Breakdown -->
       <div class="panel">
         <div class="panel-title">
-          <span>📂 受保護之網頁伺服器與關鍵系統目錄範疇</span>
+          <span data-i18n="fim.targets_title">📂 受保護之網頁伺服器與關鍵系統目錄範疇</span>
           <div style="display:flex; align-items:center; gap:12px;">
-            <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fimBaselineTimestamp">基線建立時間: --</span>
-            <button class="btn btn-warn" style="padding:4px 10px; font-size:12px;" onclick="openResetBaselineModal()">🛡️ 重建/維護基準</button>
+            <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fimBaselineTimestamp" data-i18n="fim.baseline_prefix">基線建立時間: --</span>
+            <button class="btn btn-warn" style="padding:4px 10px; font-size:12px;" onclick="openResetBaselineModal()" data-i18n="fim.rebuild_btn">🛡️ 重建/維護基準</button>
           </div>
         </div>
         <div class="grid-3" id="fimTargetsGrid" style="margin-bottom:0;"></div>
@@ -1534,19 +1534,19 @@
       <!-- Real-Time Kernel inotify Event Stream -->
       <div class="panel">
         <div class="panel-title">
-          <span>⚡ Linux 核心 inotify 毫秒級即時檔案事件流 (取代 auditd 檔案監控)</span>
-          <span class="mono" style="font-size:12px; color:var(--accent);" id="inotifyPanelSub">即時監聽中：250 個網頁與系統目錄</span>
+          <span data-i18n="fim.inotify_title">⚡ Linux 核心 inotify 毫秒級即時檔案事件流 (取代 auditd 檔案監控)</span>
+          <span class="mono" style="font-size:12px; color:var(--accent);" id="inotifyPanelSub" data-i18n="fim.inotify_sub">即時監聽中：250 個網頁與系統目錄</span>
         </div>
         <div class="table-wrap" style="max-height:280px;">
           <table>
             <thead>
               <tr>
-                <th>毫秒時間戳記</th>
-                <th>等級</th>
-                <th>核心事件旗標 (inotify Mask)</th>
-                <th>觸發檔案路徑</th>
-                <th>當下權限 / 擁有者</th>
-                <th>即時計算 SHA-256 / 威脅判定</th>
+                <th data-i18n="th.ms_ts">毫秒時間戳記</th>
+                <th data-i18n="th.level">等級</th>
+                <th data-i18n="th.inotify_mask">核心事件旗標 (inotify Mask)</th>
+                <th data-i18n="th.trigger_path">觸發檔案路徑</th>
+                <th data-i18n="th.live_perms">當下權限 / 擁有者</th>
+                <th data-i18n="th.live_hash">即時計算 SHA-256 / 威脅判定</th>
               </tr>
             </thead>
             <tbody id="inotifyEventsBody"></tbody>
@@ -1557,19 +1557,19 @@
       <!-- Active Anomalies Diff Table -->
       <div class="panel">
         <div class="panel-title">
-          <span>🔍 檔案完整性異動與可疑 Webshell 告警清單 (FIM Diff)</span>
-          <span style="font-size:12px; color:var(--text-secondary);">比對項目：SHA-256 內容雜湊、Linux 權限模式、擁有者、新增/刪除、Webshell 特徵</span>
+          <span data-i18n="fim.diff_title">🔍 檔案完整性異動與可疑 Webshell 告警清單 (FIM Diff)</span>
+          <span style="font-size:12px; color:var(--text-secondary);" data-i18n="fim.diff_sub">比對項目：SHA-256 內容雜湊、Linux 權限模式、擁有者、新增/刪除、Webshell 特徵</span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>異動類型</th>
-                <th>嚴重度</th>
-                <th>檔案路徑</th>
-                <th>觸發原因</th>
-                <th>權限變更</th>
-                <th>基線 SHA-256 → 目前 SHA-256</th>
+                <th data-i18n="th.change_type">異動類型</th>
+                <th data-i18n="th.severity">嚴重度</th>
+                <th data-i18n="th.file_path">檔案路徑</th>
+                <th data-i18n="th.trigger">觸發原因</th>
+                <th data-i18n="th.perm_change">權限變更</th>
+                <th data-i18n="th.hash_diff">基線 SHA-256 → 目前 SHA-256</th>
               </tr>
             </thead>
             <tbody id="fimAnomaliesBody"></tbody>
@@ -1580,21 +1580,21 @@
       <!-- Web Server Live Endpoints Probe Table -->
       <div class="panel">
         <div class="panel-title">
-          <span>🌐 Nginx / DSM 網頁伺服器端點即時探測與回應雜湊驗證</span>
-          <span style="font-size:12px; color:var(--text-secondary);">從本機直接對 NAS 80 / 443 / 5000 / 5001 進行內容防竄改與憑證檢驗</span>
+          <span data-i18n="fim.web_title">🌐 Nginx / DSM 網頁伺服器端點即時探測與回應雜湊驗證</span>
+          <span style="font-size:12px; color:var(--text-secondary);" data-i18n="fim.web_sub">從本機直接對 NAS 80 / 443 / 5000 / 5001 進行內容防竄改與憑證檢驗</span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>端點名稱</th>
-                <th>網址路徑</th>
-                <th>連線狀態</th>
-                <th>回應延遲</th>
-                <th>內容大小</th>
-                <th>回應內容 SHA-256 雜湊</th>
-                <th>TLS 協定 / 憑證指紋</th>
-                <th>基線比對</th>
+                <th data-i18n="th.endpoint">端點名稱</th>
+                <th data-i18n="th.url_path">網址路徑</th>
+                <th data-i18n="th.conn_status">連線狀態</th>
+                <th data-i18n="th.latency">回應延遲</th>
+                <th data-i18n="th.size">內容大小</th>
+                <th data-i18n="th.resp_hash">回應內容 SHA-256 雜湊</th>
+                <th data-i18n="th.tls">TLS 協定 / 憑證指紋</th>
+                <th data-i18n="th.baseline_cmp">基線比對</th>
               </tr>
             </thead>
             <tbody id="webEndpointsBody"></tbody>
@@ -1605,34 +1605,34 @@
       <!-- Searchable Monitored Files Explorer -->
       <div class="panel">
         <div class="panel-title">
-          <span>🗄️ 網頁伺服器與系統檔案 SHA-256 基線檢索器</span>
-          <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fileExplorerCount">顯示 -- / -- 個檔案</span>
+          <span data-i18n="fim.explorer_title">🗄️ 網頁伺服器與系統檔案 SHA-256 基線檢索器</span>
+          <span class="mono" style="font-size:12px; color:var(--text-secondary);" id="fileExplorerCount" data-i18n="fim.explorer_count">顯示 -- / -- 個檔案</span>
         </div>
         <div class="filter-bar">
-          <input type="text" id="fileSearchInput" class="input input-search" placeholder="輸入檔名、路徑 (如 login.cgi, nginx.conf, .php) 或 SHA-256 雜湊搜尋..." oninput="debouncedLoadFiles()" />
+          <input type="text" id="fileSearchInput" class="input input-search" placeholder="輸入檔名、路徑 (如 login.cgi, nginx.conf, .php) 或 SHA-256 雜湊搜尋..." data-i18n-placeholder="fim.search_ph" oninput="debouncedLoadFiles()" />
           <select id="fileCategorySelect" class="select" onchange="loadFilesExplorer()">
-            <option value="all">所有監控類別 (All Categories)</option>
-            <option value="web_root">DSM 網頁根目錄 (/usr/syno/synoman, html)</option>
-            <option value="web_config">Nginx 設定與樣板 (/etc/nginx, share/nginx)</option>
-            <option value="user_web">自架網站目錄 (/volume1/web)</option>
-            <option value="security_config">系統安全與防火牆設定 (sshd, sysctl, firewall)</option>
-            <option value="system_binary">核心系統執行檔防木馬 (/bin, /usr/bin, /usr/sbin)</option>
-            <option value="shared_watch">共享與暫存敏感區 (/volume1/public, tmp)</option>
+            <option value="all" data-i18n="fim.cat_all">所有監控類別 (All Categories)</option>
+            <option value="web_root" data-i18n="fim.cat_web_root">DSM 網頁根目錄 (/usr/syno/synoman, html)</option>
+            <option value="web_config" data-i18n="fim.cat_web_config">Nginx 設定與樣板 (/etc/nginx, share/nginx)</option>
+            <option value="user_web" data-i18n="fim.cat_user_web">自架網站目錄 (/volume1/web)</option>
+            <option value="security_config" data-i18n="fim.cat_security">系統安全與防火牆設定 (sshd, sysctl, firewall)</option>
+            <option value="system_binary" data-i18n="fim.cat_binary">核心系統執行檔防木馬 (/bin, /usr/bin, /usr/sbin)</option>
+            <option value="shared_watch" data-i18n="fim.cat_shared">共享與暫存敏感區 (/volume1/public, tmp)</option>
           </select>
-          <button class="btn" onclick="loadFilesExplorer()">🔄 重新整理清單</button>
+          <button class="btn" onclick="loadFilesExplorer()" data-i18n="fim.refresh">🔄 重新整理清單</button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>狀態</th>
-                <th>類別</th>
-                <th>檔案完整路徑</th>
-                <th>大小 (Bytes)</th>
-                <th>權限 (Mode)</th>
-                <th>擁有者</th>
-                <th>最後修改時間</th>
-                <th>SHA-256 / 特徵指紋</th>
+                <th data-i18n="th.status">狀態</th>
+                <th data-i18n="th.category">類別</th>
+                <th data-i18n="th.file_path">檔案完整路徑</th>
+                <th data-i18n="th.bytes">大小 (Bytes)</th>
+                <th data-i18n="th.mode">權限 (Mode)</th>
+                <th data-i18n="th.owner">擁有者</th>
+                <th data-i18n="th.mtime">最後修改時間</th>
+                <th data-i18n="th.fingerprint">SHA-256 / 特徵指紋</th>
               </tr>
             </thead>
             <tbody id="fileExplorerBody"></tbody>
@@ -1645,19 +1645,19 @@
     <section id="tab-network" class="tab-panel">
       <div class="panel">
         <div class="panel-title">
-          <span>🔌 活動中網路連線即時監控 (Active TCP/UDP Connections)</span>
-          <span style="font-size:12px; color:var(--text-secondary);">自動標示外部公網 (WAN) 連線與內網管理連線</span>
+          <span data-i18n="net.conns_title">🔌 活動中網路連線即時監控 (Active TCP/UDP Connections)</span>
+          <span style="font-size:12px; color:var(--text-secondary);" data-i18n="net.conns_sub">自動標示外部公網 (WAN) 連線與內網管理連線</span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>連線範圍</th>
-                <th>協定</th>
-                <th>本機位址與埠號</th>
-                <th>遠端 IP 與埠號</th>
-                <th>狀態</th>
-                <th>關聯程序 (PID/Name)</th>
+                <th data-i18n="th.scope">連線範圍</th>
+                <th data-i18n="th.proto">協定</th>
+                <th data-i18n="th.local_addr">本機位址與埠號</th>
+                <th data-i18n="th.remote_addr">遠端 IP 與埠號</th>
+                <th data-i18n="th.status">狀態</th>
+                <th data-i18n="th.process">關聯程序 (PID/Name)</th>
               </tr>
             </thead>
             <tbody id="activeConnsBody"></tbody>
@@ -1667,19 +1667,19 @@
 
       <div class="panel">
         <div class="panel-title">
-          <span>📡 NAS 監聽埠盤點與安全基線比對 (Listening Ports Matrix)</span>
-          <span style="font-size:12px; color:var(--text-secondary);">若出現未在核准基線內的開放埠號，系統將自動發起高風險警報</span>
+          <span data-i18n="net.ports_title">📡 NAS 監聽埠盤點與安全基線比對 (Listening Ports Matrix)</span>
+          <span style="font-size:12px; color:var(--text-secondary);" data-i18n="net.ports_sub">若出現未在核准基線內的開放埠號，系統將自動發起高風險警報</span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>基線狀態</th>
-                <th>協定</th>
-                <th>綁定位址</th>
-                <th>埠號 (Port)</th>
-                <th>狀態</th>
-                <th>執行程序 / 服務說明</th>
+                <th data-i18n="th.baseline_status">基線狀態</th>
+                <th data-i18n="th.proto">協定</th>
+                <th data-i18n="th.bind">綁定位址</th>
+                <th data-i18n="th.port">埠號 (Port)</th>
+                <th data-i18n="th.status">狀態</th>
+                <th data-i18n="th.proc_desc">執行程序 / 服務說明</th>
               </tr>
             </thead>
             <tbody id="listeningPortsBody"></tbody>
@@ -1690,40 +1690,40 @@
       <!-- Cloudflare Edge WAF Threat Intelligence Panel -->
       <div class="panel">
         <div class="panel-title">
-          <span>🌐 Cloudflare 邊界網站刺探與 WAF 防禦情資 (Edge Threat Intelligence)</span>
+          <span data-i18n="cf.panel_title">🌐 Cloudflare 邊界網站刺探與 WAF 防禦情資 (Edge Threat Intelligence)</span>
           <div style="display:flex; align-items:center; gap:8px;">
-            <span id="cfStatusBadge" class="badge">檢查中...</span>
-            <button class="btn" style="padding:4px 10px; font-size:11.5px;" onclick="triggerCfSync()">🔄 即時同步</button>
-            <button class="btn btn-warn" style="padding:4px 10px; font-size:11.5px;" onclick="openCfConfigModal()">⚙️ 設定 API 權杖</button>
+            <span id="cfStatusBadge" class="badge" data-i18n="cf.checking">檢查中...</span>
+            <button class="btn" style="padding:4px 10px; font-size:11.5px;" onclick="triggerCfSync()" data-i18n="cf.sync_btn">🔄 即時同步</button>
+            <button class="btn btn-warn" style="padding:4px 10px; font-size:11.5px;" onclick="openCfConfigModal()" data-i18n="cf.config_btn">⚙️ 設定 API 權杖</button>
           </div>
         </div>
 
         <!-- 24H KPI Stats & Top Probed Targets -->
         <div class="grid-2" style="margin-bottom:14px;">
           <div class="target-card" style="padding:13px 16px;">
-            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">邊界防禦與刺探統計 (24H STATS)</div>
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;" data-i18n="cf.stats_title">邊界防禦與刺探統計 (24H STATS)</div>
             <div style="display:flex; gap:16px; align-items:center; margin-top:8px;">
               <div>
-                <div style="font-size:11px; color:var(--text-muted);">攔截刺探總量</div>
-                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent);" id="cfTotalEvents">0 次</div>
+                <div style="font-size:11px; color:var(--text-muted);" data-i18n="cf.stat_total">攔截刺探總量</div>
+                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent);" id="cfTotalEvents" data-i18n="cf.stat_total_unit">0 次</div>
               </div>
               <div style="width:1px; height:32px; background:var(--border-muted);"></div>
               <div>
-                <div style="font-size:11px; color:var(--text-muted);">刺探來源國家數</div>
-                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent-secondary);" id="cfCountriesCount">0 國</div>
+                <div style="font-size:11px; color:var(--text-muted);" data-i18n="cf.stat_countries">刺探來源國家數</div>
+                <div style="font-size:22px; font-weight:700; font-family:var(--font-mono); color:var(--accent-secondary);" id="cfCountriesCount" data-i18n="cf.stat_countries_unit">0 國</div>
               </div>
               <div style="width:1px; height:32px; background:var(--border-muted);"></div>
               <div>
-                <div style="font-size:11px; color:var(--text-muted);">最近邊界同步時間</div>
-                <div style="font-size:12px; font-family:var(--font-mono); color:var(--text-main); margin-top:4px;" id="cfLastSync">尚未同步</div>
+                <div style="font-size:11px; color:var(--text-muted);" data-i18n="cf.stat_last_sync">最近邊界同步時間</div>
+                <div style="font-size:12px; font-family:var(--font-mono); color:var(--text-main); margin-top:4px;" id="cfLastSync" data-i18n="cf.never_synced">尚未同步</div>
               </div>
             </div>
           </div>
 
           <div class="target-card" style="padding:13px 16px;">
-            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:8px;">最常被刺探之敏感目錄 TOP 5 (MOST PROBED TARGETS)</div>
+            <div style="font-size:11px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:8px;" data-i18n="cf.top_paths">最常被刺探之敏感目錄 TOP 5 (MOST PROBED TARGETS)</div>
             <div id="cfTopPaths" style="display:flex; flex-wrap:wrap; gap:6px;">
-              <span class="badge" style="color:var(--text-muted);">暫無刺探路徑紀錄</span>
+              <span class="badge" style="color:var(--text-muted);" data-i18n="cf.no_paths">暫無刺探路徑紀錄</span>
             </div>
           </div>
         </div>
@@ -1733,13 +1733,13 @@
           <table>
             <thead>
               <tr>
-                <th>時間</th>
-                <th>處置動作</th>
-                <th>來源 IP 與國家</th>
-                <th>刺探目標路徑 (Path & Query)</th>
-                <th>威脅判定分類</th>
-                <th>狀態碼</th>
-                <th>客戶端特徵 (User-Agent)</th>
+                <th data-i18n="th.time">時間</th>
+                <th data-i18n="th.action">處置動作</th>
+                <th data-i18n="th.src_ip_country">來源 IP 與國家</th>
+                <th data-i18n="th.probe_path">刺探目標路徑 (Path & Query)</th>
+                <th data-i18n="th.threat_class">威脅判定分類</th>
+                <th data-i18n="th.status_code">狀態碼</th>
+                <th data-i18n="th.ua">客戶端特徵 (User-Agent)</th>
               </tr>
             </thead>
             <tbody id="cfEventsBody"></tbody>
@@ -1753,17 +1753,17 @@
       <!-- Rootkit (chkrootkit + rkhunter) Native Checks Panel -->
       <div class="panel">
         <div class="panel-title">
-          <span>🕵️ DSM Rootkit 與系統指令防木馬即時檢測 (chkrootkit + rkhunter 無套件核心引擎)</span>
-          <span id="rootkitSummaryBadge" class="badge badge-ok">檢測中...</span>
+          <span data-i18n="sec.rootkit_title">🕵️ DSM Rootkit 與系統指令防木馬即時檢測 (chkrootkit + rkhunter 無套件核心引擎)</span>
+          <span id="rootkitSummaryBadge" class="badge badge-ok" data-i18n="sec.detecting">檢測中...</span>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>狀態</th>
-                <th>對應工具引擎</th>
-                <th>檢測模組 (對標 chkrootkit / rkhunter)</th>
-                <th>即時核心與記憶體比對結果</th>
+                <th data-i18n="th.status">狀態</th>
+                <th data-i18n="th.engine">對應工具引擎</th>
+                <th data-i18n="th.module">檢測模組 (對標 chkrootkit / rkhunter)</th>
+                <th data-i18n="th.result">即時核心與記憶體比對結果</th>
               </tr>
             </thead>
             <tbody id="rootkitChecksBody"></tbody>
@@ -1774,18 +1774,18 @@
       <div class="grid-2">
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>⚙️ 核心守護程序存活狀態 (Core Daemons)</span>
-            <span style="font-size:12px; color:var(--text-secondary);">即時監測 Nginx、SSH、Cloudflared 等服務</span>
+            <span data-i18n="sec.daemons_title">⚙️ 核心守護程序存活狀態 (Core Daemons)</span>
+            <span style="font-size:12px; color:var(--text-secondary);" data-i18n="sec.daemons_sub">即時監測 Nginx、SSH、Cloudflared 等服務</span>
           </div>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>狀態</th>
-                  <th>服務名稱</th>
-                  <th>功能說明</th>
-                  <th>程序數</th>
-                  <th>執行帳號</th>
+                  <th data-i18n="th.status">狀態</th>
+                  <th data-i18n="th.service">服務名稱</th>
+                  <th data-i18n="th.svc_desc">功能說明</th>
+                  <th data-i18n="th.proc_count">程序數</th>
+                  <th data-i18n="th.run_as">執行帳號</th>
                   <th>PIDs</th>
                 </tr>
               </thead>
@@ -1796,18 +1796,18 @@
 
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>🔑 目前登入工作階段 (utmp) 與授權 SSH 公鑰</span>
+            <span data-i18n="sec.sessions_title">🔑 目前登入工作階段 (utmp) 與授權 SSH 公鑰</span>
           </div>
           <div style="margin-bottom:14px;">
-            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;">目前活動登入階段 (/var/run/utmp)：</div>
+            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;"><span data-i18n="sec.utmp_header">目前活動登入階段 (/var/run/utmp)：</span></div>
             <div class="table-wrap" style="max-height:150px;">
               <table>
                 <thead>
                   <tr>
-                    <th>帳號</th>
-                    <th>終端機 (TTY)</th>
-                    <th>來源主機 IP</th>
-                    <th>登入時間</th>
+                    <th data-i18n="th.account">帳號</th>
+                    <th data-i18n="th.tty">終端機 (TTY)</th>
+                    <th data-i18n="th.src_host">來源主機 IP</th>
+                    <th data-i18n="th.login_time">登入時間</th>
                   </tr>
                 </thead>
                 <tbody id="activeSessionsBody"></tbody>
@@ -1816,14 +1816,14 @@
           </div>
 
           <div>
-            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;">已授權 SSH 公鑰清單 (~/.ssh/authorized_keys)：</div>
+            <div style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-secondary); margin-bottom:6px;"><span data-i18n="sec.keys_header">已授權 SSH 公鑰清單 (~/.ssh/authorized_keys)：</span></div>
             <div class="table-wrap" style="max-height:160px;">
               <table>
                 <thead>
                   <tr>
-                    <th>金鑰類型</th>
-                    <th>金鑰備註 / 身分</th>
-                    <th>雜湊識別碼 (SHA-256 前 16 碼)</th>
+                    <th data-i18n="th.key_type">金鑰類型</th>
+                    <th data-i18n="th.key_comment">金鑰備註 / 身分</th>
+                    <th data-i18n="th.key_hash">雜湊識別碼 (SHA-256 前 16 碼)</th>
                   </tr>
                 </thead>
                 <tbody id="sshKeysBody"></tbody>
@@ -1843,10 +1843,10 @@
             <table>
               <thead>
                 <tr>
-                  <th>攻擊來源 IP</th>
-                  <th>失敗嘗試次數</th>
-                  <th>最後觀測日期</th>
-                  <th>防禦狀態與備註</th>
+                  <th data-i18n="th.attacker_ip">攻擊來源 IP</th>
+                  <th data-i18n="th.fail_count">失敗嘗試次數</th>
+                  <th data-i18n="th.last_seen">最後觀測日期</th>
+                  <th data-i18n="th.defense_note">防禦狀態與備註</th>
                 </tr>
               </thead>
               <tbody id="bruteForceBody"></tbody>
@@ -1856,8 +1856,8 @@
 
         <div class="panel" style="margin-bottom:0;">
           <div class="panel-title">
-            <span>💽 硬碟儲存空間與 SMART 健康監控</span>
-            <span class="badge badge-ok">PASSED (0 壞軌)</span>
+            <span data-i18n="sec.disk_title">💽 硬碟儲存空間與 SMART 健康監控</span>
+            <span class="badge badge-ok" data-i18n="sec.smart_badge">PASSED (0 壞軌)</span>
           </div>
           <div id="diskSmartBox" class="check-list"></div>
         </div>
@@ -1869,75 +1869,73 @@
   <div id="resetBaselineModal" class="modal-overlay" onclick="onModalOverlayClick(event)">
     <div class="modal-box">
       <div class="modal-title">
-        <span>🛡️ 重建 NAS 安全基準確認</span>
+        <span data-i18n="reset.title">🛡️ 重建 NAS 安全基準確認</span>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom:12px; font-weight:600; color:#f0f6fc;">
+        <p style="margin-bottom:12px; font-weight:600; color:#f0f6fc;" data-i18n="reset.confirm_question">
           您確定要將 NAS 目前的狀態重設為「受信任安全基準 (Trusted Baseline)」嗎？
         </p>
         <div style="background:rgba(255, 0, 85, 0.1); border:1px solid rgba(255, 0, 85, 0.4); border-radius:6px; padding:14px; margin-bottom:14px; font-size:12.5px; color:#ff99bb;">
-          ⚠️ <strong>注意：此操作將會：</strong>
+          <span data-i18n="reset.warning_title">⚠️ <strong>注意：此操作將會：</strong></span>
           <ul style="margin:6px 0 0 18px; line-height:1.6;">
-            <li>將目前 1,786 個系統與網頁檔案的 SHA-256 視為合法基準並清空異動警報</li>
-            <li>將目前開放之網路監聽埠與 105 個核心模組記錄為核准清單</li>
-            <li>此操作僅適用於您<strong>剛完成合法 DSM 韌體更新</strong>或<strong>明確修改設定後</strong></li>
+            <li data-i18n="reset.li1">將目前 1,786 個系統與網頁檔案的 SHA-256 視為合法基準並清空異動警報</li>
+            <li data-i18n="reset.li2">將目前開放之網路監聽埠與 105 個核心模組記錄為核准清單</li>
+            <li data-i18n="reset.li3">此操作僅適用於您<strong>剛完成合法 DSM 韌體更新</strong>或<strong>明確修改設定後</strong></li>
           </ul>
         </div>
-        <p style="font-size:12px; color:var(--text-secondary);">
+        <p style="font-size:12px; color:var(--text-secondary);" data-i18n="reset.footer">
           若您並未主動變更 NAS 設定，請勿執行此操作，以免掩蓋潛在的未授權竄改！
         </p>
       </div>
       <div class="modal-actions">
-        <button class="btn" onclick="closeResetBaselineModal()">取消 (Cancel)</button>
-        <button class="btn btn-warn" id="btnConfirmResetBaseline" onclick="confirmResetBaseline()" style="background:rgba(255, 0, 85, 0.2); border-color:#ff0055; color:#ffffff;">
+        <button class="btn" onclick="closeResetBaselineModal()" data-i18n="reset.btn_cancel">取消</button>
+        <button class="btn btn-warn" id="btnConfirmResetBaseline" onclick="confirmResetBaseline()" style="background:rgba(255, 0, 85, 0.2); border-color:#ff0055; color:#ffffff;" data-i18n="reset.btn_confirm">
           ⚠️ 確認重建基準
         </button>
       </div>
     </div>
   </div>
 
-  <script src="/app.js"></script>
-
   <!-- Modal Dialog for Cloudflare API Configuration -->
   <div id="cfConfigModal" class="modal-overlay" onclick="onCfModalOverlayClick(event)">
     <div class="modal-box" style="max-width:560px;">
       <div class="modal-title">
-        <span>🌐 Cloudflare 邊界日誌 API 連線設定</span>
+        <span data-i18n="cf.title">🌐 Cloudflare 邊界日誌 API 連線設定</span>
       </div>
       <div class="modal-body">
-        <p style="margin-bottom:14px; font-size:12.5px; color:var(--text-secondary); line-height:1.5;">
+        <p style="margin-bottom:14px; font-size:12.5px; color:var(--text-secondary); line-height:1.5;" data-i18n="cf.desc">
           透過 Cloudflare GraphQL API，直接從 Cloudflare 全球邊界節點拉取外部對您網域的「惡意目錄刺探」與「WAF 攔截事件」，完全不耗損 NAS 本地硬碟 I/O。
         </p>
 
         <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:14px;">
           <div>
             <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-              Cloudflare API Token (權杖) <span style="color:var(--danger);">*</span>
+              <span data-i18n="cf.token_label">Cloudflare API Token (權杖)</span> <span style="color:var(--danger);">*</span>
             </label>
-            <input type="password" id="cfApiTokenInput" class="input" placeholder="具有 Zone.Analytics:Read 權限的 API Token" style="width:100%; font-family:var(--font-mono);" />
-            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">至 Cloudflare ➔ My Profile ➔ API Tokens 建立具備「Zone - Analytics - Read」權限之 Token</div>
+            <input type="password" id="cfApiTokenInput" class="input" placeholder="具有 Zone.Analytics:Read 權限的 API Token" data-i18n-placeholder="cf.token_ph" style="width:100%; font-family:var(--font-mono);" />
+            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;" data-i18n="cf.token_help">至 Cloudflare ➔ My Profile ➔ API Tokens 建立具備「Zone - Analytics - Read」權限之 Token</div>
           </div>
 
           <div>
             <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-              Zone ID (區域標籤) <span style="color:var(--danger);">*</span>
+              <span data-i18n="cf.zone_label">Zone ID (區域標籤)</span> <span style="color:var(--danger);">*</span>
             </label>
-            <input type="text" id="cfZoneIdInput" class="input" placeholder="例如：42a1b7... (32 位元十六進位字串)" style="width:100%; font-family:var(--font-mono);" />
-            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;">在 Cloudflare 點入網域 ➔ 右下方 Overview 即可複製 Zone ID</div>
+            <input type="text" id="cfZoneIdInput" class="input" placeholder="例如：42a1b7... (32 位元十六進位字串)" data-i18n-placeholder="cf.zone_ph" style="width:100%; font-family:var(--font-mono);" />
+            <div style="font-size:11px; color:var(--text-muted); margin-top:3px;" data-i18n="cf.zone_help">在 Cloudflare 點入網域 ➔ 右下方 Overview 即可複製 Zone ID</div>
           </div>
 
           <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
             <input type="checkbox" id="cfEnabledCheckbox" checked style="width:auto; cursor:pointer;" />
-            <label for="cfEnabledCheckbox" style="font-size:12.5px; cursor:pointer;">啟用邊界安全情報自動排程同步 (每 60 秒)</label>
+            <label for="cfEnabledCheckbox" style="font-size:12.5px; cursor:pointer;" data-i18n="cf.enable_label">啟用邊界安全情報自動排程同步 (每 60 秒)</label>
           </div>
         </div>
 
         <div id="cfModalMsg" style="display:none; padding:8px 12px; border-radius:6px; font-size:12px; font-family:var(--font-mono); margin-bottom:12px;"></div>
       </div>
       <div class="modal-actions">
-        <button class="btn" onclick="closeCfConfigModal()">取消 (Cancel)</button>
-        <button class="btn" id="btnTestCf" onclick="submitCfConfig(true)">🧪 測試連線 (Test)</button>
-        <button class="btn btn-primary" id="btnSaveCf" onclick="submitCfConfig(false)">💾 儲存並啟用 (Save & Enable)</button>
+        <button class="btn" onclick="closeCfConfigModal()" data-i18n="cf.btn_cancel">取消</button>
+        <button class="btn" id="btnTestCf" onclick="submitCfConfig(true)" data-i18n="cf.btn_test">🧪 測試連線</button>
+        <button class="btn btn-primary" id="btnSaveCf" onclick="submitCfConfig(false)" data-i18n="cf.btn_save">💾 儲存並啟用</button>
       </div>
     </div>
   </div>
@@ -1949,8 +1947,8 @@
         <div style="display:flex; align-items:center; gap:9px;">
           <span style="font-size:20px;">🚀</span>
           <div>
-            <div style="font-weight:700; color:#fff; font-size:16px;">NAS Sentinel // 系統連線與安裝精靈</div>
-            <div style="font-size:11px; color:var(--text-secondary); font-family:var(--font-sans); font-weight:400;">
+            <div style="font-weight:700; color:#fff; font-size:16px;" data-i18n="setup.title">NAS Sentinel // 系統連線與安裝精靈</div>
+            <div style="font-size:11px; color:var(--text-secondary); font-family:var(--font-sans); font-weight:400;" data-i18n="setup.sub">
               Zero-Footprint Synology DSM 即時安全監控
             </div>
           </div>
@@ -1961,8 +1959,8 @@
       <div class="modal-body" style="max-height:75vh; overflow-y:auto; padding-right:6px;">
         <!-- Setup Guide Steps -->
         <div style="background:rgba(0, 229, 255, 0.05); border:1px solid rgba(0, 229, 255, 0.2); border-radius:6px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; line-height:1.5;">
-          <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;">✨ 零技術門檻快速啟用 (Quick Setup)</div>
-          <div style="color:var(--text-secondary);">
+          <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.quick_title">✨ 零技術門檻快速啟用 (Quick Setup)</div>
+          <div style="color:var(--text-secondary);" data-i18n="setup.quick_desc">
             輸入您的 Synology NAS 內部 IP 與 SSH 帳號，點擊「⚡ 測試連線與自動探測 NAS」，系統將自動檢測 DSM 版本、CPU 架構並在背景初始化安全基線。
           </div>
         </div>
@@ -1970,15 +1968,15 @@
         <!-- Collapsible First-Time SSH Setup Helper -->
         <div style="background:rgba(251, 191, 36, 0.07); border:1px solid rgba(251, 191, 36, 0.28); border-radius:6px; padding:10px 14px; margin-bottom:15px; font-size:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSetupSshHelp()">
-            <span style="font-weight:600; color:var(--warning); display:flex; align-items:center; gap:6px;">
-              <span>💡</span> 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？
+            <span style="font-weight:600; color:var(--warning); display:flex; align-items:center; gap:6px;" data-i18n="setup.ssh_help_header">
+              💡 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？
             </span>
-            <span id="setupSshHelpToggle" style="color:var(--text-muted); font-size:11px;">▶ 展開教學</span>
+            <span id="setupSshHelpToggle" style="color:var(--text-muted); font-size:11px;" data-i18n="setup.ssh_help_show">▶ 展開教學</span>
           </div>
           <div id="setupSshHelpContent" style="display:none; margin-top:8px; color:var(--text-secondary); line-height:1.65; border-top:1px dashed rgba(251, 191, 36, 0.2); padding-top:8px;">
-            <div style="margin-bottom:4px;"><strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。</div>
-            <div style="margin-bottom:4px;"><strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。</div>
-            <div><strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。</div>
+            <div style="margin-bottom:4px;" data-i18n="setup.ssh_help_body_1"><strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。</div>
+            <div style="margin-bottom:4px;" data-i18n="setup.ssh_help_body_2"><strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。</div>
+            <div data-i18n="setup.ssh_help_body_3"><strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。</div>
           </div>
         </div>
 
@@ -1987,39 +1985,39 @@
           <div style="display:grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap:12px;">
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                NAS 主機 IP / 網址 <span style="color:var(--danger);">*</span>
+                <span data-i18n="setup.host_label">NAS 主機 IP / 網址</span> <span style="color:var(--danger);">*</span>
               </label>
-              <input type="text" id="setupNasHost" class="input" placeholder="例如：192.168.1.100" style="width:100%; font-family:var(--font-mono);" />
+              <input type="text" id="setupNasHost" class="input" placeholder="例如：192.168.1.100" data-i18n-placeholder="setup.host_ph" style="width:100%; font-family:var(--font-mono);" />
             </div>
 
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                SSH 登入帳號 <span style="color:var(--danger);">*</span>
+                <span data-i18n="setup.user_label">SSH 登入帳號</span> <span style="color:var(--danger);">*</span>
               </label>
-              <input type="text" id="setupNasUser" class="input" placeholder="例如：admin 或 root" style="width:100%; font-family:var(--font-mono);" />
+              <input type="text" id="setupNasUser" class="input" placeholder="例如：admin 或 root" data-i18n-placeholder="setup.user_ph" style="width:100%; font-family:var(--font-mono);" />
             </div>
 
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                SSH Port <span style="font-size:10.5px; color:var(--accent-secondary);">(可自訂)</span>
+                SSH Port <span style="font-size:10.5px; color:var(--accent-secondary);" data-i18n="setup.port_hint">(可自訂)</span>
               </label>
-              <input type="number" id="setupNasPort" class="input" placeholder="22" value="22" title="若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改" style="width:100%; font-family:var(--font-mono);" />
+              <input type="number" id="setupNasPort" class="input" placeholder="22" value="22" title="若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改" data-i18n-title="setup.port_title" style="width:100%; font-family:var(--font-mono);" />
             </div>
           </div>
 
           <!-- SSH Key Selection -->
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">
-                SSH 私鑰路徑 (must be under ~/.ssh)
+              <label style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);" data-i18n="setup.key_label">
+                SSH 私鑰路徑 (Authentication Key)
               </label>
-              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;">🔑 產生受密碼保護的新金鑰</a>
+              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;" data-i18n="setup.keygen_link">🔑 產生受密碼保護的新金鑰</a>
             </div>
             <select id="setupSshKeySelect" class="input" onchange="onSshKeySelectChange()" style="width:100%; font-family:var(--font-mono); margin-bottom:6px;">
-              <option value="">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>
+              <option value="" data-i18n="setup.key_default_opt">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>
             </select>
-            <input type="text" id="setupSshKeyCustom" class="input" placeholder="例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）" style="width:100%; font-family:var(--font-mono); font-size:12px; margin-bottom:6px;" />
-            <input type="password" id="setupKeyPassphrase" class="input" placeholder="新金鑰 Passphrase（至少 8 字元；禁止空白密碼）" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+            <input type="text" id="setupSshKeyCustom" class="input" placeholder="例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）" data-i18n-placeholder="setup.key_custom_ph" style="width:100%; font-family:var(--font-mono); font-size:12px; margin-bottom:6px;" />
+            <input type="password" id="setupKeyPassphrase" class="input" placeholder="新金鑰 Passphrase（至少 8 字元；禁止空白密碼）" data-i18n-placeholder="setup.passphrase_ph" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
             <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;">Passphrase-protected keys need <code>ssh-agent</code> for BatchMode scans. Empty-passphrase auto-generation is disabled.</div>
           </div>
 
@@ -2027,7 +2025,7 @@
           <div>
             <button type="button" class="btn" id="btnTestNasConnect" onclick="testNasConnection()" style="width:100%; padding:9px; border-color:var(--border-cyan); color:var(--accent-secondary); font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
               <span id="btnTestNasIcon">⚡</span>
-              <span id="btnTestNasText">測試 SSH 連線並自動探測 NAS</span>
+              <span id="btnTestNasText" data-i18n="setup.btn_test">測試 SSH 連線並自動探測 NAS</span>
             </button>
           </div>
 
@@ -2036,38 +2034,38 @@
 
           <!-- One-Click Key Copy Helper Panel (hidden by default) -->
           <div id="setupKeyHelperPanel" style="display:none; background:rgba(0,0,0,0.5); border:1px dashed var(--border-cyan); border-radius:6px; padding:12px 14px; font-size:11.5px;">
-            <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;">🔑 快速授權此金鑰至 Synology NAS</div>
-            <div style="color:var(--text-secondary); margin-bottom:6px;">登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：</div>
+            <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.key_auth_title">🔑 快速授權此金鑰至 Synology NAS</div>
+            <div style="color:var(--text-secondary); margin-bottom:6px;" data-i18n="setup.key_auth_desc">登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：</div>
             <div style="display:flex; gap:6px;">
               <input type="text" id="setupKeyCommandText" readonly class="input" style="width:100%; font-size:11px; color:#00ff41; background:rgba(0,0,0,0.7);" />
-              <button class="btn" onclick="copySetupKeyCmd()" style="white-space:nowrap; padding:4px 10px;">📋 複製</button>
+              <button class="btn" onclick="copySetupKeyCmd()" style="white-space:nowrap; padding:4px 10px;" data-i18n="setup.copy_btn">📋 複製</button>
             </div>
           </div>
 
           <!-- Cloudflare (Optional) Collapsible -->
           <div style="border-top:1px solid var(--border-muted); padding-top:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSetupCfSection()">
-              <span style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-main);">
+              <span style="font-size:12.5px; font-family:var(--font-mono); font-weight:600; color:var(--text-main);" data-i18n="setup.cf_header">
                 🌐 Cloudflare 邊界日誌監控 (選填，可稍後設定)
               </span>
-              <span id="setupCfToggleIcon" style="font-size:11px; color:var(--text-muted);">▶ 展開</span>
+              <span id="setupCfToggleIcon" style="font-size:11px; color:var(--text-muted);" data-i18n="setup.cf_expand">▶ 展開</span>
             </div>
 
             <div id="setupCfSection" style="display:none; margin-top:10px; flex-direction:column; gap:10px;">
               <div>
                 <label style="display:block; font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:3px;">Cloudflare API Token</label>
-                <input type="password" id="setupCfToken" class="input" placeholder="具備 Zone.Analytics:Read 權限之 Token" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+                <input type="password" id="setupCfToken" class="input" placeholder="具備 Zone.Analytics:Read 權限之 Token" data-i18n-placeholder="setup.cf_token_ph" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div>
                 <label style="display:block; font-size:11.5px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:3px;">Zone ID</label>
-                <input type="text" id="setupCfZone" class="input" placeholder="32 位元 Zone Tag" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+                <input type="text" id="setupCfZone" class="input" placeholder="32 位元 Zone Tag" data-i18n-placeholder="setup.cf_zone_ph" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
               </div>
               <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                 <div style="display:flex; align-items:center; gap:8px;">
                   <input type="checkbox" id="setupCfEnabled" style="width:auto; cursor:pointer;" />
-                  <label for="setupCfEnabled" style="font-size:12px; cursor:pointer;">啟用 Cloudflare 邊界安全情報自動排程同步</label>
+                  <label for="setupCfEnabled" style="font-size:12px; cursor:pointer;" data-i18n="setup.cf_enable">啟用 Cloudflare 邊界安全情報自動排程同步</label>
                 </div>
-                <button type="button" class="btn" id="btnTestSetupCf" onclick="testSetupCfConnection()" style="padding:4px 10px; font-size:11.5px; font-weight:600; color:var(--accent-secondary); border-color:var(--border-cyan);">
+                <button type="button" class="btn" id="btnTestSetupCf" onclick="testSetupCfConnection()" style="padding:4px 10px; font-size:11.5px; font-weight:600; color:var(--accent-secondary); border-color:var(--border-cyan);" data-i18n="setup.btn_test_cf">
                   🧪 測試連線 (Test)
                 </button>
               </div>
@@ -2081,17 +2079,17 @@
 
       <div class="modal-actions" style="justify-content:space-between;">
         <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
-          <span>🔒 密鑰僅儲存在本地端 data/ 目錄</span>
+          <span data-i18n="setup.footnote">🔒 密鑰僅儲存在本地端 data/ 目錄</span>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
-          <button class="btn" id="btnSkipSetupOffline" onclick="skipSetupOffline()" title="Unlock the SOC UI without changing nas_host / SSH key (SSH workers stay paused)">
+          <button class="btn" id="btnSkipSetupOffline" onclick="skipSetupOffline()" title="Unlock the SOC UI without changing nas_host / SSH key (SSH workers stay paused)" data-i18n="setup.btn_skip">
             🚪 稍後設定，先進入戰情室
           </button>
-          <button class="btn" id="btnPersistSetupOffline" onclick="saveSetupConfig({ persistOnly: true })" title="Always write host/user/port/key to config.json — never blocked by SSH timeout">
+          <button class="btn" id="btnPersistSetupOffline" onclick="saveSetupConfig({ persistOnly: true })" title="Always write host/user/port/key to config.json — never blocked by SSH timeout" data-i18n="setup.btn_persist">
             💾 儲存連線設定
           </button>
-          <button class="btn" id="btnCancelSetup" onclick="closeSetupModal()">關閉</button>
-          <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig({ goLive: true })" style="box-shadow:var(--shadow-glow-green);" title="Save settings, then probe SSH. If probe fails, settings still stay saved (offline).">
+          <button class="btn" id="btnCancelSetup" onclick="closeSetupModal()" data-i18n="setup.btn_close">關閉</button>
+          <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig({ goLive: true })" style="box-shadow:var(--shadow-glow-green);" title="Save settings, then probe SSH. If probe fails, settings still stay saved (offline)." data-i18n="setup.btn_golive">
             🛡️ 測試並上線 (Test &amp; go live)
           </button>
         </div>
@@ -2179,5 +2177,6 @@
     </div>
   </div>
 
+  <script src="/app.js"></script>
 </body>
 </html>
