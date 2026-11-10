@@ -33,8 +33,10 @@ if errorlevel 1 (
 
 echo [OK] Local server started in background.
 echo - Opening Web Wizard: http://127.0.0.1:8088
-echo - API token file    : nas-sentinel\data\api_token.txt
-echo   (Paste token into the browser auth gate; all /api/* require Bearer auth)
+echo - Unlock            : browser on this PC auto-loads the API token
+echo                       (loopback only — no need to open api_token.txt)
+echo - Backup token file : nas-sentinel\data\api_token.txt  (or API_TOKEN env)
+echo - APIs              : still require Authorization: Bearer ^<token^>
 echo - Stop Service      : stop-nas-sentinel.bat
 echo - Windows Autostart : install-autostart-service.bat
 echo ============================================================

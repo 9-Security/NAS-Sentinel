@@ -7,6 +7,10 @@ and this project follows semantic versioning once tagged releases begin.
 
 ## [Unreleased]
 
+### Added
+
+- **P0 novice unlock:** `GET /api/auth/local-token` returns the API token only to TCP loopback peers (`127.0.0.1` / `::1`; never trusts `X-Forwarded-For`). The browser auto-stores it on first visit so users need not dig `data/api_token.txt`. Auth gate adds Localhost unlock / Copy token; Bearer auth remains required for all other `/api/*`. Start scripts and README / README.zh-TW describe auto-unlock as primary and the token file as backup.
+
 ### Fixed
 
 - EN/JP leftover audit after #6: `t()` no longer falls back to Traditional Chinese under EN/JP (fail closed); after dashboard render only id-less chrome `data-i18n` is refreshed (never clobber live KPI/badge/banner fields); server-fed labels (FIM targets, services, endpoints, rootkit/posture checks, CF probe classes, anomaly/inotify phrases) localized via stable-id maps; theme toggle titles de-bilingualized; duplicate `setup.keygen_link` removed.

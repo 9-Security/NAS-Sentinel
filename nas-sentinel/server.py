@@ -9,6 +9,7 @@ import datetime
 import hashlib
 import hmac
 import http.client
+import ipaddress
 import json
 import os
 from pathlib import Path
@@ -50,8 +51,30 @@ CONFIG_FILE = DATA_DIR / "config.json"
 CONFIG_EXAMPLE_FILE = DATA_DIR / "config.example.json"
 API_TOKEN_FILE = DATA_DIR / "api_token.txt"
 SSH_KNOWN_HOSTS_FILE = DATA_DIR / "ssh_known_hosts"
-PUBLIC_API_PATHS = frozenset({"/api/auth/status"})
+PUBLIC_API_PATHS = frozenset({
+    "/api/auth/status",
+    "/api/auth/local-token",  # loopback-only bootstrap; never trust proxies
+})
 MIN_SSH_PASSPHRASE_LEN = 8
+
+
+def _peer_ip_is_loopback(peer_host: str) -> bool:
+    """True only for TCP-peer loopback. Never use X-Forwarded-For / X-Real-IP."""
+    host = (peer_host or "").strip()
+    if not host:
+        return False
+    # Strip IPv6 zone id if present (e.g. fe80::1%eth0) — loopback has none normally.
+    if "%" in host:
+        host = host.split("%", 1)[0]
+    try:
+        addr = ipaddress.ip_address(host)
+    except ValueError:
+        return host.lower() in ("localhost",)
+    if addr.is_loopback:
+        return True
+    # Some stacks present IPv4-mapped peers (::ffff:127.0.0.1); .is_loopback is False there.
+    mapped = getattr(addr, "ipv4_mapped", None)
+    return bool(mapped is not None and mapped.is_loopback)
 
 
 def _chmod_secret(path: Path, mode: int = 0o600):
@@ -1453,6 +1476,15 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(raw)
 
+    def _client_peer_host(self) -> str:
+        try:
+            return (self.client_address[0] or "").strip()
+        except Exception:
+            return ""
+
+    def _is_loopback_peer(self) -> bool:
+        return _peer_ip_is_loopback(self._client_peer_host())
+
     def _extract_bearer_token(self) -> str:
         auth = self.headers.get("Authorization", "") or ""
         if auth.lower().startswith("bearer "):
@@ -1469,7 +1501,11 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
         if not provided or not hmac.compare_digest(provided, expected):
             self._send_json({
                 "ok": False,
-                "error": "Unauthorized. Set Authorization: Bearer <API_TOKEN> (see data/api_token.txt or API_TOKEN env).",
+                "error": (
+                    "Unauthorized. Set Authorization: Bearer <API_TOKEN>. "
+                    "On localhost the UI auto-loads the token; otherwise use the "
+                    "server console, data/api_token.txt, or API_TOKEN env."
+                ),
             }, status=401)
             return False
         return True
@@ -1485,11 +1521,46 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
 
         if parsed.path == "/api/auth/status":
+            loopback = self._is_loopback_peer()
             self._send_json({
                 "ok": True,
                 "auth_required": True,
                 "auth_scheme": "Bearer",
-                "hint": "Paste the token from data/api_token.txt or the API_TOKEN environment variable into the UI.",
+                "loopback_client": loopback,
+                "local_bootstrap_available": loopback,
+                "hint": (
+                    "Open http://127.0.0.1:8088 on this machine — the UI unlocks automatically. "
+                    "Backup: server console, data/api_token.txt, or API_TOKEN env."
+                    if loopback
+                    else "Remote clients must paste the API token manually; loopback bootstrap is disabled."
+                ),
+            })
+            return
+
+        if parsed.path == "/api/auth/local-token":
+            # Secure bootstrap: reveal token only to TCP loopback peers.
+            # Do not honor X-Forwarded-For / X-Real-IP (proxy spoofing).
+            if not self._is_loopback_peer():
+                self._send_json({
+                    "ok": False,
+                    "error": "Forbidden: API token bootstrap is only available from 127.0.0.1 / ::1.",
+                    "loopback_client": False,
+                }, status=403)
+                return
+            token = (STATE.config.get("api_token") or "").strip()
+            if not token:
+                self._send_json({
+                    "ok": False,
+                    "error": "Server misconfigured: API token missing",
+                    "loopback_client": True,
+                }, status=500)
+                return
+            self._send_json({
+                "ok": True,
+                "loopback_client": True,
+                "api_token": token,
+                "auth_scheme": "Bearer",
+                "hint": "Store in this browser only. All other /api/* calls still require Authorization: Bearer.",
             })
             return
 
@@ -1913,12 +1984,14 @@ def main():
     print(f"  目標主機 : {host_display}")
     print(f"  本機介面 : http://{listen_host}:{listen_port}")
     print(f"  API 權杖 : {api_token}")
-    print(f"  Token 檔 : {API_TOKEN_FILE}")
-    print(f"  Auth     : Authorization: Bearer <token> required for all /api/*")
+    print(f"  Token 檔 : {API_TOKEN_FILE} (backup — prefer browser localhost unlock)")
+    print(f"  Unlock   : open http://127.0.0.1:{listen_port} on this PC (loopback auto-loads token)")
+    print(f"  Auth     : Authorization: Bearer <token> required for all /api/* (except auth helpers)")
     if listen_host in ("0.0.0.0", "::"):
         print(f"  WARNING  : Binding {listen_host} exposes the UI/API on all interfaces.")
         print(f"             Network exposure without TLS + firewall is unsupported.")
         print(f"             Prefer MONITOR_HOST=127.0.0.1 (Docker Compose default).")
+        print(f"             /api/auth/local-token still refuses non-loopback TCP peers.")
     print(f"============================================================")
     inotify_thread = threading.Thread(target=inotify_listener_loop, daemon=True)
     inotify_thread.start()
