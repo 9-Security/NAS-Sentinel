@@ -2083,10 +2083,16 @@
         <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
           <span>🔒 密鑰僅儲存在本地端 data/ 目錄</span>
         </div>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn" id="btnSkipSetupOffline" onclick="skipSetupOffline()" title="Unlock the SOC UI without changing nas_host / SSH key (SSH workers stay paused)">
+            🚪 稍後設定，先進入戰情室
+          </button>
+          <button class="btn" id="btnPersistSetupOffline" onclick="saveSetupConfig({ persistOnly: true })" title="Always write host/user/port/key to config.json — never blocked by SSH timeout">
+            💾 儲存連線設定
+          </button>
           <button class="btn" id="btnCancelSetup" onclick="closeSetupModal()">關閉</button>
-          <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig()" style="box-shadow:var(--shadow-glow-green);">
-            🛡️ 儲存並進入戰情室 (Save & Launch)
+          <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig({ goLive: true })" style="box-shadow:var(--shadow-glow-green);" title="Save settings, then probe SSH. If probe fails, settings still stay saved (offline).">
+            🛡️ 測試並上線 (Test &amp; go live)
           </button>
         </div>
       </div>

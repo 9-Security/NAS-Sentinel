@@ -760,6 +760,19 @@ async function fetchStatus() {
       openSetupModal(true);
       return;
     }
+    if (json.offline_mode && !json.data) {
+      const badge = document.getElementById("threatBadge");
+      if (badge) {
+        badge.className = "badge badge-warn";
+        badge.textContent = "離線模式";
+      }
+      const idEl = document.getElementById("nasIdentity");
+      if (idEl) {
+        idEl.textContent = json.last_error
+          || "Offline mode — finish NAS SSH setup from Admin when ready";
+      }
+      return;
+    }
     if (json.ok && json.data) {
       currentSnapshot = json.data;
       renderDashboard(json.data);
@@ -2103,7 +2116,62 @@ function copySetupKeyCmd() {
   });
 }
 
-async function saveSetupConfig() {
+async function skipSetupOffline() {
+  const btnSkip = document.getElementById("btnSkipSetupOffline");
+  const msgBox = document.getElementById("setupSaveMsg");
+
+  if (!getApiToken()) {
+    showApiAuthModal("Enter API token before skipping setup (data/api_token.txt).");
+    return;
+  }
+  if (btnSkip) {
+    btnSkip.disabled = true;
+    btnSkip.textContent = "⏳ 進入離線戰情室...";
+  }
+  try {
+    // Empty body on purpose: server must NOT rewrite nas_host / key from form defaults.
+    const res = await apiFetch("/api/setup/skip-offline", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    if (res.status === 401) return;
+    const json = await res.json();
+    if (json.ok) {
+      appConfig = json.config || { is_configured: true, offline_mode: true };
+      isSetupInitial = false;
+      if (msgBox) {
+        msgBox.style.display = "block";
+        msgBox.style.background = "rgba(251, 191, 36, 0.12)";
+        msgBox.style.border = "1px solid rgba(251, 191, 36, 0.45)";
+        msgBox.style.color = "#fbbf24";
+        msgBox.textContent = "✅ " + (json.message || "Offline SOC unlocked (SSH fields unchanged)");
+      }
+      showToast("🚪 已進入離線戰情室（既有主機／金鑰未變更）", "info");
+      setTimeout(() => {
+        closeSetupModal();
+        fetchStatus();
+      }, 600);
+    } else {
+      showToast("❌ " + (json.error || "無法略過設定"), "crit");
+    }
+  } catch (err) {
+    showToast(`❌ ${err.message || err}`, "crit");
+  } finally {
+    if (btnSkip) {
+      btnSkip.disabled = false;
+      btnSkip.textContent = "🚪 稍後設定，先進入戰情室";
+    }
+  }
+}
+
+async function saveSetupConfig(options) {
+  // Backward-compatible: saveSetupConfig(true) => persist only; saveSetupConfig(false) => try go live.
+  const opts = (typeof options === "boolean")
+    ? { persistOnly: options, goLive: !options }
+    : Object.assign({ persistOnly: false, goLive: true }, options || {});
+  const persistOnly = Boolean(opts.persistOnly);
+  const goLive = Boolean(opts.goLive) && !persistOnly;
+
   const host = (document.getElementById("setupNasHost").value || "").trim();
   const user = (document.getElementById("setupNasUser").value || "").trim();
   const port = parseInt(document.getElementById("setupNasPort").value || "22", 10);
@@ -2113,16 +2181,30 @@ async function saveSetupConfig() {
   const cfEnabled = document.getElementById("setupCfEnabled").checked;
 
   const btnSave = document.getElementById("btnSaveSetup");
+  const btnPersist = document.getElementById("btnPersistSetupOffline");
   const msgBox = document.getElementById("setupSaveMsg");
 
   if (!host || !user) {
     showToast("⚠️ 請輸入 NAS 主機 IP 與 SSH 帳號", "warn");
     return;
   }
+  if (["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(host.toLowerCase())) {
+    showToast("⚠️ nas_host 不可為 127.0.0.1（那是本機 UI）。請填實際 NAS IP。", "warn");
+    return;
+  }
+
+  if (!getApiToken()) {
+    showApiAuthModal("Enter API token before saving settings (data/api_token.txt).");
+    return;
+  }
 
   if (btnSave) {
     btnSave.disabled = true;
-    btnSave.textContent = "⏳ 正在驗證連線並建立初始基線...";
+    if (goLive) btnSave.textContent = "⏳ 儲存並測試 SSH...";
+  }
+  if (btnPersist) {
+    btnPersist.disabled = true;
+    if (persistOnly) btnPersist.textContent = "⏳ 儲存參數中...";
   }
   if (msgBox) msgBox.style.display = "none";
 
@@ -2131,39 +2213,56 @@ async function saveSetupConfig() {
       nas_host: host,
       nas_user: user,
       nas_port: port,
-      ssh_key_path: key,
       cloudflare_enabled: cfEnabled,
       cloudflare_zone_id: cfZone,
+      persist_without_connect: persistOnly,
+      go_live: goLive,
     };
+    // Blank key = keep existing server-side; only send when the user typed/selected one.
+    if (key) payload.ssh_key_path = key;
     // Only send Cloudflare token when the user entered a new value (blank = keep existing).
     if (cfToken) payload.cloudflare_api_token = cfToken;
     const res = await apiFetch("/api/setup/save", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    if (res.status === 401) {
+      showApiAuthModal("Unauthorized — paste API token, then save again.");
+      return;
+    }
     const json = await res.json();
     if (json.ok) {
+      const live = Boolean(json.live);
+      const offline = !live;
       if (msgBox) {
         msgBox.style.display = "block";
-        msgBox.style.background = "rgba(0, 255, 65, 0.15)";
-        msgBox.style.border = "1px solid #00ff41";
-        msgBox.style.color = "#00ff41";
-        msgBox.textContent = "✅ " + (json.message || "設定已成功儲存！");
+        msgBox.style.background = offline ? "rgba(251, 191, 36, 0.12)" : "rgba(0, 255, 65, 0.15)";
+        msgBox.style.border = offline ? "1px solid rgba(251, 191, 36, 0.45)" : "1px solid #00ff41";
+        msgBox.style.color = offline ? "#fbbf24" : "#00ff41";
+        msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || "設定已儲存");
       }
-      showToast("🛡️ 設定已儲存！進入戰情室...", "info");
-      appConfig = json.config || { is_configured: true };
+      showToast(
+        live
+          ? "🛡️ 設定已儲存，監控已上線"
+          : (json.warning
+            ? `💾 設定已儲存（SSH 未上線：${json.warning}）`
+            : "💾 連線設定已儲存（離線）"),
+        live ? "info" : "warn"
+      );
+      appConfig = json.config || { is_configured: true, offline_mode: offline };
       isSetupInitial = false;
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
-      }, 1200);
+      }, offline ? 900 : 1200);
     } else {
       if (msgBox) {
         msgBox.style.display = "block";
         msgBox.style.background = "rgba(255, 0, 85, 0.15)";
         msgBox.style.border = "1px solid #ff0055";
         msgBox.style.color = "#ff6699";
-        msgBox.textContent = "❌ " + (json.error || "儲存失敗");
+        const hint = json.hint ? ` — ${json.hint}` : "";
+        msgBox.textContent = "❌ " + (json.error || "儲存失敗") + hint;
       }
     }
   } catch (err) {
@@ -2177,7 +2276,11 @@ async function saveSetupConfig() {
   } finally {
     if (btnSave) {
       btnSave.disabled = false;
-      btnSave.textContent = "🛡️ 儲存並進入戰情室 (Save & Launch)";
+      btnSave.textContent = "🛡️ 測試並上線 (Test & go live)";
+    }
+    if (btnPersist) {
+      btnPersist.disabled = false;
+      btnPersist.textContent = "💾 儲存連線設定";
     }
   }
 }
