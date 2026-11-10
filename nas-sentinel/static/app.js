@@ -141,7 +141,7 @@ const I18N = {
     "admin.cf_settings": "Cloudflare 邊界日誌設定...",
     "admin.cf_desc": "設定 API Token 撈取刺探情報",
     "theme.toggle_title": "切換深色 / 淺色主題 (Toggle Dark/Light Mode)",
-    "lang.toggle_title": "切換語系 (Select Language)",
+    "lang.toggle_title": "切換語系",
     "alert.banner_title": "🚨 偵測到檔案完整性或安全異常！",
     "alert.banner_desc": "請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。",
     "alert.btn_details": "查看檔案異動詳情",
@@ -1318,9 +1318,9 @@ function applyLanguage(lang, notify = false) {
 
   if (notify) {
     const msgs = {
-      "zh-TW": "語系已切換為：繁體中文 (TW)",
-      "en": "Language switched to: English (EN)",
-      "jp": "言語を日本語に切り替えました (JP)"
+      "zh-TW": "語系已切換為：繁體中文",
+      "en": "Language switched to: English",
+      "jp": "言語を日本語に切り替えました"
     };
     showToast(msgs[lang] || "Language updated", "info");
   }
