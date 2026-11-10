@@ -1,0 +1,5 @@
+{
+  "created_at": null,
+  "endpoints": {},
+  "_note": "Template only. TLS cert SHA-256 pins are stored per endpoint after the first trusted scan."
+}

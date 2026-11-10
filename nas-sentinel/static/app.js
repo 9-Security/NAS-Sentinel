@@ -12,6 +12,87 @@ let lastScanCompletedTime = 0;
 let lastPollToggleTime = 0;
 let toastTimeout = null;
 
+// API auth (Authorization Bearer — CSRF-resistant; required for all /api/* except /api/auth/status)
+const API_TOKEN_STORAGE_KEY = "nas_sentinel_api_token";
+let apiAuthPromptOpen = false;
+
+function getApiToken() {
+  try {
+    return (localStorage.getItem(API_TOKEN_STORAGE_KEY) || "").trim();
+  } catch (_) {
+    return "";
+  }
+}
+
+function setApiToken(token) {
+  const cleaned = (token || "").trim();
+  try {
+    if (cleaned) localStorage.setItem(API_TOKEN_STORAGE_KEY, cleaned);
+    else localStorage.removeItem(API_TOKEN_STORAGE_KEY);
+  } catch (_) { /* ignore quota / private mode */ }
+  return cleaned;
+}
+
+function apiAuthHeaders(extra) {
+  const headers = Object.assign({}, extra || {});
+  const token = getApiToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
+function showApiAuthModal(reason) {
+  const modal = document.getElementById("apiAuthModal");
+  const input = document.getElementById("apiAuthTokenInput");
+  const msg = document.getElementById("apiAuthMsg");
+  if (!modal) {
+    const pasted = window.prompt(
+      "API token required. Paste from data/api_token.txt or server console / API_TOKEN env:",
+      getApiToken()
+    );
+    if (pasted) setApiToken(pasted);
+    return;
+  }
+  if (msg) {
+    msg.textContent = reason || "All /api/* routes require Authorization: Bearer <token>.";
+    msg.style.display = "block";
+  }
+  if (input) input.value = getApiToken();
+  modal.style.display = "flex";
+  apiAuthPromptOpen = true;
+  if (input) input.focus();
+}
+
+function closeApiAuthModal() {
+  const modal = document.getElementById("apiAuthModal");
+  if (modal) modal.style.display = "none";
+  apiAuthPromptOpen = false;
+}
+
+function saveApiAuthTokenFromModal() {
+  const input = document.getElementById("apiAuthTokenInput");
+  const token = input ? input.value.trim() : "";
+  if (!token) {
+    showToast("⚠️ Please paste a non-empty API token", "warn");
+    return;
+  }
+  setApiToken(token);
+  closeApiAuthModal();
+  showToast("🔐 API token saved in this browser", "info");
+  loadAppConfig();
+  fetchStatus();
+}
+
+async function apiFetch(url, options) {
+  const opts = Object.assign({}, options || {});
+  const baseHeaders = opts.body ? { "Content-Type": "application/json" } : {};
+  opts.headers = apiAuthHeaders(Object.assign(baseHeaders, opts.headers || {}));
+  const res = await fetch(url, opts);
+  if (res.status === 401 && !apiAuthPromptOpen) {
+    showApiAuthModal("Unauthorized — enter the API token from data/api_token.txt or API_TOKEN.");
+  }
+  return res;
+}
+
 // ==========================================
 // Multilingual Translation Dictionary (I18N)
 // Compatible with Nine-Security Standards
@@ -661,7 +742,12 @@ function toggleAutoPoll() {
 async function fetchStatus() {
   if (isOperationBusy) return; // Prevent concurrent polling collisions
   try {
-    const res = await fetch("/api/status");
+    if (!getApiToken()) {
+      showApiAuthModal("Enter API token to unlock the dashboard (from data/api_token.txt).");
+      return;
+    }
+    const res = await apiFetch("/api/status");
+    if (res.status === 401) return;
     const json = await res.json();
     if (json.is_configured === false) {
       const badge = document.getElementById("threatBadge");
@@ -711,9 +797,8 @@ async function triggerScan(mode) {
   }
 
   try {
-    const res = await fetch("/api/scan", {
+    const res = await apiFetch("/api/scan", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode }),
     });
 
@@ -835,7 +920,7 @@ async function confirmResetBaseline() {
   }
 
   try {
-    const res = await fetch("/api/baseline/reset", { method: "POST" });
+    const res = await apiFetch("/api/baseline/reset", { method: "POST" });
     if (res.status === 429) {
       showToast("⚠️ 後端回報：系統忙碌中，請稍候再試", "warn");
       return;
@@ -1311,7 +1396,7 @@ function debouncedLoadFiles() {
 async function loadFilesExplorer() {
   const q = document.getElementById("fileSearchInput").value.trim();
   const cat = document.getElementById("fileCategorySelect").value;
-  const res = await fetch(`/api/files?q=${encodeURIComponent(q)}&category=${encodeURIComponent(cat)}&limit=250`);
+  const res = await apiFetch(`/api/files?q=${encodeURIComponent(q)}&category=${encodeURIComponent(cat)}&limit=250`);
   const json = await res.json();
   document.getElementById("fileExplorerCount").textContent =
     `顯示前 ${json.items.length} 筆 (符合: ${json.total_matched} / 總監控: ${json.total_monitored} 檔)`;
@@ -1570,7 +1655,7 @@ function openCfConfigModal() {
   const msg = document.getElementById("cfModalMsg");
   if (msg) msg.style.display = "none";
 
-  fetch("/api/cloudflare/status")
+  apiFetch("/api/cloudflare/status")
     .then(r => r.json())
     .then(res => {
       if (res.ok && res.data) {
@@ -1625,9 +1710,8 @@ async function submitCfConfig(testOnly = false) {
   }
 
   try {
-    const res = await fetch("/api/cloudflare/config", {
+    const res = await apiFetch("/api/cloudflare/config", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_token: token, zone_id: zone, enabled, test_only: testOnly }),
     });
     const json = await res.json();
@@ -1669,7 +1753,7 @@ async function submitCfConfig(testOnly = false) {
 async function triggerCfSync() {
   showToast("🔄 正在向 Cloudflare 邊界同步最新刺探日誌...", "info");
   try {
-    const res = await fetch("/api/cloudflare/sync", { method: "POST" });
+    const res = await apiFetch("/api/cloudflare/sync", { method: "POST" });
     const json = await res.json();
     setTimeout(() => {
       fetchStatus();
@@ -1694,7 +1778,12 @@ let isSetupInitial = false;
 
 async function loadAppConfig() {
   try {
-    const res = await fetch("/api/config");
+    if (!getApiToken()) {
+      showApiAuthModal("Enter API token to load configuration (data/api_token.txt).");
+      return;
+    }
+    const res = await apiFetch("/api/config");
+    if (res.status === 401) return;
     const json = await res.json();
     if (json.ok && json.config) {
       appConfig = json.config;
@@ -1734,7 +1823,13 @@ function populateSetupForm(cfg, detectedKeys) {
     });
   }
 
-  if (cfToken && cfg.cloudflare_api_token) cfToken.value = cfg.cloudflare_api_token;
+  // Never echo raw Cloudflare tokens (server strips them). Keep field empty; show presence hint.
+  if (cfToken) {
+    cfToken.value = "";
+    cfToken.placeholder = cfg.cloudflare_api_token_set
+      ? `Token on file (${cfg.cloudflare_api_token_masked || "***"}) — leave blank to keep`
+      : "具備 Zone.Analytics:Read 權限之 Token";
+  }
   if (cfZone && cfg.cloudflare_zone_id) cfZone.value = cfg.cloudflare_zone_id;
   if (cfEnabled) cfEnabled.checked = Boolean(cfg.cloudflare_enabled);
 }
@@ -1835,9 +1930,8 @@ async function testSetupCfConnection() {
   }
 
   try {
-    const res = await fetch("/api/cloudflare/config", {
+    const res = await apiFetch("/api/cloudflare/config", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ api_token: token, zone_id: zone, enabled: true, test_only: true }),
     });
     const json = await res.json();
@@ -1895,9 +1989,8 @@ async function testNasConnection() {
   if (resBox) resBox.style.display = "none";
 
   try {
-    const res = await fetch("/api/setup/test-connection", {
+    const res = await apiFetch("/api/setup/test-connection", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ nas_host: host, nas_user: user, nas_port: port, ssh_key_path: key }),
     });
     const json = await res.json();
@@ -1907,12 +2000,13 @@ async function testNasConnection() {
         resBox.style.background = "rgba(0, 255, 65, 0.12)";
         resBox.style.border = "1px solid #00ff41";
         resBox.style.color = "#00ff41";
+        const fp = json.ssh_host_key_fp ? `<br>• SSH Host Key：<strong>${escapeHtml(json.ssh_host_key_fp)}</strong>` : "";
         resBox.innerHTML = `
           <div style="font-weight:700; font-size:13px; margin-bottom:4px;">✅ SSH 連線測試成功！NAS 系統探測完成</div>
           <div style="color:#d1fae5; font-size:12px;">
             • 系統版本：<strong>${escapeHtml(json.system.dsm_version)}</strong><br>
             • 核心架構：<strong>${escapeHtml(json.system.kernel)} (${escapeHtml(json.system.arch)})</strong><br>
-            • Python 環境：<strong>${escapeHtml(json.system.python)}</strong>
+            • Python 環境：<strong>${escapeHtml(json.system.python)}</strong>${fp}
           </div>
         `;
         showToast("✅ NAS 連線與探測成功！", "info");
@@ -1942,9 +2036,22 @@ async function testNasConnection() {
 }
 
 async function generateNewSshKey() {
-  showToast("🔑 正在產生 Ed25519 金鑰對...", "info");
+  const passInput = document.getElementById("setupKeyPassphrase");
+  let passphrase = passInput ? passInput.value : "";
+  if (!passphrase || passphrase.length < 8) {
+    passphrase = window.prompt("Enter a passphrase for the new Ed25519 key (min 8 characters). Empty passphrases are not allowed:") || "";
+  }
+  if (!passphrase || passphrase.length < 8) {
+    showToast("⚠️ Passphrase required (min 8 chars). Empty-passphrase keygen is disabled.", "warn");
+    return;
+  }
+  if (passInput) passInput.value = passphrase;
+  showToast("🔑 正在產生受密碼保護的 Ed25519 金鑰對...", "info");
   try {
-    const res = await fetch("/api/setup/generate-key", { method: "POST" });
+    const res = await apiFetch("/api/setup/generate-key", {
+      method: "POST",
+      body: JSON.stringify({ passphrase }),
+    });
     const json = await res.json();
     if (json.ok) {
       const customInput = document.getElementById("setupSshKeyCustom");
@@ -1954,7 +2061,7 @@ async function generateNewSshKey() {
       const cmdText = document.getElementById("setupKeyCommandText");
       if (cmdText) cmdText.value = json.dsm_command;
       if (helperPanel) helperPanel.style.display = "block";
-      showToast("✅ 新金鑰已生成，請複製授權指令至 NAS 貼上", "info");
+      showToast("✅ 新金鑰已生成（請用 ssh-agent 載入密碼）。複製授權指令至 NAS。", "info");
     } else {
       showToast(`❌ 生成失敗: ${json.error}`, "crit");
     }
@@ -1999,18 +2106,19 @@ async function saveSetupConfig() {
   if (msgBox) msgBox.style.display = "none";
 
   try {
-    const res = await fetch("/api/setup/save", {
+    const payload = {
+      nas_host: host,
+      nas_user: user,
+      nas_port: port,
+      ssh_key_path: key,
+      cloudflare_enabled: cfEnabled,
+      cloudflare_zone_id: cfZone,
+    };
+    // Only send Cloudflare token when the user entered a new value (blank = keep existing).
+    if (cfToken) payload.cloudflare_api_token = cfToken;
+    const res = await apiFetch("/api/setup/save", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nas_host: host,
-        nas_user: user,
-        nas_port: port,
-        ssh_key_path: key,
-        cloudflare_enabled: cfEnabled,
-        cloudflare_api_token: cfToken,
-        cloudflare_zone_id: cfZone,
-      }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
     if (json.ok) {

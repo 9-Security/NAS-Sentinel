@@ -7,11 +7,13 @@ Includes both periodic SSH telemetry + real-time Linux kernel inotify millisecon
 import copy
 import datetime
 import hashlib
+import hmac
 import http.client
 import json
 import os
 from pathlib import Path
 import re
+import secrets
 import ssl
 import subprocess
 import sys
@@ -46,6 +48,23 @@ HISTORY_FILE = DATA_DIR / "history.json"
 
 CONFIG_FILE = DATA_DIR / "config.json"
 CONFIG_EXAMPLE_FILE = DATA_DIR / "config.example.json"
+API_TOKEN_FILE = DATA_DIR / "api_token.txt"
+SSH_KNOWN_HOSTS_FILE = DATA_DIR / "ssh_known_hosts"
+PUBLIC_API_PATHS = frozenset({"/api/auth/status"})
+MIN_SSH_PASSPHRASE_LEN = 8
+
+
+def _chmod_secret(path: Path, mode: int = 0o600):
+    try:
+        os.chmod(path, mode)
+    except OSError:
+        pass
+
+
+def write_secret_text(path: Path, text: str):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text if text.endswith("\n") else text + "\n", encoding="utf-8")
+    _chmod_secret(path)
 
 
 def load_app_config() -> dict:
@@ -55,9 +74,11 @@ def load_app_config() -> dict:
         "nas_user": os.environ.get("NAS_USER", "admin"),
         "nas_port": int(os.environ.get("NAS_PORT", "22")),
         "ssh_key_path": os.environ.get("SSH_KEY_PATH", ""),
+        "ssh_host_key_fp": "",
         "web_host": os.environ.get("MONITOR_HOST", "127.0.0.1"),
         "web_port": int(os.environ.get("MONITOR_PORT", "8088")),
         "poll_interval_sec": int(os.environ.get("POLL_INTERVAL_SEC", "15")),
+        "api_token": "",
         "cloudflare_enabled": False,
         "cloudflare_api_token": os.environ.get("CF_API_TOKEN", ""),
         "cloudflare_zone_id": os.environ.get("CF_ZONE_ID", ""),
@@ -72,25 +93,150 @@ def load_app_config() -> dict:
 
 
 def save_app_config(cfg: dict):
-    save_json(CONFIG_FILE, cfg)
+    save_json(CONFIG_FILE, cfg, mode=0o600)
+
+
+def ensure_api_token(cfg: dict) -> str:
+    """Require a high-entropy API token; auto-generate on first local run if unset."""
+    env_token = (os.environ.get("API_TOKEN") or os.environ.get("NAS_SENTINEL_API_TOKEN") or "").strip()
+    if env_token:
+        cfg["api_token"] = env_token
+        write_secret_text(API_TOKEN_FILE, env_token)
+        return env_token
+
+    token = (cfg.get("api_token") or "").strip()
+    if not token and API_TOKEN_FILE.exists():
+        try:
+            token = API_TOKEN_FILE.read_text(encoding="utf-8").strip()
+        except Exception:
+            token = ""
+
+    if not token:
+        token = secrets.token_urlsafe(32)
+        cfg["api_token"] = token
+        save_app_config(cfg)
+        write_secret_text(API_TOKEN_FILE, token)
+    else:
+        cfg["api_token"] = token
+        if not API_TOKEN_FILE.exists():
+            write_secret_text(API_TOKEN_FILE, token)
+    return token
+
+
+def public_config_view(cfg: dict) -> dict:
+    """Return config safe for API responses — never include raw secrets."""
+    safe = {k: v for k, v in cfg.items() if k not in ("cloudflare_api_token", "api_token")}
+    cf_token = cfg.get("cloudflare_api_token", "") or ""
+    if len(cf_token) > 10:
+        safe["cloudflare_api_token_masked"] = f"{cf_token[:6]}...{cf_token[-4:]}"
+    else:
+        safe["cloudflare_api_token_masked"] = "***" if cf_token else ""
+    safe["cloudflare_api_token_set"] = bool(cf_token)
+    safe["api_token_configured"] = bool((cfg.get("api_token") or "").strip())
+    return safe
+
+
+def ssh_dir_resolved() -> Path:
+    return (Path.home() / ".ssh").resolve()
+
+
+def validate_ssh_key_path(key_path: str) -> dict:
+    """Allow only regular files under ~/.ssh (reject path escapes). Empty = default agent/keys."""
+    if not key_path or not str(key_path).strip():
+        return {"ok": True, "path": ""}
+    raw = str(key_path).strip()
+    expanded = Path(os.path.expanduser(raw))
+    ssh_root = ssh_dir_resolved()
+    try:
+        resolved = expanded.resolve()
+    except Exception:
+        return {"ok": False, "error": "Invalid ssh_key_path"}
+    try:
+        resolved.relative_to(ssh_root)
+    except ValueError:
+        return {"ok": False, "error": "ssh_key_path must be a file under ~/.ssh"}
+    if not resolved.exists() or not resolved.is_file():
+        return {"ok": False, "error": "ssh_key_path not found under ~/.ssh"}
+    # Reject symlinks whose ultimate target escapes ~/.ssh (resolve already checked).
+    if expanded.is_symlink():
+        try:
+            expanded.resolve().relative_to(ssh_root)
+        except Exception:
+            return {"ok": False, "error": "ssh_key_path symlink escapes ~/.ssh"}
+    return {"ok": True, "path": str(resolved)}
 
 
 def find_local_ssh_keys() -> list:
+    """Return key paths as ~/.ssh/<basename> only (no absolute path leak beyond home ssh dir)."""
     keys = []
     ssh_dir = Path.home() / ".ssh"
     if ssh_dir.exists():
         for p in sorted(ssh_dir.iterdir()):
-            if p.is_file() and not p.name.endswith((".pub", ".old")) and p.name not in ("known_hosts", "config", "authorized_keys"):
+            if p.is_file() and not p.is_symlink() and not p.name.endswith((".pub", ".old")) and p.name not in ("known_hosts", "config", "authorized_keys"):
                 try:
                     text = p.read_text(encoding="utf-8", errors="ignore")[:60]
                     if "PRIVATE KEY" in text:
-                        keys.append(str(p))
+                        keys.append(f"~/.ssh/{p.name}")
                 except Exception:
                     pass
     return keys
 
 
-def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = "") -> dict:
+def ssh_host_key_options(cfg=None) -> list:
+    """Prefer pinned known_hosts (StrictHostKeyChecking=yes) once a fingerprint is stored."""
+    cfg = cfg or {}
+    null_hosts = "NUL" if os.name == "nt" else "/dev/null"
+    opts = [
+        "-o", f"UserKnownHostsFile={SSH_KNOWN_HOSTS_FILE}",
+        "-o", f"GlobalKnownHostsFile={null_hosts}",
+    ]
+    if (cfg.get("ssh_host_key_fp") or "").strip() and SSH_KNOWN_HOSTS_FILE.exists():
+        opts.extend(["-o", "StrictHostKeyChecking=yes"])
+    else:
+        # First connect only: accept-new into the dedicated known_hosts file, then pin fingerprint.
+        opts.extend(["-o", "StrictHostKeyChecking=accept-new"])
+    return opts
+
+
+def capture_host_key_fingerprint(host: str, port: int = 22) -> str:
+    """Scan host key into the dedicated known_hosts file and return SHA256 fingerprint."""
+    try:
+        scan_cmd = ["ssh-keyscan", "-T", "5"]
+        if port and int(port) != 22:
+            scan_cmd.extend(["-p", str(port)])
+        scan_cmd.append(host)
+        scan = subprocess.run(scan_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8)
+        lines = [ln for ln in scan.stdout.decode("utf-8", errors="replace").splitlines() if ln.strip() and not ln.startswith("#")]
+        if not lines:
+            return ""
+        SSH_KNOWN_HOSTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        # Merge/replace entries for this host
+        existing = []
+        if SSH_KNOWN_HOSTS_FILE.exists():
+            existing = [
+                ln for ln in SSH_KNOWN_HOSTS_FILE.read_text(encoding="utf-8", errors="replace").splitlines()
+                if ln.strip() and host not in ln.split()[0].split(",")
+            ]
+        SSH_KNOWN_HOSTS_FILE.write_text("\n".join(existing + lines) + "\n", encoding="utf-8")
+        _chmod_secret(SSH_KNOWN_HOSTS_FILE)
+        fp_proc = subprocess.run(
+            ["ssh-keygen", "-lf", "-"],
+            input="\n".join(lines).encode("utf-8"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=5,
+        )
+        # Typical: "256 SHA256:abcd... host (ED25519)"
+        out = fp_proc.stdout.decode("utf-8", errors="replace")
+        for part in out.split():
+            if part.startswith("SHA256:"):
+                return part
+    except Exception:
+        return ""
+    return ""
+
+
+def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = "", cfg=None) -> dict:
     if not host or not user:
         return {"ok": False, "error": "NAS 主機 IP 與 SSH 帳號不能為空"}
 
@@ -99,18 +245,31 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
     if not re.match(r"^[a-zA-Z0-9_.:-]+$", host):
         return {"ok": False, "error": "NAS 主機僅能包含合法 IP、網域或主機名稱 (Invalid host)"}
 
+    key_check = validate_ssh_key_path(key_path)
+    if not key_check.get("ok"):
+        return {"ok": False, "error": key_check.get("error", "Invalid ssh_key_path")}
+    key_path = key_check.get("path", "")
+
+    cfg = cfg if cfg is not None else (STATE.config if "STATE" in globals() and hasattr(STATE, "config") else load_app_config())
+    host_fp = capture_host_key_fingerprint(host, port)
+    pinned = (cfg.get("ssh_host_key_fp") or "").strip()
+    if pinned and host_fp and pinned != host_fp:
+        return {
+            "ok": False,
+            "error": f"SSH host key fingerprint mismatch (pinned {pinned}, seen {host_fp}). Refusing connection.",
+            "ssh_host_key_fp": host_fp,
+        }
+
     cmd = [
         "ssh",
         "-o", "BatchMode=yes",
         "-o", "ConnectTimeout=6",
-        "-o", "StrictHostKeyChecking=accept-new",
+        *ssh_host_key_options(cfg if not pinned else {**cfg, "ssh_host_key_fp": pinned or host_fp}),
     ]
     if port and int(port) != 22:
         cmd.extend(["-p", str(port)])
     if key_path:
-        exp = os.path.expanduser(key_path)
-        if os.path.exists(exp):
-            cmd.extend(["-i", exp])
+        cmd.extend(["-i", key_path])
     cmd.append("--")
     cmd.append(f"{user}@{host}")
     cmd.append("uname -s -m -r; python3 -V; cat /etc.defaults/VERSION 2>/dev/null || cat /etc/VERSION 2>/dev/null")
@@ -159,6 +318,7 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
         return {
             "ok": True,
             "message": "SSH 連線成功！NAS 系統探測完成",
+            "ssh_host_key_fp": host_fp or pinned,
             "system": {
                 "os": os_name,
                 "kernel": kernel,
@@ -187,16 +347,15 @@ def build_ssh_cmd(remote_cmd: str, timeout: int = 8) -> list:
         "ssh",
         "-o", "BatchMode=yes",
         "-o", f"ConnectTimeout={timeout}",
-        "-o", "StrictHostKeyChecking=accept-new",
+        *ssh_host_key_options(cfg),
     ]
     port = cfg.get("nas_port", 22)
     if port and int(port) != 22:
         cmd.extend(["-p", str(port)])
     key_path = cfg.get("ssh_key_path")
-    if key_path:
-        exp = os.path.expanduser(key_path)
-        if os.path.exists(exp):
-            cmd.extend(["-i", exp])
+    key_check = validate_ssh_key_path(key_path or "")
+    if key_check.get("ok") and key_check.get("path"):
+        cmd.extend(["-i", key_check["path"]])
     user = cfg.get("nas_user") or "admin"
     host = cfg.get("nas_host") or "127.0.0.1"
     cmd.append("--")
@@ -253,12 +412,14 @@ def load_json(path: Path, default):
         return default
 
 
-def save_json(path: Path, data):
+def save_json(path: Path, data, mode=None):
     with IO_LOCK:
         tmp = path.with_name(f"{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
         try:
             tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
             tmp.replace(path)
+            if mode is not None:
+                _chmod_secret(path, mode)
         finally:
             if tmp.exists():
                 try:
@@ -368,6 +529,7 @@ class MonitorState:
     def __init__(self):
         self.lock = threading.RLock()
         self.config = load_app_config()
+        ensure_api_token(self.config)
         self.fim_baseline = load_json(FIM_BASELINE_FILE, {})
         self.port_baseline = load_json(PORT_BASELINE_FILE, {})
         self.http_baseline = load_json(HTTP_BASELINE_FILE, {})
@@ -954,13 +1116,16 @@ class MonitorState:
                 if ep["body_sha256"] != b_ep.get("body_sha256"):
                     ep["baseline_match"] = False
                     ep["anomaly_notes"].append("網頁回應內容 SHA-256 與基線不符")
-                if ep.get("cert") and b_ep.get("cert_sha256") and ep["cert"]["sha256"] != b_ep.get("cert_sha256"):
+                cert_mismatch = bool(
+                    ep.get("cert") and b_ep.get("cert_sha256") and ep["cert"]["sha256"] != b_ep.get("cert_sha256")
+                )
+                if cert_mismatch:
                     ep["baseline_match"] = False
-                    ep["anomaly_notes"].append("TLS 憑證指紋發生變更")
+                    ep["anomaly_notes"].append("TLS 憑證指紋與基線不符（已釘選；拒絕信任新憑證，請於基線重置後確認）")
                 if not ep["baseline_match"] or ep["anomaly_notes"]:
                     web_anomalies += 1
                     self.add_event(
-                        "WARNING",
+                        "CRITICAL" if cert_mismatch else "WARNING",
                         "Web 端點異常",
                         f"網頁端點回應異動: {ep['label']}",
                         f"Port {ep['port']} {ep['path']}: {', '.join(ep['anomaly_notes'])}",
@@ -1209,11 +1374,53 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         self.wfile.write(raw)
 
+    def _extract_bearer_token(self) -> str:
+        auth = self.headers.get("Authorization", "") or ""
+        if auth.lower().startswith("bearer "):
+            return auth[7:].strip()
+        # Authorization-header auth resists CSRF better than cookies (M6).
+        return (self.headers.get("X-API-Token") or "").strip()
+
+    def _require_api_auth(self) -> bool:
+        expected = (STATE.config.get("api_token") or "").strip()
+        if not expected:
+            self._send_json({"ok": False, "error": "Server misconfigured: API token missing"}, status=500)
+            return False
+        provided = self._extract_bearer_token()
+        if not provided or not hmac.compare_digest(provided, expected):
+            self._send_json({
+                "ok": False,
+                "error": "Unauthorized. Set Authorization: Bearer <API_TOKEN> (see data/api_token.txt or API_TOKEN env).",
+            }, status=401)
+            return False
+        return True
+
+    def _guard_api(self, parsed_path: str) -> bool:
+        if not parsed_path.startswith("/api/"):
+            return True
+        if parsed_path in PUBLIC_API_PATHS:
+            return True
+        return self._require_api_auth()
+
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+
+        if parsed.path == "/api/auth/status":
+            self._send_json({
+                "ok": True,
+                "auth_required": True,
+                "auth_scheme": "Bearer",
+                "hint": "Paste the token from data/api_token.txt or the API_TOKEN environment variable into the UI.",
+            })
+            return
+
+        if parsed.path.startswith("/api/") and not self._guard_api(parsed.path):
+            return
+
         if parsed.path == "/api/status":
             if not STATE.config.get("is_configured"):
                 with STATE.lock:
@@ -1223,7 +1430,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                         "scan_in_progress": False,
                         "last_error": None,
                         "data": None,
-                        "config": STATE.config,
+                        "config": public_config_view(STATE.config),
                     })
                 return
             if STATE.latest_snapshot is None:
@@ -1240,13 +1447,10 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/config":
             keys = find_local_ssh_keys()
-            safe_cfg = dict(STATE.config)
-            token = safe_cfg.get("cloudflare_api_token", "")
-            safe_cfg["cloudflare_api_token_masked"] = (token[:6] + "..." + token[-4:]) if len(token) > 10 else ("***" if token else "")
             with STATE.lock:
                 self._send_json({
                     "ok": True,
-                    "config": safe_cfg,
+                    "config": public_config_view(STATE.config),
                     "detected_ssh_keys": keys,
                 })
             return
@@ -1302,6 +1506,9 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith("/api/") and not self._guard_api(parsed.path):
+            return
+
         try:
             length = max(0, min(65536, int(self.headers.get("Content-Length", "0"))))
         except ValueError:
@@ -1317,32 +1524,62 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
             user = (payload.get("nas_user") or "").strip()
             port = int(payload.get("nas_port", 22) or 22)
             key_path = (payload.get("ssh_key_path") or "").strip()
-            res = test_nas_connection(host, user, port, key_path)
+            key_check = validate_ssh_key_path(key_path)
+            if not key_check.get("ok"):
+                self._send_json({"ok": False, "error": key_check.get("error")})
+                return
+            res = test_nas_connection(host, user, port, key_path, cfg=STATE.config)
             self._send_json(res)
             return
 
         if parsed.path == "/api/setup/generate-key":
+            passphrase = payload.get("passphrase")
+            if passphrase is None or not isinstance(passphrase, str) or len(passphrase) < MIN_SSH_PASSPHRASE_LEN:
+                self._send_json({
+                    "ok": False,
+                    "error": (
+                        f"Passphrase required (min {MIN_SSH_PASSPHRASE_LEN} characters). "
+                        "Empty-passphrase auto-generation is disabled. "
+                        "Or run: ssh-keygen -t ed25519 -f ~/.ssh/nas_sentinel_ed25519"
+                    ),
+                })
+                return
             ssh_dir = Path.home() / ".ssh"
             ssh_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                os.chmod(ssh_dir, 0o700)
+            except OSError:
+                pass
             key_file = ssh_dir / "nas_sentinel_ed25519"
             pub_file = ssh_dir / "nas_sentinel_ed25519.pub"
             if not key_file.exists():
                 gen_proc = subprocess.run(
-                    ["ssh-keygen", "-t", "ed25519", "-N", "", "-f", str(key_file), "-C", "nas-sentinel-auto"],
+                    [
+                        "ssh-keygen", "-t", "ed25519",
+                        "-N", passphrase,
+                        "-f", str(key_file),
+                        "-C", "nas-sentinel",
+                    ],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
                 if gen_proc.returncode != 0:
                     self._send_json({"ok": False, "error": f"金鑰生成失敗: {gen_proc.stderr.decode('utf-8', errors='replace')}"})
                     return
+                _chmod_secret(key_file, 0o600)
+                if pub_file.exists():
+                    _chmod_secret(pub_file, 0o644)
 
+            # Prefer ~/.ssh/ relative form for allowlisted path responses
+            key_path_public = f"~/.ssh/{key_file.name}"
             pub_text = pub_file.read_text(encoding="utf-8").strip() if pub_file.exists() else ""
             setup_cmd = f"mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '{pub_text}' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
             self._send_json({
                 "ok": True,
-                "key_path": str(key_file),
+                "key_path": key_path_public,
                 "pub_key": pub_text,
                 "dsm_command": setup_cmd,
+                "note": "Private key material is never returned. Load the passphrase via ssh-agent for BatchMode scans.",
             })
             return
 
@@ -1352,7 +1589,12 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
             port = int(payload.get("nas_port", 22) or 22)
             key_path = (payload.get("ssh_key_path") or "").strip()
 
-            test_res = test_nas_connection(host, user, port, key_path)
+            key_check = validate_ssh_key_path(key_path)
+            if not key_check.get("ok"):
+                self._send_json({"ok": False, "error": key_check.get("error")})
+                return
+
+            test_res = test_nas_connection(host, user, port, key_path, cfg=STATE.config)
             if not test_res.get("ok"):
                 self._send_json({"ok": False, "error": f"連線測試失敗，無法儲存：{test_res.get('error')}"})
                 return
@@ -1361,8 +1603,17 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 STATE.config["nas_host"] = host
                 STATE.config["nas_user"] = user
                 STATE.config["nas_port"] = port
-                STATE.config["ssh_key_path"] = key_path
+                STATE.config["ssh_key_path"] = key_check.get("path") or key_path
+                if key_check.get("path"):
+                    # Store portable ~/.ssh/basename form when possible
+                    try:
+                        bn = Path(key_check["path"]).name
+                        STATE.config["ssh_key_path"] = f"~/.ssh/{bn}"
+                    except Exception:
+                        STATE.config["ssh_key_path"] = key_check["path"]
                 STATE.config["is_configured"] = True
+                if test_res.get("ssh_host_key_fp"):
+                    STATE.config["ssh_host_key_fp"] = test_res["ssh_host_key_fp"]
 
                 if "cloudflare_enabled" in payload:
                     STATE.config["cloudflare_enabled"] = bool(payload["cloudflare_enabled"])
@@ -1386,7 +1637,8 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 "ok": True,
                 "message": "設定已成功儲存！監控已啟動",
                 "system": test_res.get("system"),
-                "config": STATE.config
+                "ssh_host_key_fp": test_res.get("ssh_host_key_fp"),
+                "config": public_config_view(STATE.config),
             })
             return
 
@@ -1428,7 +1680,11 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                     STATE.cf_config["zone_id"] = zone
                     STATE.cf_config["enabled"] = enabled
                     STATE.cf_config["last_error"] = None
+                    STATE.config["cloudflare_api_token"] = token
+                    STATE.config["cloudflare_zone_id"] = zone
+                    STATE.config["cloudflare_enabled"] = enabled
                     cloudflare_intel.save_config(STATE.cf_config)
+                    save_app_config(STATE.config)
                 threading.Thread(target=STATE.sync_cloudflare, daemon=True).start()
 
             self._send_json({"ok": True, "message": "Cloudflare 權杖驗證成功！已儲存設定", "data": STATE._build_cloudflare_summary()})
@@ -1444,6 +1700,11 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
 
 def main():
     cfg = load_app_config()
+    api_token = ensure_api_token(cfg)
+    # Keep STATE in sync if ensure_api_token mutated config before STATE init races
+    if "STATE" in globals() and hasattr(STATE, "config"):
+        STATE.config["api_token"] = api_token
+
     host_display = f"{cfg.get('nas_user', 'admin')}@{cfg.get('nas_host', 'not configured')}" if cfg.get("is_configured") else "[尚未設定 - 啟動後由瀏覽器引導配置]"
     listen_host = cfg.get("web_host", "127.0.0.1")
     listen_port = int(cfg.get("web_port", 8088))
@@ -1451,6 +1712,13 @@ def main():
     print(f"  NAS Sentinel - Synology NAS 即時安全與網頁檔案監控系統")
     print(f"  目標主機 : {host_display}")
     print(f"  本機介面 : http://{listen_host}:{listen_port}")
+    print(f"  API 權杖 : {api_token}")
+    print(f"  Token 檔 : {API_TOKEN_FILE}")
+    print(f"  Auth     : Authorization: Bearer <token> required for all /api/*")
+    if listen_host in ("0.0.0.0", "::"):
+        print(f"  WARNING  : Binding {listen_host} exposes the UI/API on all interfaces.")
+        print(f"             Network exposure without TLS + firewall is unsupported.")
+        print(f"             Prefer MONITOR_HOST=127.0.0.1 (Docker Compose default).")
     print(f"============================================================")
     inotify_thread = threading.Thread(target=inotify_listener_loop, daemon=True)
     inotify_thread.start()

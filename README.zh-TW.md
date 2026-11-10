@@ -72,20 +72,20 @@ cd NAS-Sentinel
 - **Windows 用戶**：雙擊根目錄下的 [`start-nas-sentinel.bat`](start-nas-sentinel.bat)。  
   *(系統會以純背景常駐運作，無擾人黑視窗，並自動開啟瀏覽器)*
 - **macOS / Linux 用戶**：在終端機執行 `./start-nas-sentinel.sh`。
-- **Docker 用戶**：執行 `docker-compose up -d`。
+- **Docker 用戶**：先複製 `.env.example` → `.env` 並設定高熵 `API_TOKEN`，再執行 `docker compose up -d`。  
+  Compose 預設只綁定 `127.0.0.1:8088`（不會對外開放 `0.0.0.0`）。若需 SSH 金鑰，請掛載**單一專用私鑰**，**禁止**掛載整個 `~/.ssh`。未認證的網路暴露不受支援。
 
-### 步驟 3：在彈出的網頁設定 NAS 連線 (支援自訂連接埠)
-啟動後瀏覽器將自動開啟 `http://127.0.0.1:8088`，畫面會彈出 **「系統連線與安裝精靈」**：
-1. **填寫 NAS 連線參數**：
-   - **NAS 主機 IP / 網址**：例如 `192.168.1.100` 或您的內部網域名稱。
-   - **SSH 登入帳號**：例如 `shar` 或 `admin`（需具備管理者權限）。
-   - **SSH 連接埠 (Port)**：預設為 `22`；**若您為了資安修改過 NAS 的 SSH Port（例如改為 `2222`、`5022`、`60022`），直接在此修改填入即可！**
-   - **SSH 私鑰**：下拉選單會自動掃描您電腦 `~/.ssh/` 現有的金鑰；若無金鑰可點擊「🔑 自動產生新金鑰」一鍵產出。
-2. **點擊「⚡ 測試連線並自動探測 NAS」**：系統會以您輸入的 IP、帳號與自訂 Port 進行連線，自動探測 NAS 核心架構（x86_64 或 ARM64）與 DSM 韌體版本。
-3. **點擊「🛡️ 儲存並進入戰情室」**：完成！系統會將設定安全寫入本地 `data/config.json`，自動建立 1,786 個檔案基線與網路監控，無縫展開即時動態戰情室！
+### 步驟 3：先輸入 API Token，再設定 NAS 連線
+啟動後瀏覽器將自動開啟 `http://127.0.0.1:8088`。**所有 `/api/*` 路由皆需** `Authorization: Bearer <API_TOKEN>`：
+1. 首次啟動時伺服器會在主控台印出 Token，並寫入 `nas-sentinel/data/api_token.txt`（或使用 `.env` 的 `API_TOKEN`）。
+2. 在瀏覽器驗證視窗貼上 Token（僅存於此站的 localStorage）。
+3. 接著在 **安裝精靈** 填寫 NAS 連線參數：
+   - **NAS 主機 IP / 網址**、**SSH 帳號**、**SSH Port**（可自訂）。
+   - **SSH 私鑰**：路徑必須位於 `~/.ssh/`；精靈可產生**受 Passphrase 保護**的金鑰（禁止空白密碼；BatchMode 掃描請搭配 `ssh-agent`）。
+4. 測試連線會顯示並釘選 SSH Host Key 指紋；儲存後寫入 `data/config.json`（權限 `0600`）並建立基線。
 
 > 💡 **習慣使用文字設定檔的使用者 (可選)**：  
-> 若您偏好在啟動前預先填寫好設定，也可以在步驟 2 之前，直接複製根目錄的 `.env.example` 為 `.env`（或將 `nas-sentinel/data/config.example.json` 另存為 `config.json`），填入 `NAS_HOST`、`NAS_USER` 與 `NAS_PORT` 再雙擊啟動！
+> 複製 `.env.example` 為 `.env`，預先設定 `API_TOKEN`、`NAS_HOST`、`NAS_USER`、`NAS_PORT` 再啟動。
 
 ---
 

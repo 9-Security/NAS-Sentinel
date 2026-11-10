@@ -8,11 +8,22 @@ __pycache__/
 # User Private Configuration & Real Telemetry Data (KEEP SENSITIVE DATA SAFE)
 nas-sentinel/data/config.json
 nas-sentinel/data/cloudflare_config.json
+nas-sentinel/data/api_token.txt
+nas-sentinel/data/ssh_known_hosts
 nas-sentinel/data/events.json
 nas-sentinel/data/inotify_events.json
 nas-sentinel/data/cloudflare_events.json
 nas-sentinel/data/history.json
 nas-sentinel/data/*.tmp
+
+# Live baselines are machine-specific — keep templates/examples only
+nas-sentinel/data/fim_baseline.json
+nas-sentinel/data/port_baseline.json
+nas-sentinel/data/http_baseline.json
+nas-sentinel/data/lkm_baseline.json
+
+# Local Docker key mount directory
+secrets/
 
 # Historical private machine audits & scratch experimental scripts
 docs/historical-audit-20261022/
@@ -23,6 +34,7 @@ GEMINI.md
 
 # Keep template and public base structures
 !nas-sentinel/data/config.example.json
+!nas-sentinel/data/*_baseline.example.json
 
 # OS & IDE
 .DS_Store

@@ -1978,7 +1978,7 @@
           <div id="setupSshHelpContent" style="display:none; margin-top:8px; color:var(--text-secondary); line-height:1.65; border-top:1px dashed rgba(251, 191, 36, 0.2); padding-top:8px;">
             <div style="margin-bottom:4px;"><strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。</div>
             <div style="margin-bottom:4px;"><strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。</div>
-            <div><strong>3. 授權 SSH 免密碼金鑰（免開終端機黑視窗）</strong>：點擊下方「🔑 自動產生新金鑰」，將產生的單行指令至 DSM「控制台」➔「任務排程表」新增「使用者定義的指令碼」貼上執行一次即可永久授權！</div>
+            <div><strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。</div>
           </div>
         </div>
 
@@ -2011,14 +2011,16 @@
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <label style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);">
-                SSH 私鑰路徑 (Authentication Key)
+                SSH 私鑰路徑 (must be under ~/.ssh)
               </label>
-              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;">🔑 自動產生新金鑰與教學</a>
+              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;">🔑 產生受密碼保護的新金鑰</a>
             </div>
             <select id="setupSshKeySelect" class="input" onchange="onSshKeySelectChange()" style="width:100%; font-family:var(--font-mono); margin-bottom:6px;">
               <option value="">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>
             </select>
-            <input type="text" id="setupSshKeyCustom" class="input" placeholder="或手動指定私鑰絕對路徑，例如：C:\Users\user\.ssh\id_ed25519" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+            <input type="text" id="setupSshKeyCustom" class="input" placeholder="例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）" style="width:100%; font-family:var(--font-mono); font-size:12px; margin-bottom:6px;" />
+            <input type="password" id="setupKeyPassphrase" class="input" placeholder="新金鑰 Passphrase（至少 8 字元；禁止空白密碼）" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+            <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;">Passphrase-protected keys need <code>ssh-agent</code> for BatchMode scans. Empty-passphrase auto-generation is disabled.</div>
           </div>
 
           <!-- Quick Test Button & Feedback Panel -->
@@ -2143,6 +2145,30 @@
         <button class="btn btn-primary" onclick="closeGuideModal()" style="padding:6px 18px; font-size:12.5px;">
           <span data-i18n="guide.btn_gotit">我知道了 (Got it)</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Token Gate (required for all /api/* routes) -->
+  <div id="apiAuthModal" class="modal-overlay" style="display:none; z-index:9999;">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center;">
+        <span>🔐 API Authentication Required</span>
+      </div>
+      <div class="modal-body">
+        <p id="apiAuthMsg" style="font-size:12.5px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
+          All <code>/api/*</code> routes require <code>Authorization: Bearer &lt;token&gt;</code>.
+          Copy the token printed on server start, from <code>nas-sentinel/data/api_token.txt</code>, or from the <code>API_TOKEN</code> environment variable.
+        </p>
+        <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">API Token</label>
+        <input type="password" id="apiAuthTokenInput" class="input" placeholder="Paste high-entropy API token" style="width:100%; font-family:var(--font-mono);" />
+        <div style="font-size:11px; color:var(--text-muted); margin-top:8px; line-height:1.45;">
+          Token is stored in this browser’s localStorage only. Header-based auth resists CSRF better than cookies.
+          Network exposure beyond localhost is unsupported without TLS and a firewall.
+        </div>
+      </div>
+      <div class="modal-actions" style="justify-content:flex-end; gap:10px;">
+        <button class="btn btn-primary" onclick="saveApiAuthTokenFromModal()">Unlock Dashboard</button>
       </div>
     </div>
   </div>
