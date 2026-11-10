@@ -1286,6 +1286,24 @@ function applyStaticI18n() {
   });
 }
 
+// After dashboard render: refresh pure chrome only.
+// Dual-purpose live fields (threatBadge, KPIs, alert banner, scores, …) always have an
+// id and also carry data-i18n as an initial placeholder — never overwrite those.
+function applyChromeI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    if (el.id) return;
+    const key = el.getAttribute("data-i18n");
+    const val = t(key);
+    if (!val) return;
+    try {
+      if (/[<][a-zA-Z]/.test(val)) el.innerHTML = val;
+      else el.textContent = val;
+    } catch (err) {
+      try { el.textContent = val; } catch (_) {}
+    }
+  });
+}
+
 function initLanguage() {
   let saved = localStorage.getItem("9sec_lang");
   if (saved === "tw") saved = "zh-TW";
@@ -1569,6 +1587,10 @@ const SERVER_LABELS = {
     "ssh_pubkey": "SSH Key-Only Auth & Root Login Denied",
     "kernel_hardening": "Kernel Pointer & dmesg Privacy (kptr/dmesg_restrict)",
     "source_route": "IPv4 Source-Route Packet Reject",
+    "ipv6_loopback": "IPv6 Loopback (::1) & Chrony UDP Control Port Hardening",
+    "dsm_firewall": "DSM Firewall Source Allowlist Rules",
+    "rootkit_scanner": "Rootkit & Binary Anti-Trojan Engine (chkrootkit + rkhunter)",
+    "web_fim": "Nginx & DSM Web Server File Integrity (FIM)",
     // disks
     "disk./": "System Partition (/)",
     "disk./volume1": "Data Volume (/volume1)",
@@ -1638,6 +1660,10 @@ const SERVER_LABELS = {
     "ssh_pubkey": "SSH鍵認証強制・Rootログイン禁止",
     "kernel_hardening": "カーネルポインタ/dmesgプライバシー (kptr/dmesg_restrict)",
     "source_route": "IPv4 Source-Route パケット拒否",
+    "ipv6_loopback": "IPv6 Loopback (::1) と Chrony UDP 制御ポート収束",
+    "dsm_firewall": "DSMファイアウォール送信元ホワイトリスト",
+    "rootkit_scanner": "Rootkit / バイナリ改ざんエンジン (chkrootkit + rkhunter)",
+    "web_fim": "Nginx / DSM Webサーバーファイル整合性 (FIM)",
     "disk./": "システムパーティション (/)",
     "disk./volume1": "データボリューム (/volume1)",
     "cf.sensitive_config": "機密設定ファイル探査",
@@ -1728,12 +1754,6 @@ function localizeServerText(text) {
   s = s.replace(/HTTP 狀態碼改變 \(([^)]+)\)/g, (_, ch) => {
     return currentLang === "jp" ? `HTTPステータス変更 (${ch})` : `HTTP status changed (${ch})`;
   });
-  // Strip remaining obvious TW UI leftovers for common short tokens
-  const tokenMap = currentLang === "jp" ? {
-    "異動": "変更", "新增": "追加", "刪除": "削除", "警報": "警報", "通過": "合格",
-  } : {
-    "異動": "changed", "新增": "added", "刪除": "deleted", "警報": "alert", "通過": "pass",
-  };
   return s;
 }
 
@@ -2529,9 +2549,9 @@ function renderDashboard(data) {
   `;
 
   drawCharts(data.history || []);
-  // Re-apply static dictionary strings after dynamic renders so panel titles
-  // never stick on zh-TW defaults if a prior pass was interrupted.
-  applyStaticI18n();
+  // Only refresh pure panel/chart chrome. Do NOT call applyStaticI18n() here —
+  // that would clobber ~18 live fields that also carry data-i18n placeholders.
+  applyChromeI18n();
 }
 
 function debouncedLoadFiles() {
