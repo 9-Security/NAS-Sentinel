@@ -18,7 +18,7 @@
 
 **NAS Sentinel** is an open-source, beginner-friendly, **zero-footprint, millisecond-level File Integrity Monitoring (FIM) and Rootkit / Anti-Trojan security watchdog** specifically engineered for **Synology NAS (DSM 7.x)** devices.
 
-Equipped with a built-in **Web Setup Wizard**, it requires zero Linux hacking skills. Simply enter your NAS IP, click "Test & Probe", and your high-tech Cyberpunk Security Operations Center (SOC) dashboard is up and running in **under 3 minutes**!
+Equipped with a built-in **Web Setup Wizard**, it guides beginners through DSM clicks (enable SSH, authorize a key, unlock the passphrase). **Double-click starts the local SOC UI on this PC**; finishing the first secure NAS connection usually takes a short guided session — not a single click to a fully live monitor.
 
 ---
 
@@ -43,9 +43,9 @@ Background monitoring needs a key-based login (no password prompt each scan). Pr
   3. **Create ➔ Scheduled Task ➔ User-defined script** — set the task user to your admin account, paste the copied one-liner, save, and **Run once**.
   4. Unlock the key once on this PC (`ssh-agent`) so background scans can use it, then click **Test connection**.
 
-- **Method B: Computer terminal (PowerShell / macOS) — backup path**:
+- **Method B: Computer terminal (PowerShell / macOS) — backup path** (examples use an existing personal key `id_ed25519`; the wizard’s dedicated key is `~/.ssh/nas_sentinel_ed25519`):
   ```bash
-  # Windows PowerShell:
+  # Windows PowerShell (personal key example — swap for nas_sentinel_ed25519.pub if you used Generate key):
   type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <USER>@<NAS-IP> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 
   # macOS / Linux:
@@ -56,7 +56,7 @@ Background monitoring needs a key-based login (no password prompt each scan). Pr
 
 ---
 
-## ⚡ Step 2: 3-Minute Quickstart & Launch SOC
+## ⚡ Step 2: Quickstart — Launch Local SOC UI, Then Connect NAS
 
 ### Step 1: Clone or Download
 Clone this repository or download and extract the release zip:
@@ -65,10 +65,10 @@ git clone https://github.com/9-Security/NAS-Sentinel.git
 cd NAS-Sentinel
 ```
 
-### Step 2: One-Click Launch (Starts Local Web Server)
-*(This launches the local server on your **own computer**—you do NOT need to edit configuration files beforehand; your default browser will open automatically)*
+### Step 2: Start the Local Web Server
+*(This launches the local server on your **own computer**—you do NOT need to edit configuration files beforehand; your default browser will open automatically. Connecting the NAS is the guided wizard steps that follow.)*
 - **Windows Users (novice path)**: Double-click [`start-nas-sentinel.bat`](start-nas-sentinel.bat).  
-  That is the only required click after extract/clone. It prefers a portable Python under `runtime\python\` (downloads the official embeddable build from python.org on first run if needed — **no “Add Python to PATH” installer**). Runs detached in the background and opens your browser. Details: [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md).
+  That starts the local UI after extract/clone. It prefers a portable Python under `runtime\python\` (downloads the official embeddable build from python.org on first run if needed — **no “Add Python to PATH” installer**). Runs detached in the background and opens your browser. Details: [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md).
 - **macOS / Linux Users**: Run `./start-nas-sentinel.sh` (system `python3` still required on this slice).
 - **Docker Users**: Copy `.env.example` → `.env`, set a high-entropy `API_TOKEN`, then run `docker compose up -d`.  
   Compose **binds `127.0.0.1:8088` only** (not `0.0.0.0`). Mount a **single dedicated SSH key** if needed — never the entire `~/.ssh` directory. Publishing the port on all interfaces without auth is **unsupported**.
@@ -97,7 +97,7 @@ Your browser will open `http://127.0.0.1:8088`.
 NAS Sentinel runs as an independent daemon decoupled from your terminal or IDE:
 
 ### 1. Manual Background Start
-**Double-click `start-nas-sentinel.bat`** (novice one-click). It runs silently in the background:
+**Double-click `start-nas-sentinel.bat`** (novice launcher for the local server). It runs silently in the background:
 ```bat
 start-nas-sentinel.bat
 ```
@@ -123,23 +123,23 @@ stop-nas-sentinel.bat
 
 ### 1. 🛡️ Zero Footprint on NAS (No Package Installation)
 - Synology root partitions `/` are tiny (~2.3 GB). Heavy enterprise SIEM agents (Wazuh, OSquery, Tripwire) quickly exhaust flash storage or RAM on home/entry-level NAS models.
-- NAS Sentinel streams execution directly over SSH stdin and outputs to stdout. **Zero files are written to NAS flash storage, and no package managers (ipkg/opkg/gcc/auditd) are required**. CPU and RAM consumption on the NAS is near 0%.
+- NAS Sentinel streams execution directly over SSH stdin and outputs to stdout. **Zero files are written to NAS flash storage, and no package managers (ipkg/opkg/gcc/auditd) are required**. Telemetry stays lightweight with low NAS CPU/RAM overhead.
 
 ### 2. ⚡ Linux Kernel inotify Millisecond Event Streaming
 - Bypasses auditd entirely by calling the Linux kernel's `libc.so.6` `inotify` syscall directly via standard library `ctypes`.
-- Real-time event monitoring across 254 critical web and system directories, catching file creation, modification, attribute changes, moves, and deletions in sub-second time.
+- Real-time event monitoring across hundreds of critical web and system directories (exact watch set is DSM/baseline-dependent), catching file creation, modification, attribute changes, moves, and deletions in sub-second time.
 
 ### 3. 🕸️ Web Server & File Integrity Monitoring (FIM)
-- Continuously inspects Nginx configurations (`/etc/nginx`), DSM web portals (`/usr/syno/synoman`), user web directories (`/volume1/web`), and core security configurations across 1,786+ files.
+- Continuously inspects Nginx configurations (`/etc/nginx`), DSM web portals (`/usr/syno/synoman`), user web directories (`/volume1/web`), and core security configurations across thousands of files as reported by your baseline.
 - Computes SHA-256 hashes, permission modes, and owners while running a sliding-window Webshell pattern matcher.
 
 ### 4. 🕵️ DSM Rootkit & Trojan Detection Engine
 - Implements 6 core checks inspired by `chkrootkit` and `rkhunter`:
-  - **20 System Binaries SHA-256 Baseline**: Validates `/bin/ps`, `ls`, `netstat`, `sshd`, `sudo`, `nginx`, etc., following symlinks to real executable binaries.
+  - **Critical System Binaries SHA-256 Baseline**: Validates `/bin/ps`, `ls`, `netstat`, `sshd`, `sudo`, `nginx`, and other high-risk binaries, following symlinks to real executable binaries.
   - **`LD_PRELOAD` Hijacking**: Checks `/etc/ld.so.preload` and inspects `/proc/*/environ`.
   - **Hidden / Phantom Processes**: Cross-compares kernel `/proc` PIDs against `ps -eo pid` to identify invisible rootkits.
   - **Promiscuous Network Sniffing**: Inspects `IFF_PROMISC` (`0x100`) flags on all physical network adapters.
-  - **Kernel Module (LKM) Whitelisting**: Compares loaded modules in `/proc/modules` against a verified baseline (`lkm_baseline.json`).
+  - **Kernel Module (LKM) Whitelisting**: Compares loaded modules in `/proc/modules` against a verified baseline (`lkm_baseline.json`; module count varies by DSM).
   - **Known Rootkit Directories & `/dev/shm`, `/tmp` ELF Scan**: Identifies suspicious ELF executables dropped in temporary locations.
 
 ### 5. 🌐 Network Matrix & Port Anomaly Detection
@@ -177,11 +177,11 @@ NAS-Sentinel/
 │       ├── port_baseline.json   # Listening ports baseline
 │       └── lkm_baseline.json    # Kernel modules baseline
 │
-├── start-nas-sentinel.bat       # Windows one-click silent background launcher ← double-click this
+├── start-nas-sentinel.bat       # Windows silent background launcher ← double-click this
 ├── stop-nas-sentinel.bat        # Windows stop server script
 ├── install-autostart-service.bat# Windows register Scheduled Task on logon
 ├── uninstall-autostart-service.bat # Windows unregister Scheduled Task
-├── start-nas-sentinel.sh        # Linux / macOS one-click launcher
+├── start-nas-sentinel.sh        # Linux / macOS launcher
 ├── scripts/                     # Portable Windows helpers (embeddable Python)
 │   ├── ensure-portable-python.ps1
 │   └── PORTABLE-WINDOWS.md

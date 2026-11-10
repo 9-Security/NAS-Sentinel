@@ -18,7 +18,7 @@
 
 NAS Sentinel 是一套專為 **Synology NAS (DSM 7.x)** 量身打造的**開源、生手友善、零足跡 (Zero Footprint)、毫秒級即時檔案完整性 (FIM) 與 Rootkit 防木馬安全監控系統**。
 
-具備網頁版安裝引導精靈（Web Setup Wizard），不需要複雜的 Linux 技術，只要輸入 NAS IP，3 步驟即可在 3 分鐘內建立專屬的高科技 Cyberpunk 資安戰情室！
+具備網頁版安裝引導精靈（Web Setup Wizard），以 DSM 點選步驟引導生手（開啟 SSH、授權金鑰、解鎖保護密碼）。**雙擊即可在本機開啟 SOC 儀表板**；完成第一次安全的 NAS 連線通常是一段引導式設定，而不是一鍵就變成完整監控。
 
 ---
 
@@ -43,9 +43,9 @@ Synology DSM 原廠安全策略規定**僅允許隸屬於 `administrators` 群�
   3. **新增 → 使用者定義的指令碼**：任務使用者選您的管理員帳號，貼上剛複製的單行指令，儲存後點 **「執行」一次**。
   4. 在這台電腦解鎖金鑰一次（`ssh-agent`），回到精靈按 **「測試連線」**。
 
-- **方法 B：電腦終端機單行指令（備援）**：
+- **方法 B：電腦終端機單行指令（備援）**（範例使用既有個人金鑰 `id_ed25519`；精靈產生的專用金鑰為 `~/.ssh/nas_sentinel_ed25519`）：
   ```bash
-  # Windows PowerShell:
+  # Windows PowerShell（個人金鑰範例 — 若用精靈「產生專用金鑰」請改為 nas_sentinel_ed25519.pub）：
   type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <帳號>@<NAS-IP> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
 
   # macOS / Linux:
@@ -56,7 +56,7 @@ Synology DSM 原廠安全策略規定**僅允許隸屬於 `administrators` 群�
 
 ---
 
-## ⚡ 第二步：3 步驟快速上手與啟用戰情室
+## ⚡ 第二步：快速上手 — 先開本機戰情室，再連 NAS
 
 ### 步驟 1：下載專案
 下載本專案原始碼並解壓縮至本機任意目錄：
@@ -65,10 +65,10 @@ git clone https://github.com/9-Security/NAS-Sentinel.git
 cd NAS-Sentinel
 ```
 
-### 步驟 2：雙擊啟動本機伺服器
-*(此步驟啟動的是您**電腦本機**的 Web 伺服器與安裝引導程序，此時**完全不需要手動修改任何設定檔**，啟動後瀏覽器會自動彈出引導介面)*
+### 步驟 2：啟動本機 Web 伺服器
+*(此步驟啟動的是您**電腦本機**的 Web 伺服器與安裝引導程序，此時**完全不需要手動修改任何設定檔**，啟動後瀏覽器會自動彈出引導介面。連上 NAS 則是後續精靈步驟。)*
 - **Windows 新手路徑**：雙擊根目錄 [`start-nas-sentinel.bat`](start-nas-sentinel.bat)。  
-  解壓／clone 後只需這一次雙擊。會優先使用 `runtime\python\` 可攜式 Python；若本機沒有 Python，第一次執行會從 python.org 下載官方 embed 套件（**不必**勾選「Add Python to PATH」）。背景常駐並自動開瀏覽器。說明見 [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md)。
+  解壓／clone 後即可啟動本機介面。會優先使用 `runtime\python\` 可攜式 Python；若本機沒有 Python，第一次執行會從 python.org 下載官方 embed 套件（**不必**勾選「Add Python to PATH」）。背景常駐並自動開瀏覽器。說明見 [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md)。
 - **macOS / Linux 用戶**：在終端機執行 `./start-nas-sentinel.sh`（此階段仍需系統 `python3`）。
 - **Docker 用戶**：先複製 `.env.example` → `.env` 並設定高熵 `API_TOKEN`，再執行 `docker compose up -d`。  
   Compose 預設只綁定 `127.0.0.1:8088`（不會對外開放 `0.0.0.0`）。若需 SSH 金鑰，請掛載**單一專用私鑰**，**禁止**掛載整個 `~/.ssh`。未認證的網路暴露不受支援。
@@ -97,7 +97,7 @@ cd NAS-Sentinel
 NAS Sentinel 支援完全獨立於終端機/命令列的純背景常駐執行，關閉終端機或 IDE 均不會中斷：
 
 ### 1. 手動背景啟動
-**雙擊 `start-nas-sentinel.bat`**（新手一鍵啟動）。伺服器以 `pythonw.exe` 於系統背景運作，並自動開啟儀表板：
+**雙擊 `start-nas-sentinel.bat`**（新手啟動本機伺服器）。伺服器以 `pythonw` 於系統背景運作，並自動開啟儀表板：
 ```bat
 start-nas-sentinel.bat
 ```
@@ -123,20 +123,20 @@ stop-nas-sentinel.bat
 
 1. **零足跡安全遙測 (Zero Footprint)**：
    - NAS 系統分割區通常僅約 2.3 GB，傳統資安 Agent（Wazuh, OSquery, Tripwire 等）過於厚重容易寫滿磁碟。
-   - NAS Sentinel 所有採集均透過本機 Python 經由 SSH stdin 注入執行，輸出至 stdout，**完全不在 NAS 本地磁碟落檔、免安裝任何套件 (免 ipkg/opkg/gcc)**，記憶體與 CPU 佔用接近 0%。
+   - NAS Sentinel 所有採集均透過本機 Python 經由 SSH stdin 注入執行，輸出至 stdout，**完全不在 NAS 本地磁碟落檔、免安裝任何套件 (免 ipkg/opkg/gcc)**，對 NAS 的 CPU／記憶體負擔保持輕量。
 2. **🕸️ 網頁伺服器與檔案完整性監控 (FIM)**：
-   - 監控 Nginx 設定 (`/etc/nginx`)、DSM 網頁目錄 (`/usr/syno/synoman`)、自架網站目錄 (`/volume1/web`)、系統安全設定等 1,786 個關鍵檔案。
+   - 監控 Nginx 設定 (`/etc/nginx`)、DSM 網頁目錄 (`/usr/syno/synoman`)、自架網站目錄 (`/volume1/web`)、系統安全設定等數千個關鍵檔案（精確數量依基線與 DSM 而定）。
    - 嚴格比對 SHA-256 雜湊、Linux 權限模式、擁有者，並內建分塊滑動視窗 Webshell 特徵比對。
 3. **⚡ Linux 核心 inotify 毫秒級事件串流**：
    - 使用 Python 內建 `ctypes` 調用 NAS Linux 核心 `libc.so.6` 的 inotify 系統呼叫，免安裝 auditd，零磁碟消耗。
-   - 即時監聽 254 個目錄，捕捉新建、修改、寫入完成、更名、刪除與權限變更。
+   - 即時監聽數百個關鍵網頁與系統目錄（監聽範圍依 DSM／基線而定），捕捉新建、修改、寫入完成、更名、刪除與權限變更。
 4. **🕵️ DSM Rootkit 與系統指令防木馬檢測**：
    - 實作對標 `chkrootkit` 與 `rkhunter` 的 6 大核心檢測：
-     - 20 個系統指令 (`/bin/ps`, `ls`, `netstat`, `sshd`, `sudo`, `nginx` 等) 實體 SHA-256 驗證
+     - 高風險系統指令 (`/bin/ps`, `ls`, `netstat`, `sshd`, `sudo`, `nginx` 等) 實體 SHA-256 驗證
      - `/etc/ld.so.preload` 與 `/proc/*/environ` 動態連結器劫持檢測
      - 隱藏幽靈程序與無檔案執行檔 (`/proc` vs `ps`) 交叉比對
      - 網卡混雜模式竊聽檢測 (`IFF_PROMISC`)
-     - Linux 核心模組白名單比對 (105 個模組之 `lkm_baseline.json`)
+     - Linux 核心模組白名單比對（`lkm_baseline.json`；模組數量隨 DSM 而異）
      - 已知 Rootkit 特徵路徑與 `/dev/shm`、`/tmp` ELF 二進位執行檔偵測
 5. **🌐 網路連線與監聽埠矩陣**：
    - 自動將活動網路連線分類為本機、區網 (LAN)、公網 (WAN)。
@@ -155,7 +155,7 @@ stop-nas-sentinel.bat
 ## 📁 目錄結構
 
 ```
-nas-sentinel-project/
+NAS-Sentinel/
 ├── nas-sentinel/                # [主控核心程式碼]
 │   ├── server.py                # 本機 HTTP 伺服器、狀態引擎、REST API 與排程
 │   ├── collector_remote.py      # NAS 遠端唯讀遙測、FIM 與 Rootkit 採集腳本
@@ -172,20 +172,34 @@ nas-sentinel-project/
 │       ├── port_baseline.json   # 網路監聽埠基準
 │       └── lkm_baseline.json    # 核心模組基準
 │
-├── start-nas-sentinel.bat       # Windows 雙擊一鍵啟動 ← 新手按這個
-├── stop-nas-sentinel.bat        # Windows 一鍵停止服務腳本
+├── start-nas-sentinel.bat       # Windows 背景啟動 ← 新手按這個
+├── stop-nas-sentinel.bat        # Windows 停止服務腳本
 ├── install-autostart-service.bat# Windows 開機登入自啟動安裝檔
 ├── uninstall-autostart-service.bat # Windows 開機自啟動解除檔
-├── start-nas-sentinel.sh        # Linux / macOS 一鍵啟動腳本
+├── start-nas-sentinel.sh        # Linux / macOS 啟動腳本
 ├── scripts/                     # Windows 可攜式 Python 輔助
 │   ├── ensure-portable-python.ps1
 │   └── PORTABLE-WINDOWS.md
 ├── runtime/                     # 可選本機可攜式 CPython（gitignore；可自動下載）
 ├── Dockerfile                   # Docker 容器化構建檔
-├── docker-compose.yml           # Docker Compose 一鍵部署配置
+├── docker-compose.yml           # Docker Compose 部署配置
 ├── LICENSE                      # MIT 開源授權條款
-└── README.md                    # 英文版文件說明
+├── CHANGELOG.md                 # 版本更新紀錄
+├── README.md                    # 英文版文件說明
+└── README.zh-TW.md              # 繁體中文說明（本檔）
 ```
+
+---
+
+## 🔒 隱私與安全優先
+
+NAS Sentinel 以嚴格的隱私保護原則打造：
+- **本機優先**：預設綁定 `127.0.0.1`。Docker Compose 僅發布 `127.0.0.1:8088`。**未認證的網路暴露不受支援。**
+- **API 驗證**：除 `/api/auth/status` 與僅限迴路的 `/api/auth/local-token`（僅信任 TCP peer `127.0.0.1` / `::1`；從不信任代理標頭）外，所有 `/api/*` 路由皆需 `Authorization: Bearer <API_TOKEN>`（標頭驗證、抗 CSRF）。Cloudflare Token 不會以明文回傳於 API（僅遮罩／是否已設定）。
+- **SSH 強化**：金鑰路徑必須位於 `~/.ssh`；自動產生的金鑰需設定保護密碼；首次成功設定後會釘選 Host Key 指紋。
+- **零雲端遙測**：您的遙測與掃描結果不會離開本機。
+- **Git 安全憑證**：實際設定、API Token 檔、known_hosts 與機器基線皆已加入 gitignore；倉庫僅追蹤 `*.example.json` 範本。
+- **唯讀遙測**：對 NAS 的遠端執行 100% 唯讀，不會對 DSM 系統做未授權變更。
 
 ---
 

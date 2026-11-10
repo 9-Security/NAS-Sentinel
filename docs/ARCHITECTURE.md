@@ -36,12 +36,12 @@ The central server runs locally on the monitoring host (`nas-sentinel/`), execut
 |                                                                                 |
 |  1. collector_remote.py (Periodic 15s Fast / Manual Deep Polling)               |
 |     - Telemetry: CPU, RAM, Temperature, Storage Volume, SMART Health             |
-|     - Web & System FIM: 1,786 critical files SHA-256, permissions, Webshells    |
+|     - Web & System FIM: thousands of critical files (baseline/DSM-dependent)     |
 |     - Ports & Connections: netstat baseline verification                        |
 |     - Rootkit Checks: 6 core security checks (equivalent to rkhunter/chkrootkit) |
 |                                                                                 |
 |  2. inotify_stream_remote.py (Linux Kernel ctypes Real-Time Stream)             |
-|     - Watches 254 directories (/etc/nginx, /usr/syno/synoman, /bin, /usr/bin)   |
+|     - Watches critical web/system dirs (/etc/nginx, /usr/syno/synoman, /bin…)  |
 |     - Intercepts CREATE, MODIFY, CLOSE_WRITE, ATTRIB, DELETE, MOVE              |
 |     - Sub-second SHA-256 re-computation, zero packages, zero disk writes        |
 +---------------------------------------------------------------------------------+
@@ -54,7 +54,7 @@ The central server runs locally on the monitoring host (`nas-sentinel/`), execut
 ### 2.1 Central Controller Server (`nas-sentinel/server.py`)
 - **Web UI & REST API**: High-performance HTTP daemon built with Python's standard library, serving static assets and dynamic JSON endpoints.
 - **Baseline Engine**:
-  - `fim_baseline.json`: Stores SHA-256 hashes, file modes, and ownership for 1,786 monitored files.
+  - `fim_baseline.json`: Stores SHA-256 hashes, file modes, and ownership for monitored files (count is baseline/DSM-dependent).
   - `port_baseline.json`: Authorized TCP/UDP listening ports matrix.
   - `http_baseline.json`: Nginx HTTP/HTTPS endpoint response hashes and TLS certificate fingerprints.
   - `lkm_baseline.json`: Whitelist of legitimate Linux Kernel Modules.
@@ -82,7 +82,7 @@ The central server runs locally on the monitoring host (`nas-sentinel/`), execut
 
 ### 2.4 Real-Time inotify Stream Engine (`nas-sentinel/inotify_stream_remote.py`)
 - Direct invocation of Linux kernel `libc.so.6` inotify syscalls (`inotify_init1`, `inotify_add_watch`, `read`) via Python `ctypes`.
-- Monitors 254 system and web directories. Supports single-file parent directory filtering to maintain watch handles even during atomic text editor replacements (`vim`, `sed -i`).
+- Monitors hundreds of system and web directories (exact watch set is DSM/baseline-dependent). Supports single-file parent directory filtering to maintain watch handles even during atomic text editor replacements (`vim`, `sed -i`).
 - Computes SHA-256 hashes and evaluates sliding-window Webshell heuristic patterns upon write completion (`IN_CLOSE_WRITE`), streaming NDJSON lines back to the controller.
 
 ### 2.5 Cloudflare Edge Threat Intelligence Engine (`nas-sentinel/cloudflare_intel.py`)
@@ -96,7 +96,7 @@ The central server runs locally on the monitoring host (`nas-sentinel/`), execut
 
 ```
 nas-sentinel-repo/
-├── start-nas-sentinel.bat       # One-click Windows startup script
+├── start-nas-sentinel.bat       # Windows startup script
 ├── README.md                    # Project README (English)
 ├── README.zh-TW.md              # Project README (Traditional Chinese)
 │
@@ -112,7 +112,7 @@ nas-sentinel-repo/
 │   │   └── favicon.png          # Favicon
 │   └── data/                    # Storage and Baseline Files
 │       ├── config.example.json  # Configuration template
-│       ├── fim_baseline.json    # 1,786-file golden baseline
+│       ├── fim_baseline.json    # FIM golden baseline (DSM-dependent size)
 │       ├── port_baseline.json   # Network listening ports baseline
 │       ├── http_baseline.json   # Web endpoints baseline
 │       └── lkm_baseline.json    # Kernel modules baseline
