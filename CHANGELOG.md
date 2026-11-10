@@ -10,6 +10,7 @@ and this project follows semantic versioning once tagged releases begin.
 ### Fixed
 
 - Setup wizard no longer dead-ends without a reachable NAS: added **Skip / offline SOC** (`POST /api/setup/skip-offline` + UI button) that sets `is_configured=true` with `offline_mode=true`, dismisses the modal, and pauses SSH poller/inotify until a real Save & Launch succeeds.
+- Offline skip **no longer rewrites** `nas_host` / `nas_user` / `nas_port` / `ssh_key_path` (flags only). Removed dangerous SSH/`probe` fallback to `127.0.0.1` when host is blank. Added **僅儲存連線參數** (`persist_without_connect`) so host/key can be repaired without a successful SSH probe; blank key field keeps the existing key.
 
 ### Security
 

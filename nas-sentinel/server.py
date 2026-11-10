@@ -409,8 +409,10 @@ def build_ssh_cmd(remote_cmd: str, timeout: int = 8) -> list:
     key_check = validate_ssh_key_path(key_path or "")
     if key_check.get("ok") and key_check.get("path"):
         cmd.extend(["-i", key_check["path"]])
-    user = cfg.get("nas_user") or "admin"
-    host = cfg.get("nas_host") or "127.0.0.1"
+    user = (cfg.get("nas_user") or "").strip() or "admin"
+    # Never fall back to loopback — that silently "breaks SSH" by hitting the local box
+    # instead of the NAS when nas_host is missing/blank.
+    host = (cfg.get("nas_host") or "").strip() or "nas-host-unconfigured.invalid"
     cmd.append("--")
     cmd.append(f"{user}@{host}")
     cmd.append(remote_cmd)
@@ -510,7 +512,8 @@ def probe_single_endpoint(ep):
     conn = None
     try:
         target_host = STATE.config.get("nas_host") if ("STATE" in globals() and hasattr(STATE, "config")) else NAS_HOST
-        target_host = target_host or "127.0.0.1"
+        # Do not substitute 127.0.0.1 — loopback is the local monitor, not the NAS.
+        target_host = (target_host or "").strip() or "nas-host-unconfigured.invalid"
         if is_https:
             ctx = ssl.create_default_context()
             ctx.check_hostname = False
@@ -1673,17 +1676,9 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/setup/skip-offline":
             # Unlock the Cyber SOC UI without a live NAS. Auth still required.
-            # SSH poller / inotify stay paused until a real /api/setup/save succeeds.
+            # Never rewrite nas_host / nas_user / nas_port / ssh_key_path — only flip flags.
+            # SSH poller / inotify stay paused until a real verified /api/setup/save succeeds.
             with STATE.lock:
-                host = (payload.get("nas_host") or STATE.config.get("nas_host") or "192.168.1.100")
-                user = (payload.get("nas_user") or STATE.config.get("nas_user") or "admin")
-                try:
-                    port = int(payload.get("nas_port", STATE.config.get("nas_port", 22)) or 22)
-                except (TypeError, ValueError):
-                    port = 22
-                STATE.config["nas_host"] = str(host).strip() or "192.168.1.100"
-                STATE.config["nas_user"] = str(user).strip() or "admin"
-                STATE.config["nas_port"] = port
                 STATE.config["is_configured"] = True
                 STATE.config["offline_mode"] = True
                 STATE.last_error = (
@@ -1694,7 +1689,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 cfg_view = public_config_view(STATE.config)
             self._send_json({
                 "ok": True,
-                "message": "已略過 NAS 連線，進入離線戰情室（稍後可在管理選單完成設定）",
+                "message": "已略過 NAS 連線，進入離線戰情室（既有主機／金鑰設定未變更）",
                 "offline_mode": True,
                 "config": cfg_view,
             })
@@ -1705,27 +1700,66 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
             user = (payload.get("nas_user") or "").strip()
             port = int(payload.get("nas_port", 22) or 22)
             key_path = (payload.get("ssh_key_path") or "").strip()
+            # Persist host/key without SSH so users can repair offline / broken settings.
+            persist_without_connect = bool(payload.get("persist_without_connect"))
 
-            key_check = validate_ssh_key_path(key_path)
-            if not key_check.get("ok"):
-                self._send_json({"ok": False, "error": key_check.get("error")})
+            if not host or not user:
+                self._send_json({"ok": False, "error": "NAS 主機 IP 與 SSH 帳號不能為空"})
                 return
 
-            test_res = test_nas_connection(host, user, port, key_path, cfg=STATE.config)
-            if not test_res.get("ok"):
-                self._send_json({"ok": False, "error": f"連線測試失敗，無法儲存：{test_res.get('error')}"})
-                return
+            # Blank key in the form means "keep existing" once a key was already stored.
+            # Explicit empty wipe is only allowed when client sends clear_ssh_key_path=true.
+            clear_key = bool(payload.get("clear_ssh_key_path"))
+            keeping_existing_key = (not key_path and not clear_key and bool((STATE.config.get("ssh_key_path") or "").strip()))
+            effective_key = key_path
+            if keeping_existing_key:
+                effective_key = (STATE.config.get("ssh_key_path") or "").strip()
+
+            if keeping_existing_key and persist_without_connect:
+                # Allow repairing host/user/port offline even if the private key file is
+                # temporarily missing on this machine — do not re-stat the existing path.
+                key_check = {"ok": True, "path": ""}
+            else:
+                key_check = validate_ssh_key_path(effective_key)
+                if not key_check.get("ok"):
+                    self._send_json({"ok": False, "error": key_check.get("error")})
+                    return
+
+            test_res = None
+            if not persist_without_connect:
+                test_res = test_nas_connection(host, user, port, effective_key, cfg=STATE.config)
+                if not test_res.get("ok"):
+                    self._send_json({
+                        "ok": False,
+                        "error": f"連線測試失敗，無法儲存：{test_res.get('error')}",
+                        "hint": "Use persist_without_connect=true (UI: 僅儲存連線參數) to save host/key without SSH.",
+                        "error_code": test_res.get("error_code"),
+                    })
+                    return
 
             with STATE.lock:
                 STATE.config["nas_host"] = host
                 STATE.config["nas_user"] = user
                 STATE.config["nas_port"] = port
-                # Persist portable ~/.ssh/<basename> only (M2) — never absolute paths in config/API.
-                STATE.config["ssh_key_path"] = public_ssh_key_ref(key_check.get("path") or key_path)
+                if clear_key and not key_path:
+                    STATE.config["ssh_key_path"] = ""
+                elif keeping_existing_key:
+                    # Preserve whatever portable ref was already stored.
+                    STATE.config["ssh_key_path"] = public_ssh_key_ref(effective_key) or effective_key
+                else:
+                    # Persist portable ~/.ssh/<basename> only (M2) — never absolute paths in config/API.
+                    STATE.config["ssh_key_path"] = public_ssh_key_ref(key_check.get("path") or effective_key)
                 STATE.config["is_configured"] = True
-                STATE.config["offline_mode"] = False
-                if test_res.get("ssh_host_key_fp"):
-                    STATE.config["ssh_host_key_fp"] = test_res["ssh_host_key_fp"]
+                if persist_without_connect:
+                    STATE.config["offline_mode"] = True
+                    STATE.last_error = (
+                        "Connection details saved in offline mode — SSH not verified yet. "
+                        "Use Save & Launch after the NAS is reachable."
+                    )
+                else:
+                    STATE.config["offline_mode"] = False
+                    if test_res and test_res.get("ssh_host_key_fp"):
+                        STATE.config["ssh_host_key_fp"] = test_res["ssh_host_key_fp"]
 
                 if "cloudflare_enabled" in payload:
                     STATE.config["cloudflare_enabled"] = bool(payload["cloudflare_enabled"])
@@ -1739,19 +1773,30 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
 
                 save_app_config(STATE.config)
                 cloudflare_intel.save_config(STATE.cf_config)
+                cfg_view = public_config_view(STATE.config)
 
-            # Trigger background scan and sync
-            threading.Thread(target=lambda: STATE.perform_scan(mode="fast", force_baseline=False), daemon=True).start()
-            if STATE.config.get("cloudflare_enabled"):
-                threading.Thread(target=STATE.sync_cloudflare, daemon=True).start()
+            if not persist_without_connect:
+                # Trigger background scan and sync only after verified connect.
+                threading.Thread(target=lambda: STATE.perform_scan(mode="fast", force_baseline=False), daemon=True).start()
+                if STATE.config.get("cloudflare_enabled"):
+                    threading.Thread(target=STATE.sync_cloudflare, daemon=True).start()
 
-            self._send_json({
-                "ok": True,
-                "message": "設定已成功儲存！監控已啟動",
-                "system": test_res.get("system"),
-                "ssh_host_key_fp": test_res.get("ssh_host_key_fp"),
-                "config": public_config_view(STATE.config),
-            })
+            if persist_without_connect:
+                self._send_json({
+                    "ok": True,
+                    "persisted_without_connect": True,
+                    "offline_mode": True,
+                    "message": "連線參數已儲存（未測試 SSH）。戰情室保持離線，待 NAS 可達後再按「儲存並進入戰情室」。",
+                    "config": cfg_view,
+                })
+            else:
+                self._send_json({
+                    "ok": True,
+                    "message": "設定已成功儲存！監控已啟動",
+                    "system": (test_res or {}).get("system"),
+                    "ssh_host_key_fp": (test_res or {}).get("ssh_host_key_fp"),
+                    "config": cfg_view,
+                })
             return
 
         if parsed.path == "/api/scan":

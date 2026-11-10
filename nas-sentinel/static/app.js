@@ -2119,9 +2119,6 @@ function copySetupKeyCmd() {
 async function skipSetupOffline() {
   const btnSkip = document.getElementById("btnSkipSetupOffline");
   const msgBox = document.getElementById("setupSaveMsg");
-  const host = (document.getElementById("setupNasHost")?.value || "").trim();
-  const user = (document.getElementById("setupNasUser")?.value || "").trim();
-  const port = parseInt(document.getElementById("setupNasPort")?.value || "22", 10);
 
   if (!getApiToken()) {
     showApiAuthModal("Enter API token before skipping setup (data/api_token.txt).");
@@ -2132,13 +2129,10 @@ async function skipSetupOffline() {
     btnSkip.textContent = "⏳ 進入離線戰情室...";
   }
   try {
+    // Empty body on purpose: server must NOT rewrite nas_host / key from form defaults.
     const res = await apiFetch("/api/setup/skip-offline", {
       method: "POST",
-      body: JSON.stringify({
-        nas_host: host || undefined,
-        nas_user: user || undefined,
-        nas_port: port || 22,
-      }),
+      body: JSON.stringify({}),
     });
     if (res.status === 401) return;
     const json = await res.json();
@@ -2150,9 +2144,9 @@ async function skipSetupOffline() {
         msgBox.style.background = "rgba(251, 191, 36, 0.12)";
         msgBox.style.border = "1px solid rgba(251, 191, 36, 0.45)";
         msgBox.style.color = "#fbbf24";
-        msgBox.textContent = "✅ " + (json.message || "Offline SOC unlocked");
+        msgBox.textContent = "✅ " + (json.message || "Offline SOC unlocked (SSH fields unchanged)");
       }
-      showToast("🚪 已進入離線戰情室（稍後可完成 NAS 設定）", "info");
+      showToast("🚪 已進入離線戰情室（既有主機／金鑰未變更）", "info");
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
@@ -2170,7 +2164,7 @@ async function skipSetupOffline() {
   }
 }
 
-async function saveSetupConfig() {
+async function saveSetupConfig(persistWithoutConnect = false) {
   const host = (document.getElementById("setupNasHost").value || "").trim();
   const user = (document.getElementById("setupNasUser").value || "").trim();
   const port = parseInt(document.getElementById("setupNasPort").value || "22", 10);
@@ -2180,6 +2174,7 @@ async function saveSetupConfig() {
   const cfEnabled = document.getElementById("setupCfEnabled").checked;
 
   const btnSave = document.getElementById("btnSaveSetup");
+  const btnPersist = document.getElementById("btnPersistSetupOffline");
   const msgBox = document.getElementById("setupSaveMsg");
 
   if (!host || !user) {
@@ -2187,9 +2182,22 @@ async function saveSetupConfig() {
     return;
   }
 
+  if (!getApiToken()) {
+    showApiAuthModal("Enter API token before saving settings (data/api_token.txt).");
+    return;
+  }
+
   if (btnSave) {
     btnSave.disabled = true;
-    btnSave.textContent = "⏳ 正在驗證連線並建立初始基線...";
+    if (!persistWithoutConnect) {
+      btnSave.textContent = "⏳ 正在驗證連線並建立初始基線...";
+    }
+  }
+  if (btnPersist) {
+    btnPersist.disabled = true;
+    if (persistWithoutConnect) {
+      btnPersist.textContent = "⏳ 儲存參數中...";
+    }
   }
   if (msgBox) msgBox.style.display = "none";
 
@@ -2198,39 +2206,50 @@ async function saveSetupConfig() {
       nas_host: host,
       nas_user: user,
       nas_port: port,
-      ssh_key_path: key,
       cloudflare_enabled: cfEnabled,
       cloudflare_zone_id: cfZone,
+      persist_without_connect: Boolean(persistWithoutConnect),
     };
+    // Blank key = keep existing server-side; only send when the user typed/selected one.
+    if (key) payload.ssh_key_path = key;
     // Only send Cloudflare token when the user entered a new value (blank = keep existing).
     if (cfToken) payload.cloudflare_api_token = cfToken;
     const res = await apiFetch("/api/setup/save", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    if (res.status === 401) {
+      showApiAuthModal("Unauthorized — paste API token, then save again.");
+      return;
+    }
     const json = await res.json();
     if (json.ok) {
+      const offline = Boolean(json.persisted_without_connect || json.offline_mode || persistWithoutConnect);
       if (msgBox) {
         msgBox.style.display = "block";
-        msgBox.style.background = "rgba(0, 255, 65, 0.15)";
-        msgBox.style.border = "1px solid #00ff41";
-        msgBox.style.color = "#00ff41";
+        msgBox.style.background = offline ? "rgba(251, 191, 36, 0.12)" : "rgba(0, 255, 65, 0.15)";
+        msgBox.style.border = offline ? "1px solid rgba(251, 191, 36, 0.45)" : "1px solid #00ff41";
+        msgBox.style.color = offline ? "#fbbf24" : "#00ff41";
         msgBox.textContent = "✅ " + (json.message || "設定已成功儲存！");
       }
-      showToast("🛡️ 設定已儲存！進入戰情室...", "info");
-      appConfig = json.config || { is_configured: true };
+      showToast(
+        offline ? "💾 連線參數已儲存（尚未驗證 SSH）" : "🛡️ 設定已儲存！進入戰情室...",
+        "info"
+      );
+      appConfig = json.config || { is_configured: true, offline_mode: offline };
       isSetupInitial = false;
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
-      }, 1200);
+      }, offline ? 700 : 1200);
     } else {
       if (msgBox) {
         msgBox.style.display = "block";
         msgBox.style.background = "rgba(255, 0, 85, 0.15)";
         msgBox.style.border = "1px solid #ff0055";
         msgBox.style.color = "#ff6699";
-        msgBox.textContent = "❌ " + (json.error || "儲存失敗");
+        const hint = json.hint ? ` — ${json.hint}` : "";
+        msgBox.textContent = "❌ " + (json.error || "儲存失敗") + hint;
       }
     }
   } catch (err) {
@@ -2245,6 +2264,10 @@ async function saveSetupConfig() {
     if (btnSave) {
       btnSave.disabled = false;
       btnSave.textContent = "🛡️ 儲存並進入戰情室 (Save & Launch)";
+    }
+    if (btnPersist) {
+      btnPersist.disabled = false;
+      btnPersist.textContent = "💾 僅儲存連線參數";
     }
   }
 }
