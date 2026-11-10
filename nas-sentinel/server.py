@@ -123,9 +123,20 @@ def ensure_api_token(cfg: dict) -> str:
     return token
 
 
+def public_ssh_key_ref(key_path: str) -> str:
+    """M2: expose only ~/.ssh/<basename> (or empty) — never absolute private-key paths."""
+    if not key_path or not str(key_path).strip():
+        return ""
+    name = Path(os.path.expanduser(str(key_path).strip())).name
+    if not name or name in (".", ".."):
+        return ""
+    return f"~/.ssh/{name}"
+
+
 def public_config_view(cfg: dict) -> dict:
-    """Return config safe for API responses — never include raw secrets."""
+    """Return config safe for API responses — never include raw secrets or absolute key paths."""
     safe = {k: v for k, v in cfg.items() if k not in ("cloudflare_api_token", "api_token")}
+    safe["ssh_key_path"] = public_ssh_key_ref(cfg.get("ssh_key_path", "") or "")
     cf_token = cfg.get("cloudflare_api_token", "") or ""
     if len(cf_token) > 10:
         safe["cloudflare_api_token_masked"] = f"{cf_token[:6]}...{cf_token[-4:]}"
@@ -167,7 +178,7 @@ def validate_ssh_key_path(key_path: str) -> dict:
 
 
 def find_local_ssh_keys() -> list:
-    """Return key paths as ~/.ssh/<basename> only (no absolute path leak beyond home ssh dir)."""
+    """M2: after auth, return ~/.ssh/<basename> only — never absolute private-key paths."""
     keys = []
     ssh_dir = Path.home() / ".ssh"
     if ssh_dir.exists():
@@ -176,10 +187,53 @@ def find_local_ssh_keys() -> list:
                 try:
                     text = p.read_text(encoding="utf-8", errors="ignore")[:60]
                     if "PRIVATE KEY" in text:
-                        keys.append(f"~/.ssh/{p.name}")
+                        keys.append(public_ssh_key_ref(p.name))
                 except Exception:
                     pass
     return keys
+
+
+def classify_ssh_failure(stderr_text: str = "", returncode: int = None, kind: str = "connect") -> dict:
+    """L1: map SSH failures to coarse error_code + safe message; never echo raw stderr."""
+    err = (stderr_text or "").lower()
+    prefix = "SSH 採集失敗" if kind == "collect" else "SSH 連線失敗"
+
+    if "permission denied" in err or "authentication failed" in err or ("publickey" in err and "denied" in err):
+        return {
+            "ok": False,
+            "error_code": "auth_failed",
+            "error": f"{prefix}：金鑰認證失敗。請確認帳號與私鑰，並已將公鑰加入 NAS ~/.ssh/authorized_keys。",
+        }
+    if "timed out" in err or "connection timed out" in err or "operation timed out" in err:
+        return {
+            "ok": False,
+            "error_code": "timeout",
+            "error": f"{prefix}：連線逾時。請檢查主機位址、Port 與網路可達性。",
+        }
+    if "connection refused" in err or "refused" in err:
+        return {
+            "ok": False,
+            "error_code": "refused",
+            "error": f"{prefix}：連線被拒絕。請確認 NAS SSH 服務已啟用且 Port 正確。",
+        }
+    if "no route" in err or "network is unreachable" in err or "could not resolve" in err or "name or service not known" in err:
+        return {
+            "ok": False,
+            "error_code": "unreachable",
+            "error": f"{prefix}：主機無法連線或名稱無法解析。",
+        }
+    if "host key" in err or "known_hosts" in err or "remote host identification" in err:
+        return {
+            "ok": False,
+            "error_code": "host_key_mismatch",
+            "error": f"{prefix}：主機金鑰驗證失敗。請確認指紋釘選或重置 data/ssh_known_hosts。",
+        }
+    code_note = f" (code {returncode})" if returncode not in (None, 0) else ""
+    return {
+        "ok": False,
+        "error_code": "ssh_failed",
+        "error": f"{prefix}{code_note}。詳情僅保留於本機伺服器日誌，未回傳原始 stderr。",
+    }
 
 
 def ssh_host_key_options(cfg=None) -> list:
@@ -256,7 +310,8 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
     if pinned and host_fp and pinned != host_fp:
         return {
             "ok": False,
-            "error": f"SSH host key fingerprint mismatch (pinned {pinned}, seen {host_fp}). Refusing connection.",
+            "error_code": "host_key_mismatch",
+            "error": "SSH 連線失敗：主機金鑰指紋與已釘選值不符，已拒絕連線。",
             "ssh_host_key_fp": host_fp,
         }
 
@@ -278,22 +333,12 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12)
         if proc.returncode != 0:
             err = proc.stderr.decode("utf-8", errors="replace").strip()
-            if "Permission denied" in err:
-                return {
-                    "ok": False,
-                    "error": "SSH 金鑰認證失敗 (Permission denied)。請確認帳號與私鑰是否匹配，並已在 NAS 的 ~/.ssh/authorized_keys 中加入公鑰。"
-                }
-            elif "timed out" in err.lower() or "connection timed out" in err.lower():
-                return {
-                    "ok": False,
-                    "error": f"連線至 {host}:{port} 逾時 (Connection timed out)。請檢查 IP 是否正確，以及 NAS 與電腦是否位於同一網路。"
-                }
-            elif "refused" in err.lower():
-                return {
-                    "ok": False,
-                    "error": f"連線至 {host}:{port} 被拒絕 (Connection refused)。請至 DSM 控制台 ➔ 終端機與 SNMP 確認 SSH 服務已啟用且 Port 為 {port}。"
-                }
-            return {"ok": False, "error": f"SSH 連線失敗 (Code {proc.returncode}): {err}"}
+            # Log raw stderr locally for operators; API gets coarse codes only (L1).
+            try:
+                print(f"[ssh-test] rc={proc.returncode} stderr={err[:500]}", file=sys.stderr)
+            except Exception:
+                pass
+            return classify_ssh_failure(err, proc.returncode, kind="connect")
 
         out = proc.stdout.decode("utf-8", errors="replace")
         lines = [line.strip() for line in out.splitlines() if line.strip()]
@@ -328,9 +373,9 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
             }
         }
     except subprocess.TimeoutExpired:
-        return {"ok": False, "error": f"連線至 {host}:{port} 逾時 (Timeout)。請檢查 NAS IP 與防火牆設定。"}
-    except Exception as e:
-        return {"ok": False, "error": f"檢測例外錯誤: {str(e)}"}
+        return {"ok": False, "error_code": "timeout", "error": "SSH 連線失敗：連線逾時。請檢查主機位址、Port 與網路可達性。"}
+    except Exception:
+        return {"ok": False, "error_code": "ssh_failed", "error": "SSH 連線失敗：發生內部例外（詳情僅在本機伺服器日誌）。"}
 
 
 INITIAL_CONFIG = load_app_config()
@@ -379,14 +424,19 @@ WEB_ENDPOINTS = [
     {"id": "https_5001_login", "port": 5001, "https": True, "path": "/webman/login.cgi", "label": "DSM HTTPS :5001 登入 API"},
 ]
 
-HISTORICAL_AUTH_SUMMARY = [
-    {"ip": "180.188.227.249", "attempts": 504, "last_seen": "2024-10-18", "note": "公網 SSH 暴力猜測來源 (已改僅公鑰)"},
-    {"ip": "172.105.66.104", "attempts": 342, "last_seen": "2024-10-18", "note": "公網 SSH 暴力猜測來源 (已改僅公鑰)"},
-    {"ip": "165.22.220.79", "attempts": 64, "last_seen": "2022-07-18", "note": "歷史公網掃描來源"},
-    {"ip": "143.198.100.69", "attempts": 45, "last_seen": "2024-10-18", "note": "公網 SSH 暴力猜測來源"},
-    {"ip": "206.189.22.223", "attempts": 40, "last_seen": "2024-10-18", "note": "公網 SSH 暴力猜測來源"},
-    {"ip": "45.148.10.240", "attempts": 36, "last_seen": "2024-10-18", "note": "公網 SSH 暴力猜測來源"},
+# L3: sample attacker IPs are NOT shown by default. Enable only with NAS_SENTINEL_DEMO_AUTH_INTEL=1.
+_DEMO_AUTH_SUMMARY = [
+    {"ip": "203.0.113.10", "attempts": 12, "last_seen": "demo", "note": "SAMPLE/DEMO DATA ONLY — not live detections (RFC 5737 documentation IP)"},
+    {"ip": "198.51.100.20", "attempts": 7, "last_seen": "demo", "note": "SAMPLE/DEMO DATA ONLY — not live detections (RFC 5737 documentation IP)"},
 ]
+
+
+def historical_auth_summary_for_ui() -> list:
+    """Return demo auth-intel rows only when explicitly flagged; otherwise empty (L3)."""
+    flag = (os.environ.get("NAS_SENTINEL_DEMO_AUTH_INTEL") or "").strip().lower()
+    if flag in ("1", "true", "yes", "on"):
+        return list(_DEMO_AUTH_SUMMARY)
+    return []
 
 SMART_REFERENCE = {
     "model": "WDC WD10EZEX-08WN4A0 (1 TB)",
@@ -938,10 +988,21 @@ class MonitorState:
             probe_thread.join(timeout=6)
 
             if proc.returncode != 0:
-                err_msg = proc.stderr.decode("utf-8", errors="replace").strip() or "SSH connection failed"
+                err_raw = proc.stderr.decode("utf-8", errors="replace").strip()
+                try:
+                    print(f"[ssh-collect] rc={proc.returncode} stderr={err_raw[:500]}", file=sys.stderr)
+                except Exception:
+                    pass
+                coarse = classify_ssh_failure(err_raw, proc.returncode, kind="collect")
                 with self.lock:
-                    self.last_error = f"SSH 採集失敗 (Code {proc.returncode}): {err_msg}"
-                    self.add_event("CRITICAL", "連線狀態", "無法經由 SSH 連線至 NAS", self.last_error, dedup_key="ssh_fail")
+                    self.last_error = coarse["error"]
+                    self.add_event(
+                        "CRITICAL",
+                        "連線狀態",
+                        "無法經由 SSH 連線至 NAS",
+                        f"{coarse.get('error_code', 'ssh_failed')}: {coarse['error']}",
+                        dedup_key="ssh_fail",
+                    )
                 return None
 
             raw_data = json.loads(proc.stdout.decode("utf-8", errors="replace"))
@@ -1228,6 +1289,7 @@ class MonitorState:
         self.history = self.history[-60:]
         save_json(HISTORY_FILE, self.history)
 
+        auth_intel_rows = historical_auth_summary_for_ui()
         snapshot = {
             "nas_host": self.config.get("nas_host") or NAS_HOST,
             "nas_user": self.config.get("nas_user") or NAS_USER,
@@ -1263,7 +1325,9 @@ class MonitorState:
                 "ssh_keys": raw_data["security"]["ssh_keys"],
                 "active_sessions": raw_data["security"]["active_sessions"],
                 "posture_checks": posture_checks,
-                "historical_brute_force": HISTORICAL_AUTH_SUMMARY,
+                # L3: empty by default; demo rows only when NAS_SENTINEL_DEMO_AUTH_INTEL=1
+                "historical_brute_force": auth_intel_rows,
+                "historical_brute_force_is_demo": bool(auth_intel_rows),
             },
             "events": self.events[:50],
             "history": self.history,
@@ -1570,8 +1634,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 if pub_file.exists():
                     _chmod_secret(pub_file, 0o644)
 
-            # Prefer ~/.ssh/ relative form for allowlisted path responses
-            key_path_public = f"~/.ssh/{key_file.name}"
+            key_path_public = public_ssh_key_ref(key_file.name)
             pub_text = pub_file.read_text(encoding="utf-8").strip() if pub_file.exists() else ""
             setup_cmd = f"mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo '{pub_text}' >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
             self._send_json({
@@ -1603,14 +1666,8 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 STATE.config["nas_host"] = host
                 STATE.config["nas_user"] = user
                 STATE.config["nas_port"] = port
-                STATE.config["ssh_key_path"] = key_check.get("path") or key_path
-                if key_check.get("path"):
-                    # Store portable ~/.ssh/basename form when possible
-                    try:
-                        bn = Path(key_check["path"]).name
-                        STATE.config["ssh_key_path"] = f"~/.ssh/{bn}"
-                    except Exception:
-                        STATE.config["ssh_key_path"] = key_check["path"]
+                # Persist portable ~/.ssh/<basename> only (M2) — never absolute paths in config/API.
+                STATE.config["ssh_key_path"] = public_ssh_key_ref(key_check.get("path") or key_path)
                 STATE.config["is_configured"] = True
                 if test_res.get("ssh_host_key_fp"):
                     STATE.config["ssh_host_key_fp"] = test_res["ssh_host_key_fp"]
