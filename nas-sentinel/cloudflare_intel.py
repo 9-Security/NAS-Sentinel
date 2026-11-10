@@ -63,6 +63,10 @@ def save_config(conf: dict):
     tmp = CONFIG_FILE.with_name(f"{CONFIG_FILE.name}.tmp")
     tmp.write_text(json.dumps(conf, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(CONFIG_FILE)
+    try:
+        os.chmod(CONFIG_FILE, 0o600)
+    except OSError:
+        pass
 
 
 def load_events() -> list:

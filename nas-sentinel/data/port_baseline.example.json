@@ -1,0 +1,5 @@
+{
+  "created_at": null,
+  "ports": {},
+  "_note": "Template only. A real baseline is created after setup / baseline reset and is gitignored."
+}

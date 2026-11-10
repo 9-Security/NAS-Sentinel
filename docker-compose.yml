@@ -5,11 +5,19 @@ services:
     build: .
     container_name: nas-sentinel
     restart: unless-stopped
+    # Default: loopback only. Publishing on 0.0.0.0 without auth is unsupported.
     ports:
-      - "8088:8088"
+      - "127.0.0.1:8088:8088"
     volumes:
       - ./nas-sentinel/data:/app/nas-sentinel/data
-      - ~/.ssh:/root/.ssh:ro
+      # Mount ONE dedicated private key (read-only). Do NOT mount the entire ~/.ssh tree.
+      # Uncomment and point at your key file after creating it:
+      # - ${SSH_KEY_FILE:-./secrets/nas_sentinel_ed25519}:/root/.ssh/nas_sentinel_ed25519:ro
     environment:
-      - MONITOR_HOST=0.0.0.0
+      - MONITOR_HOST=127.0.0.1
       - MONITOR_PORT=8088
+      # Required for Docker: set a high-entropy token in .env (see .env.example)
+      - API_TOKEN=${API_TOKEN:?Set API_TOKEN in .env — see .env.example}
+      # - SSH_KEY_PATH=/root/.ssh/nas_sentinel_ed25519
+      - CF_API_TOKEN=${CF_API_TOKEN:-}
+      - CF_ZONE_ID=${CF_ZONE_ID:-}

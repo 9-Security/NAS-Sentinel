@@ -34,7 +34,7 @@ By default, Synology DSM security policies **only allow users in the `administra
 Because NAS Sentinel operates as a silent background daemon, it requires SSH Key authentication (`BatchMode=yes`). Choose whichever method is easiest:
 
 - **Method A: Via DSM Web UI (Recommended for Beginners - No Terminal Required)**:
-  1. Retrieve your SSH public key (`~/.ssh/id_ed25519.pub`, beginning with `ssh-ed25519 AAAA...`). *If you don't have one, click "🔑 Auto-Generate New Key" inside the NAS Sentinel Web Setup Wizard.*
+  1. Retrieve your SSH public key (`~/.ssh/id_ed25519.pub`, beginning with `ssh-ed25519 AAAA...`). *If you don't have one, click "🔑 Generate Passphrase-Protected Key" in the Setup Wizard (empty passphrases are refused; load the key into `ssh-agent` for BatchMode scans).*
   2. Log in to DSM, open **Control Panel ➔ Task Scheduler**.
   3. Click **Create ➔ Scheduled Task ➔ User-defined script**:
      - General: Task Name `Add-SSH-Key`, **User: Select your login username** (e.g., `admin`).
@@ -72,20 +72,23 @@ cd NAS-Sentinel
 - **Windows Users**: Double-click [`start-nas-sentinel.bat`](start-nas-sentinel.bat).  
   *(Runs completely detached in the background without annoying console windows, and automatically opens your browser)*
 - **macOS / Linux Users**: Run `./start-nas-sentinel.sh`.
-- **Docker Users**: Run `docker-compose up -d`.
+- **Docker Users**: Copy `.env.example` → `.env`, set a high-entropy `API_TOKEN`, then run `docker compose up -d`.  
+  Compose **binds `127.0.0.1:8088` only** (not `0.0.0.0`). Mount a **single dedicated SSH key** if needed — never the entire `~/.ssh` directory. Publishing the port on all interfaces without auth is **unsupported**.
 
-### Step 3: Configure NAS Connection in Your Browser (Supports Custom SSH Ports)
-Your browser will open `http://127.0.0.1:8088`. On first launch, the **Setup Wizard** will greet you:
-1. **Fill in NAS Connection Details**:
+### Step 3: Unlock the UI with your API token, then configure NAS
+Your browser will open `http://127.0.0.1:8088`. **All `/api/*` routes require** `Authorization: Bearer <API_TOKEN>`:
+1. On first start the server prints the token and writes `nas-sentinel/data/api_token.txt` (or use `API_TOKEN` from `.env`).
+2. Paste that token into the auth gate in the browser (stored in localStorage for this origin only).
+3. The **Setup Wizard** then asks for NAS connection details:
    - **NAS IP / Hostname**: e.g., `192.168.1.100` or your internal domain.
    - **SSH Username**: e.g., `admin` or your administrative user.
    - **SSH Port**: Defaults to `22`. **If you customized your Synology SSH port for security (e.g., `2222`, `5022`, `60022`), simply enter it here!**
-   - **SSH Key**: The dropdown automatically scans keys in your local `~/.ssh/` directory, or click "🔑 Auto-Generate New Key".
-2. **Click "⚡ Test SSH Connection & Probe NAS"**: Validates the connection with your specified IP, user, and custom port, auto-detecting hardware architecture (`x86_64` vs `aarch64`) and DSM version.
-3. **Click "🛡️ Save & Launch SOC"**: Done! Saves securely to `data/config.json`, establishes file and port baselines, and launches into your Cyber SOC command center!
+   - **SSH Key**: Must be a file under `~/.ssh/`. Generate a **passphrase-protected** Ed25519 key in the wizard, or use an existing key loaded in `ssh-agent`.
+4. **Click "⚡ Test SSH Connection & Probe NAS"**: Validates the connection, shows the SSH host-key fingerprint (pinned on save), and detects DSM/arch.
+5. **Click "🛡️ Save & Launch SOC"**: Done! Saves to `data/config.json` (mode `0600`), establishes baselines, and launches the SOC.
 
 > 💡 **Prefer text configuration files? (Optional)**  
-> If you prefer setting credentials beforehand, copy `.env.example` to `.env` (or copy `nas-sentinel/data/config.example.json` to `data/config.json`) and configure `NAS_HOST`, `NAS_USER`, and `NAS_PORT` prior to Step 2!
+> Copy `.env.example` to `.env` and set `API_TOKEN`, `NAS_HOST`, `NAS_USER`, and `NAS_PORT` prior to Step 2.
 
 ---
 
@@ -190,8 +193,11 @@ NAS-Sentinel/
 ## 🔒 Privacy & Security First
 
 NAS Sentinel is built with strict privacy-preserving principles:
+- **Localhost-first**: Default bind is `127.0.0.1`. Docker Compose publishes `127.0.0.1:8088` only. **Network exposure without authentication is unsupported.**
+- **API authentication**: Every `/api/*` route (except `/api/auth/status`) requires `Authorization: Bearer <API_TOKEN>` (header-based, CSRF-resistant). Cloudflare tokens are never returned in API responses (masked/presence only).
+- **SSH hardening**: Key paths must stay under `~/.ssh`; auto-generated keys require a passphrase; host-key fingerprints are pinned after first successful setup.
 - **Zero Cloud Telemetry**: None of your telemetry or scan results leave your local machine.
-- **Git-Safe Credentials**: Sensitive configuration files (`config.json`, `cloudflare_config.json`, `events.json`) are strictly excluded in `.gitignore`.
+- **Git-Safe Credentials**: Live configs, API token file, known_hosts, and machine baselines are gitignored; only `*.example.json` templates are tracked.
 - **Read-Only Telemetry**: Remote execution on the NAS is 100% read-only and never makes unauthorized modifications to your DSM system.
 
 ---

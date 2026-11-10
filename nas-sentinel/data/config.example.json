@@ -4,9 +4,11 @@
   "nas_user": "admin",
   "nas_port": 22,
   "ssh_key_path": "",
+  "ssh_host_key_fp": "",
   "web_host": "127.0.0.1",
   "web_port": 8088,
   "poll_interval_sec": 15,
+  "api_token": "",
   "cloudflare_enabled": false,
   "cloudflare_api_token": "",
   "cloudflare_zone_id": ""

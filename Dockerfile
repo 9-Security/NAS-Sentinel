@@ -10,10 +10,11 @@ COPY nas-sentinel /app/nas-sentinel
 
 EXPOSE 8088
 
-ENV MONITOR_HOST=0.0.0.0
+# Default to loopback. Override only if you intentionally publish with API_TOKEN set.
+ENV MONITOR_HOST=127.0.0.1
 ENV MONITOR_PORT=8088
 
-VOLUME ["/app/nas-sentinel/data", "/root/.ssh"]
+VOLUME ["/app/nas-sentinel/data"]
 
 WORKDIR /app/nas-sentinel
 CMD ["python", "server.py"]

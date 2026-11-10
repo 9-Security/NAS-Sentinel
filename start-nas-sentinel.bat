@@ -33,7 +33,8 @@ if errorlevel 1 (
 
 echo [OK] Local server started in background.
 echo - Opening Web Wizard: http://127.0.0.1:8088
-echo   (Configure your NAS IP, custom SSH Port, and User in browser)
+echo - API token file    : nas-sentinel\data\api_token.txt
+echo   (Paste token into the browser auth gate; all /api/* require Bearer auth)
 echo - Stop Service      : stop-nas-sentinel.bat
 echo - Windows Autostart : install-autostart-service.bat
 echo ============================================================
