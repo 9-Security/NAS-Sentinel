@@ -63,11 +63,12 @@ cd NAS-Sentinel
 
 ### 步驟 2：雙擊啟動本機伺服器
 *(此步驟啟動的是您**電腦本機**的 Web 伺服器與安裝引導程序，此時**完全不需要手動修改任何設定檔**，啟動後瀏覽器會自動彈出引導介面)*
-- **Windows 用戶**：雙擊根目錄下的 [`start-nas-sentinel.bat`](start-nas-sentinel.bat)。  
-  *(系統會以純背景常駐運作，無擾人黑視窗，並自動開啟瀏覽器)*
-- **macOS / Linux 用戶**：在終端機執行 `./start-nas-sentinel.sh`。
+- **Windows 新手路徑**：雙擊根目錄 [`start-nas-sentinel.bat`](start-nas-sentinel.bat)。  
+  解壓／clone 後只需這一次雙擊。會優先使用 `runtime\python\` 可攜式 Python；若本機沒有 Python，第一次執行會從 python.org 下載官方 embed 套件（**不必**勾選「Add Python to PATH」）。背景常駐並自動開瀏覽器。說明見 [`scripts/PORTABLE-WINDOWS.md`](scripts/PORTABLE-WINDOWS.md)。
+- **macOS / Linux 用戶**：在終端機執行 `./start-nas-sentinel.sh`（此階段仍需系統 `python3`）。
 - **Docker 用戶**：先複製 `.env.example` → `.env` 並設定高熵 `API_TOKEN`，再執行 `docker compose up -d`。  
   Compose 預設只綁定 `127.0.0.1:8088`（不會對外開放 `0.0.0.0`）。若需 SSH 金鑰，請掛載**單一專用私鑰**，**禁止**掛載整個 `~/.ssh`。未認證的網路暴露不受支援。
+- **Windows 連 NAS**：請啟用系統 **OpenSSH 用戶端**（選擇性功能）。可攜式 Python 不會取代 `ssh` / `ssh-keygen`。
 
 ### 步驟 3：本機自動解鎖儀表板，再設定 NAS 連線
 啟動後瀏覽器將自動開啟 `http://127.0.0.1:8088`。
@@ -92,11 +93,12 @@ cd NAS-Sentinel
 NAS Sentinel 支援完全獨立於終端機/命令列的純背景常駐執行，關閉終端機或 IDE 均不會中斷：
 
 ### 1. 手動背景啟動
-雙擊執行專案根目錄下的批次檔，伺服器會以 `pythonw.exe` 於系統背景運作，並自動開啟儀表板：
+**雙擊 `start-nas-sentinel.bat`**（新手一鍵啟動）。伺服器以 `pythonw.exe` 於系統背景運作，並自動開啟儀表板：
 ```bat
 start-nas-sentinel.bat
 ```
 - **儀表板網址**：`http://127.0.0.1:8088`
+- 若本機沒有系統 Python，第一次會下載可攜式 CPython 到 `runtime\python\`（也可把該資料夾預先打進 zip，供離線雙擊）。
 
 ### 2. 開機自動啟動（最推薦）
 將 NAS Sentinel 註冊為 Windows 開機登入自啟動排程，開機後系統在背景自動監控：
@@ -166,11 +168,15 @@ nas-sentinel-project/
 │       ├── port_baseline.json   # 網路監聽埠基準
 │       └── lkm_baseline.json    # 核心模組基準
 │
-├── start-nas-sentinel.bat       # Windows 雙擊背景常駐啟動腳本
+├── start-nas-sentinel.bat       # Windows 雙擊一鍵啟動 ← 新手按這個
 ├── stop-nas-sentinel.bat        # Windows 一鍵停止服務腳本
 ├── install-autostart-service.bat# Windows 開機登入自啟動安裝檔
 ├── uninstall-autostart-service.bat # Windows 開機自啟動解除檔
 ├── start-nas-sentinel.sh        # Linux / macOS 一鍵啟動腳本
+├── scripts/                     # Windows 可攜式 Python 輔助
+│   ├── ensure-portable-python.ps1
+│   └── PORTABLE-WINDOWS.md
+├── runtime/                     # 可選本機可攜式 CPython（gitignore；可自動下載）
 ├── Dockerfile                   # Docker 容器化構建檔
 ├── docker-compose.yml           # Docker Compose 一鍵部署配置
 ├── LICENSE                      # MIT 開源授權條款
