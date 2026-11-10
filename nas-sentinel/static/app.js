@@ -185,12 +185,299 @@ const I18N = {
     "setup.user_label": "SSH 登入帳號",
     "setup.port_label": "SSH Port (可自訂)",
     "setup.key_label": "SSH 私鑰路徑 (Authentication Key)",
-    "setup.keygen_link": "🔑 自動產生新金鑰與教學",
+    "setup.keygen_link": "🔑 產生受密碼保護的新金鑰",
     "setup.btn_test": "測試 SSH 連線並自動探測 NAS",
     "setup.cf_header": "🌐 Cloudflare 邊界日誌監控 (選填，可稍後設定)",
-    "setup.btn_save": "🛡️ 儲存並進入戰情室 (Save & Launch)",
+    "setup.btn_save": "🛡️ 測試並上線 (Test & go live)",
     "setup.btn_close": "關閉",
-    "setup.footnote": "🔒 密鑰僅儲存在本地端 data/ 目錄"
+    "setup.footnote": "🔒 密鑰僅儲存在本地端 data/ 目錄",
+    "page.title": "Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心",
+    "toast.placeholder": "系統提示訊息",
+    "overview.chart_temp_legend": "溫度°C",
+    "overview.web_latency_title": "⚡ Nginx 網頁回應延遲 (ms) 與網路連線數",
+    "overview.web_latency_legend": "延遲 (ms)",
+    "overview.web_conns_legend": "連線數",
+    "overview.anom_title": "🚨 偵測到網頁或系統檔案異動 / 可疑檔案 (即時比對結果)",
+    "overview.anom_goto": "前往完整檔案檢視器 →",
+    "overview.posture_title": "🛡️ NAS 安全防禦態勢即時檢核 (Security Posture)",
+    "overview.score_prefix": "安全評分:",
+    "overview.events_title": "🔔 即時安全與系統事件日誌 (Event Stream)",
+    "overview.events_sub": "自動保存最近 150 筆",
+    "th.status": "狀態",
+    "th.severity": "嚴重度",
+    "th.file_path": "檔案完整路徑",
+    "th.reason": "異動原因 / 偵測特徵",
+    "th.perms_owner": "目前權限 / 擁有者",
+    "th.sha256": "目前 SHA-256 雜湊",
+    "th.change_type": "異動類型",
+    "th.trigger": "觸發原因",
+    "th.perm_change": "權限變更",
+    "th.hash_diff": "基線 SHA-256 → 目前 SHA-256",
+    "th.ms_ts": "毫秒時間戳記",
+    "th.level": "等級",
+    "th.inotify_mask": "核心事件旗標 (inotify Mask)",
+    "th.trigger_path": "觸發檔案路徑",
+    "th.live_perms": "當下權限 / 擁有者",
+    "th.live_hash": "即時計算 SHA-256 / 威脅判定",
+    "th.endpoint": "端點名稱",
+    "th.url_path": "網址路徑",
+    "th.conn_status": "連線狀態",
+    "th.latency": "回應延遲",
+    "th.size": "內容大小",
+    "th.resp_hash": "回應內容 SHA-256 雜湊",
+    "th.tls": "TLS 協定 / 憑證指紋",
+    "th.baseline_cmp": "基線比對",
+    "th.category": "類別",
+    "th.bytes": "大小 (Bytes)",
+    "th.mode": "權限 (Mode)",
+    "th.owner": "擁有者",
+    "th.mtime": "最後修改時間",
+    "th.fingerprint": "SHA-256 / 特徵指紋",
+    "th.scope": "連線範圍",
+    "th.proto": "協定",
+    "th.local_addr": "本機位址與埠號",
+    "th.remote_addr": "遠端 IP 與埠號",
+    "th.process": "關聯程序 (PID/Name)",
+    "th.baseline_status": "基線狀態",
+    "th.bind": "綁定位址",
+    "th.port": "埠號 (Port)",
+    "th.proc_desc": "執行程序 / 服務說明",
+    "th.time": "時間",
+    "th.action": "處置動作",
+    "th.src_ip_country": "來源 IP 與國家",
+    "th.probe_path": "刺探目標路徑 (Path & Query)",
+    "th.threat_class": "威脅判定分類",
+    "th.status_code": "狀態碼",
+    "th.ua": "客戶端特徵 (User-Agent)",
+    "th.engine": "對應工具引擎",
+    "th.module": "檢測模組 (對標 chkrootkit / rkhunter)",
+    "th.result": "即時核心與記憶體比對結果",
+    "th.service": "服務名稱",
+    "th.svc_desc": "功能說明",
+    "th.proc_count": "程序數",
+    "th.run_as": "執行帳號",
+    "th.account": "帳號",
+    "th.tty": "終端機 (TTY)",
+    "th.src_host": "來源主機 IP",
+    "th.login_time": "登入時間",
+    "th.key_type": "金鑰類型",
+    "th.key_comment": "金鑰備註 / 身分",
+    "th.key_hash": "雜湊識別碼 (SHA-256 前 16 碼)",
+    "th.attacker_ip": "攻擊來源 IP",
+    "th.fail_count": "失敗嘗試次數",
+    "th.last_seen": "最後觀測日期",
+    "th.defense_note": "防禦狀態與備註",
+    "fim.targets_title": "📂 受保護之網頁伺服器與關鍵系統目錄範疇",
+    "fim.baseline_prefix": "基線建立時間:",
+    "fim.rebuild_btn": "🛡️ 重建/維護基準",
+    "fim.inotify_title": "⚡ Linux 核心 inotify 毫秒級即時檔案事件流 (取代 auditd 檔案監控)",
+    "fim.inotify_sub": "即時監聽中：250 個網頁與系統目錄",
+    "fim.diff_title": "🔍 檔案完整性異動與可疑 Webshell 告警清單 (FIM Diff)",
+    "fim.diff_sub": "比對項目：SHA-256 內容雜湊、Linux 權限模式、擁有者、新增/刪除、Webshell 特徵",
+    "fim.web_title": "🌐 Nginx / DSM 網頁伺服器端點即時探測與回應雜湊驗證",
+    "fim.web_sub": "從本機直接對 NAS 80 / 443 / 5000 / 5001 進行內容防竄改與憑證檢驗",
+    "fim.explorer_title": "🗄️ 網頁伺服器與系統檔案 SHA-256 基線檢索器",
+    "fim.explorer_count": "顯示 -- / -- 個檔案",
+    "fim.search_ph": "輸入檔名、路徑 (如 login.cgi, nginx.conf, .php) 或 SHA-256 雜湊搜尋...",
+    "fim.cat_all": "所有監控類別 (All Categories)",
+    "fim.cat_web_root": "DSM 網頁根目錄 (/usr/syno/synoman, html)",
+    "fim.cat_web_config": "Nginx 設定與樣板 (/etc/nginx, share/nginx)",
+    "fim.cat_user_web": "自架網站目錄 (/volume1/web)",
+    "fim.cat_security": "系統安全與防火牆設定 (sshd, sysctl, firewall)",
+    "fim.cat_binary": "核心系統執行檔防木馬 (/bin, /usr/bin, /usr/sbin)",
+    "fim.cat_shared": "共享與暫存敏感區 (/volume1/public, tmp)",
+    "fim.refresh": "🔄 重新整理清單",
+    "net.conns_title": "🔌 活動中網路連線即時監控 (Active TCP/UDP Connections)",
+    "net.conns_sub": "自動標示外部公網 (WAN) 連線與內網管理連線",
+    "net.ports_title": "📡 NAS 監聽埠盤點與安全基線比對 (Listening Ports Matrix)",
+    "net.ports_sub": "若出現未在核准基線內的開放埠號，系統將自動發起高風險警報",
+    "cf.panel_title": "🌐 Cloudflare 邊界網站刺探與 WAF 防禦情資 (Edge Threat Intelligence)",
+    "cf.checking": "檢查中...",
+    "cf.sync_btn": "🔄 即時同步",
+    "cf.config_btn": "⚙️ 設定 API 權杖",
+    "cf.stats_title": "邊界防禦與刺探統計 (24H STATS)",
+    "cf.stat_total": "攔截刺探總量",
+    "cf.stat_total_unit": "0 次",
+    "cf.stat_countries": "刺探來源國家數",
+    "cf.stat_countries_unit": "0 國",
+    "cf.stat_last_sync": "最近邊界同步時間",
+    "cf.never_synced": "尚未同步",
+    "cf.top_paths": "最常被刺探之敏感目錄 TOP 5 (MOST PROBED TARGETS)",
+    "cf.no_paths": "暫無刺探路徑紀錄",
+    "sec.rootkit_title": "🕵️ DSM Rootkit 與系統指令防木馬即時檢測 (chkrootkit + rkhunter 無套件核心引擎)",
+    "sec.detecting": "檢測中...",
+    "sec.daemons_title": "⚙️ 核心守護程序存活狀態 (Core Daemons)",
+    "sec.daemons_sub": "即時監測 Nginx、SSH、Cloudflared 等服務",
+    "sec.sessions_title": "🔑 目前登入工作階段 (utmp) 與授權 SSH 公鑰",
+    "sec.utmp_header": "目前活動登入階段 (/var/run/utmp)：",
+    "sec.keys_header": "已授權 SSH 公鑰清單 (~/.ssh/authorized_keys)：",
+    "sec.disk_title": "💽 硬碟儲存空間與 SMART 健康監控",
+    "sec.smart_badge": "PASSED (0 壞軌)",
+    "reset.warning_title": "⚠️ 注意：此操作將會：",
+    "reset.li1": "將目前 1,786 個系統與網頁檔案的 SHA-256 視為合法基準並清空異動警報",
+    "reset.li2": "將目前開放之網路監聽埠與 105 個核心模組記錄為核准清單",
+    "reset.li3": "此操作僅適用於您剛完成合法 DSM 韌體更新或明確修改設定後",
+    "reset.footer": "若您並未主動變更 NAS 設定，請勿執行此操作，以免掩蓋潛在的未授權竄改！",
+    "cf.desc": "透過 Cloudflare GraphQL API，直接從 Cloudflare 全球邊界節點拉取外部對您網域的「惡意目錄刺探」與「WAF 攔截事件」，完全不耗損 NAS 本地硬碟 I/O。",
+    "cf.token_label": "Cloudflare API Token (權杖)",
+    "cf.token_ph": "具有 Zone.Analytics:Read 權限的 API Token",
+    "cf.token_help": "至 Cloudflare ➔ My Profile ➔ API Tokens 建立具備「Zone - Analytics - Read」權限之 Token",
+    "cf.zone_label": "Zone ID (區域標籤)",
+    "cf.zone_ph": "例如：42a1b7... (32 位元十六進位字串)",
+    "cf.zone_help": "在 Cloudflare 點入網域 ➔ 右下方 Overview 即可複製 Zone ID",
+    "cf.enable_label": "啟用邊界安全情報自動排程同步 (每 60 秒)",
+    "setup.ssh_help_body_1": "<strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。",
+    "setup.ssh_help_body_2": "<strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。",
+    "setup.ssh_help_body_3": "<strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。",
+    "setup.host_ph": "例如：192.168.1.100",
+    "setup.user_ph": "例如：admin 或 root",
+    "setup.port_hint": "(可自訂)",
+    "setup.port_title": "若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改",
+    "setup.keygen_link": "🔑 產生受密碼保護的新金鑰",
+    "setup.key_default_opt": "(系統預設金鑰 / ~/.ssh/ 自動解析)",
+    "setup.key_custom_ph": "例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）",
+    "setup.passphrase_ph": "新金鑰 Passphrase（至少 8 字元；禁止空白密碼）",
+    "setup.key_auth_title": "🔑 快速授權此金鑰至 Synology NAS",
+    "setup.key_auth_desc": "登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：",
+    "setup.copy_btn": "📋 複製",
+    "setup.cf_expand": "▶ 展開",
+    "setup.cf_collapse": "▼ 收合",
+    "setup.cf_token_ph": "具備 Zone.Analytics:Read 權限之 Token",
+    "setup.cf_zone_ph": "32 位元 Zone Tag",
+    "setup.cf_enable": "啟用 Cloudflare 邊界安全情報自動排程同步",
+    "setup.btn_test_cf": "🧪 測試連線 (Test)",
+    "setup.btn_skip": "🚪 稍後設定，先進入戰情室",
+    "setup.btn_persist": "💾 儲存連線設定",
+    "setup.btn_golive": "🛡️ 測試並上線 (Test & go live)",
+    "setup.btn_skip_busy": "⏳ 進入離線戰情室...",
+    "setup.btn_save_busy": "⏳ 儲存並測試 SSH...",
+    "setup.btn_persist_busy": "⏳ 儲存參數中...",
+    "kpi.diff_init": "異動: 0 | 新增: 0 | 刪除: 0",
+    "kpi.latency_init": "平均回應延遲: -- ms",
+    "kpi.net_detail_init": "區網: -- | 外網: --",
+    "kpi.unauth_init": "非授權埠: 0",
+    "kpi.disk_gb_init": "可用: -- GB / -- GB",
+    "kpi.svc_init": "服務: --/--",
+    "status.not_configured": "尚未設定",
+    "status.need_setup": "請透過安裝精靈完成 NAS 連線與基線配置",
+    "status.offline": "離線模式",
+    "status.ssh_error": "SSH 連線異常",
+    "toast.busy": "⚠️ 目前已有掃描或系統作業正在進行中，請稍候...",
+    "toast.cooldown": "⏳ 系統防刷冷卻中，請等待 {n} 秒後再執行",
+    "scan.fast_busy": "快速掃描中...",
+    "scan.deep_busy": "全量深度比對中...",
+    "scan.deep_btn_busy": "⏳ 深度比對中 (~3.5s)...",
+    "toast.backend_busy": "⚠️ 後端回報：系統已有其他作業正在執行，請稍候",
+    "toast.scan_deep_done": "✅ 深度檔案雜湊掃描完成",
+    "toast.scan_fast_done": "⚡ 快速掃描完成",
+    "toast.scan_fail": "❌ 掃描失敗:",
+    "toast.unknown_err": "未明錯誤",
+    "toast.conn_ex": "❌ 連線或執行例外:",
+    "scan.done_cooldown": "完成 (冷卻中)",
+    "toast.admin_busy": "⚠️ 系統作業執行中，無法開啟管理選單",
+    "toast.reset_busy": "⚠️ 系統作業執行中，無法進行基線重設",
+    "toast.job_busy": "⚠️ 目前已有作業正在執行，請稍候",
+    "reset.busy_msg": "正在重設基線...",
+    "reset.btn_busy": "⏳ 正在重建基線中...",
+    "toast.backend_busy2": "⚠️ 後端回報：系統忙碌中，請稍候再試",
+    "toast.reset_ok": "🛡️ 安全基準重建成功！所有檔案與埠已設為新基線",
+    "toast.reset_fail": "❌ 重建基線失敗:",
+    "toast.reset_ex": "❌ 重建基線例外:",
+    "posture.score": "安全評分: {n} / 100",
+    "posture.pass": "通過",
+    "posture.warn": "注意",
+    "posture.alert": "警報",
+    "fim.files_count": "檔案數:",
+    "fim.path_label": "路徑:",
+    "fim.suspicious": "{n} 可疑",
+    "fim.protected": "受保護中",
+    "fim.dir_off": "目錄未啟用",
+    "fim.clean": "✅ 目前所有受監控之網頁伺服器與系統設定檔案均與安全基線 100% 吻合，未發現竄改或可疑 Webshell。",
+    "fim.deleted": "已刪除",
+    "fim.no_baseline": "無基線",
+    "fim.added": "新增",
+    "web.conn_fail": "連線失敗",
+    "web.hash_ok": "基線吻合",
+    "web.changed": "異動",
+    "web.redirect_https": "自動導向 HTTPS",
+    "web.http_plain": "HTTP 明文",
+    "net.external": "EXTERNAL (外網)",
+    "net.lan": "LAN (區網)",
+    "net.proc_unknown": "系統核心/無權限讀取 PID",
+    "rk.alerts": "🚨 {n} 項異常 ({ms} ms)",
+    "rk.all_pass": "✅ 6 項核心檢測全數通過 | LKM 模組基線: {n} 個 ({ms} ms)",
+    "rk.pass": "通過 (PASS)",
+    "rk.crit": "警報 (CRITICAL)",
+    "svc.running": "執行中",
+    "svc.stopped": "已停止!",
+    "svc.inactive": "未啟用",
+    "sess.empty": "目前無互動式 TTY 登入工作階段 (監控採集使用非互動式 SSH 通道)",
+    "auth.attempts": "{n} 次",
+    "disk.used": "已用: {u} GB / 總計: {t} GB (可用: {a} GB)",
+    "disk.model": "實體硬碟型號：",
+    "disk.hours": "通電時數:",
+    "disk.hours_unit": "小時",
+    "files.showing": "顯示前 {shown} 筆 (符合: {matched} / 總監控: {total} 檔)",
+    "cf.unset_token": "⚠️ 未設定 API 權杖",
+    "cf.not_configured": "未配置",
+    "cf.click_config": "點擊此處設定 Cloudflare API 權杖 ➔",
+    "cf.unset_hint": "尚未配置 Cloudflare API Token。點擊右上角「⚙️ 設定 API 權杖」即可免安裝套件、免寫 NAS 磁碟直接從 Cloudflare 邊界即時拉取刺探日誌。",
+    "cf.sync_err": "❌ 同步錯誤:",
+    "cf.syncing": "⏳ 邊界同步中...",
+    "cf.connected": "✅ 已連線 9SEC Edge WAF ({n} 筆刺探)",
+    "cf.hits_unit": "{n} 次",
+    "cf.countries_unit": "{n} 國",
+    "cf.sync_pending": "同步中...",
+    "cf.no_probe_24h": "過去 24H 無異常刺探路徑",
+    "cf.path_hits": "{n}次",
+    "cf.empty_events": "✅ 過去 24 小時內 Cloudflare 邊界節點未觀測到異常目錄掃描或 WAF 阻擋事件。",
+    "cf.block": "BLOCK 阻擋",
+    "cf.challenge": "CHALLENGE 驗證",
+    "cf.need_fields": "⚠️ 請填寫 Cloudflare API Token 與 Zone ID",
+    "cf.testing": "⏳ 正在向 Cloudflare 驗證 Token...",
+    "cf.saving": "⏳ 正在驗證並儲存設定...",
+    "cf.test_ok": "✅ Cloudflare API 連線與權限驗證成功！",
+    "cf.save_ok": "✅ 設定已儲存！已開始背景即時同步邊界安全情報。",
+    "cf.enabled_toast": "✅ Cloudflare 邊界情報已啟用",
+    "cf.verify_fail": "驗證失敗",
+    "cf.ex": "❌ 連線例外:",
+    "cf.sync_toast": "🔄 正在向 Cloudflare 邊界同步最新刺探日誌...",
+    "cf.sync_done": "✅ Cloudflare 邊界情報同步完成",
+    "cf.sync_fail": "❌ 同步失敗:",
+    "setup.need_host_user": "⚠️ 請先填寫 NAS IP 與 SSH 帳號",
+    "setup.probing": "正在透過 SSH 探測 NAS 核心與 DSM...",
+    "setup.probe_ok_title": "✅ SSH 連線測試成功！NAS 系統探測完成",
+    "setup.probe_sys": "系統版本：",
+    "setup.probe_arch": "核心架構：",
+    "setup.probe_py": "Python 環境：",
+    "setup.probe_ok_toast": "✅ NAS 連線與探測成功！",
+    "setup.probe_fail_title": "❌ 連線失敗",
+    "setup.unknown_conn": "未知連線錯誤",
+    "setup.probe_ex": "❌ 連線請求例外:",
+    "setup.keygen_toast": "🔑 正在產生受密碼保護的 Ed25519 金鑰對...",
+    "setup.keygen_ok": "✅ 新金鑰已生成（請用 ssh-agent 載入密碼）。複製授權指令至 NAS。",
+    "setup.keygen_fail": "❌ 生成失敗:",
+    "setup.req_ex": "❌ 請求異常:",
+    "setup.copied": "📋 已複製授權指令到剪貼簿！",
+    "setup.copied_short": "📋 已複製！",
+    "setup.skip_ok": "🚪 已進入離線戰情室（既有主機／金鑰未變更）",
+    "setup.skip_fail": "無法略過設定",
+    "setup.need_fields": "⚠️ 請輸入 NAS 主機 IP 與 SSH 帳號",
+    "setup.reject_localhost": "⚠️ nas_host 不可為 127.0.0.1（那是本機 UI）。請填實際 NAS IP。",
+    "setup.saved_default": "設定已儲存",
+    "setup.saved_live": "🛡️ 設定已儲存，監控已上線",
+    "setup.saved_warn": "💾 設定已儲存（SSH 未上線：{w}）",
+    "setup.saved_offline": "💾 連線設定已儲存（離線）",
+    "setup.save_fail": "儲存失敗",
+    "setup.save_ex": "❌ 儲存例外錯誤:",
+    "setup.need_config_toast": "⚠️ 請先完成 NAS 連線與基線配置以啟用戰情室",
+    "setup.cf_testing": "⏳ 正在向 Cloudflare GraphQL API 驗證 Token 權限...",
+    "setup.cf_ok_toast": "✅ Cloudflare API 驗證成功",
+    "setup.cf_fail": "❌ 驗證失敗:",
+    "setup.cf_fail_toast": "❌ Cloudflare 驗證失敗",
+    "setup.cf_net": "❌ 網路異常:",
+    "setup.cf_unreachable": "無法連線至 Cloudflare",
+    "hash.none_deleted": "無/已刪除",
   },
   "en": {
     "brand.sub_default": "Host: NAS123 • Loading...",
@@ -279,12 +566,299 @@ const I18N = {
     "setup.user_label": "SSH Username",
     "setup.port_label": "SSH Port (Customizable)",
     "setup.key_label": "SSH Private Key Path",
-    "setup.keygen_link": "🔑 Auto-Generate New Key & Guide",
+    "setup.keygen_link": "🔑 Generate Passphrase-Protected Key",
     "setup.btn_test": "Test SSH Connection & Probe NAS",
     "setup.cf_header": "🌐 Cloudflare Edge Log Monitoring (Optional)",
-    "setup.btn_save": "🛡️ Save & Launch Dashboard",
+    "setup.btn_save": "🛡️ Test & go live",
     "setup.btn_close": "Close",
-    "setup.footnote": "🔒 Credentials stored strictly in local data/ directory"
+    "setup.footnote": "🔒 Credentials stored strictly in local data/ directory",
+    "page.title": "Nine-Security | NAS Sentinel - Synology DSM Real-Time Security SOC",
+    "toast.placeholder": "System notification",
+    "overview.chart_temp_legend": "Temp °C",
+    "overview.web_latency_title": "⚡ Nginx Latency (ms) & Connection Count",
+    "overview.web_latency_legend": "Latency (ms)",
+    "overview.web_conns_legend": "Connections",
+    "overview.anom_title": "🚨 Web/System File Changes / Suspicious Files Detected",
+    "overview.anom_goto": "Open Full File Viewer →",
+    "overview.posture_title": "🛡️ NAS Security Posture Live Check",
+    "overview.score_prefix": "Security Score:",
+    "overview.events_title": "🔔 Live Security & System Event Stream",
+    "overview.events_sub": "Keeps the latest 150 events",
+    "th.status": "Status",
+    "th.severity": "Severity",
+    "th.file_path": "Full File Path",
+    "th.reason": "Change Reason / Signature",
+    "th.perms_owner": "Current Mode / Owner",
+    "th.sha256": "Current SHA-256 Hash",
+    "th.change_type": "Change Type",
+    "th.trigger": "Trigger Reason",
+    "th.perm_change": "Permission Change",
+    "th.hash_diff": "Baseline SHA-256 → Current",
+    "th.ms_ts": "Millisecond Timestamp",
+    "th.level": "Level",
+    "th.inotify_mask": "Kernel Event Mask (inotify)",
+    "th.trigger_path": "Triggered File Path",
+    "th.live_perms": "Live Mode / Owner",
+    "th.live_hash": "Live SHA-256 / Threat Verdict",
+    "th.endpoint": "Endpoint",
+    "th.url_path": "URL Path",
+    "th.conn_status": "Connection Status",
+    "th.latency": "Latency",
+    "th.size": "Content Size",
+    "th.resp_hash": "Response SHA-256",
+    "th.tls": "TLS / Cert Fingerprint",
+    "th.baseline_cmp": "Baseline Compare",
+    "th.category": "Category",
+    "th.bytes": "Size (Bytes)",
+    "th.mode": "Mode",
+    "th.owner": "Owner",
+    "th.mtime": "Last Modified",
+    "th.fingerprint": "SHA-256 / Fingerprint",
+    "th.scope": "Scope",
+    "th.proto": "Protocol",
+    "th.local_addr": "Local Address:Port",
+    "th.remote_addr": "Remote IP:Port",
+    "th.process": "Process (PID/Name)",
+    "th.baseline_status": "Baseline Status",
+    "th.bind": "Bind Address",
+    "th.port": "Port",
+    "th.proc_desc": "Process / Service Description",
+    "th.time": "Time",
+    "th.action": "Action",
+    "th.src_ip_country": "Source IP & Country",
+    "th.probe_path": "Probed Path & Query",
+    "th.threat_class": "Threat Classification",
+    "th.status_code": "Status Code",
+    "th.ua": "Client Fingerprint (User-Agent)",
+    "th.engine": "Tool Engine",
+    "th.module": "Detection Module (chkrootkit / rkhunter)",
+    "th.result": "Live Kernel/Memory Result",
+    "th.service": "Service Name",
+    "th.svc_desc": "Description",
+    "th.proc_count": "Process Count",
+    "th.run_as": "Run As",
+    "th.account": "Account",
+    "th.tty": "Terminal (TTY)",
+    "th.src_host": "Source Host IP",
+    "th.login_time": "Login Time",
+    "th.key_type": "Key Type",
+    "th.key_comment": "Key Comment / Identity",
+    "th.key_hash": "Hash ID (SHA-256 first 16)",
+    "th.attacker_ip": "Attacker IP",
+    "th.fail_count": "Failed Attempts",
+    "th.last_seen": "Last Observed",
+    "th.defense_note": "Defense Status & Notes",
+    "fim.targets_title": "📂 Protected Web & Critical System Directories",
+    "fim.baseline_prefix": "Baseline created:",
+    "fim.rebuild_btn": "🛡️ Rebuild / Maintain Baseline",
+    "fim.inotify_title": "⚡ Linux inotify Millisecond File Event Stream",
+    "fim.inotify_sub": "Live watching: 250 web & system directories",
+    "fim.diff_title": "🔍 File Integrity Diff & Suspicious Webshell Alerts",
+    "fim.diff_sub": "Compares: SHA-256, mode, owner, add/delete, webshell signatures",
+    "fim.web_title": "🌐 Nginx / DSM Endpoint Probe & Response Hash Verify",
+    "fim.web_sub": "Probes NAS 80/443/5000/5001 from this host for integrity & cert checks",
+    "fim.explorer_title": "🗄️ Web & System File SHA-256 Baseline Explorer",
+    "fim.explorer_count": "Showing -- / -- files",
+    "fim.search_ph": "Search by name, path (e.g. login.cgi, nginx.conf, .php) or SHA-256...",
+    "fim.cat_all": "All Categories",
+    "fim.cat_web_root": "DSM Web Root (/usr/syno/synoman, html)",
+    "fim.cat_web_config": "Nginx Config & Templates (/etc/nginx, share/nginx)",
+    "fim.cat_user_web": "User Web Directory (/volume1/web)",
+    "fim.cat_security": "Security Configs (sshd, sysctl, firewall)",
+    "fim.cat_binary": "System Binaries Anti-Trojan (/bin, /usr/bin, /usr/sbin)",
+    "fim.cat_shared": "Shared & Temp Watch (/volume1/public, tmp)",
+    "fim.refresh": "🔄 Refresh List",
+    "net.conns_title": "🔌 Active TCP/UDP Connections",
+    "net.conns_sub": "Auto-labels WAN vs LAN management connections",
+    "net.ports_title": "📡 Listening Ports Matrix vs Baseline",
+    "net.ports_sub": "Unauthorized open ports trigger high-risk alerts automatically",
+    "cf.panel_title": "🌐 Cloudflare Edge Probe & WAF Intel",
+    "cf.checking": "Checking...",
+    "cf.sync_btn": "🔄 Sync Now",
+    "cf.config_btn": "⚙️ Configure API Token",
+    "cf.stats_title": "Edge Defense & Probe Stats (24H)",
+    "cf.stat_total": "Blocked Probes Total",
+    "cf.stat_total_unit": "0 hits",
+    "cf.stat_countries": "Source Countries",
+    "cf.stat_countries_unit": "0 countries",
+    "cf.stat_last_sync": "Last Edge Sync",
+    "cf.never_synced": "Not synced yet",
+    "cf.top_paths": "Most Probed Sensitive Paths TOP 5",
+    "cf.no_paths": "No probed paths yet",
+    "sec.rootkit_title": "🕵️ DSM Rootkit & Binary Integrity (chkrootkit + rkhunter core)",
+    "sec.detecting": "Detecting...",
+    "sec.daemons_title": "⚙️ Core Daemon Liveness",
+    "sec.daemons_sub": "Monitors Nginx, SSH, Cloudflared, etc.",
+    "sec.sessions_title": "🔑 Active Sessions (utmp) & Authorized SSH Keys",
+    "sec.utmp_header": "Active login sessions (/var/run/utmp):",
+    "sec.keys_header": "Authorized SSH keys (~/.ssh/authorized_keys):",
+    "sec.disk_title": "💽 Disk Storage & SMART Health",
+    "sec.smart_badge": "PASSED (0 bad sectors)",
+    "reset.warning_title": "⚠️ Warning — this will:",
+    "reset.li1": "Treat current 1,786 system/web file SHA-256 values as trusted and clear alerts",
+    "reset.li2": "Record current listening ports and 105 kernel modules as approved",
+    "reset.li3": "Only use after legitimate DSM updates or intentional config changes",
+    "reset.footer": "If you did not change the NAS yourself, do not run this — it may hide unauthorized tampering!",
+    "cf.desc": "Pull malicious path probes and WAF blocks from Cloudflare's global edge via GraphQL — zero NAS disk I/O.",
+    "cf.token_label": "Cloudflare API Token",
+    "cf.token_ph": "API Token with Zone.Analytics:Read",
+    "cf.token_help": "Create a Token with Zone - Analytics - Read at Cloudflare ➔ My Profile ➔ API Tokens",
+    "cf.zone_label": "Zone ID",
+    "cf.zone_ph": "e.g. 42a1b7... (32-char hex)",
+    "cf.zone_help": "Open the domain in Cloudflare ➔ Overview (bottom-right) to copy Zone ID",
+    "cf.enable_label": "Enable edge intel auto-sync (every 60s)",
+    "setup.ssh_help_body_1": "<strong>1. Enable DSM SSH</strong>: DSM Desktop ➔ Control Panel ➔ Terminal & SNMP ➔ Enable SSH service (Port 22).",
+    "setup.ssh_help_body_2": "<strong>2. Admin required</strong>: Only users in the `administrators` group may SSH in.",
+    "setup.ssh_help_body_3": "<strong>3. Authorize SSH key</strong>: Click “🔑 Generate passphrase-protected key”, paste the auth command into DSM Task Scheduler once. Scans use <code>BatchMode</code> — load the key via <code>ssh-agent</code>.",
+    "setup.host_ph": "e.g. 192.168.1.100",
+    "setup.user_ph": "e.g. admin or root",
+    "setup.port_hint": "(customizable)",
+    "setup.port_title": "If your NAS uses a custom SSH port (e.g. 2222, 5022), set it here",
+    "setup.keygen_link": "🔑 Generate Passphrase-Protected Key",
+    "setup.key_default_opt": "(Default key / auto-resolve ~/.ssh/)",
+    "setup.key_custom_ph": "e.g. ~/.ssh/id_ed25519 (must be under ~/.ssh)",
+    "setup.passphrase_ph": "New key passphrase (min 8 chars; empty not allowed)",
+    "setup.key_auth_title": "🔑 Quickly authorize this key on Synology NAS",
+    "setup.key_auth_desc": "Log into the NAS terminal once and paste this one-liner to authorize the public key:",
+    "setup.copy_btn": "📋 Copy",
+    "setup.cf_expand": "▶ Expand",
+    "setup.cf_collapse": "▼ Collapse",
+    "setup.cf_token_ph": "Token with Zone.Analytics:Read",
+    "setup.cf_zone_ph": "32-char Zone Tag",
+    "setup.cf_enable": "Enable Cloudflare edge intel auto-sync",
+    "setup.btn_test_cf": "🧪 Test Connection",
+    "setup.btn_skip": "🚪 Skip for now — open SOC offline",
+    "setup.btn_persist": "💾 Save connection settings",
+    "setup.btn_golive": "🛡️ Test & go live",
+    "setup.btn_skip_busy": "⏳ Opening offline SOC...",
+    "setup.btn_save_busy": "⏳ Saving & testing SSH...",
+    "setup.btn_persist_busy": "⏳ Saving settings...",
+    "kpi.diff_init": "Mod: 0 | Add: 0 | Del: 0",
+    "kpi.latency_init": "Avg Latency: -- ms",
+    "kpi.net_detail_init": "LAN: -- | WAN: --",
+    "kpi.unauth_init": "Unauth ports: 0",
+    "kpi.disk_gb_init": "Avail: -- GB / -- GB",
+    "kpi.svc_init": "Services: --/--",
+    "status.not_configured": "Not configured",
+    "status.need_setup": "Complete NAS connection & baseline via the setup wizard",
+    "status.offline": "Offline mode",
+    "status.ssh_error": "SSH connection error",
+    "toast.busy": "⚠️ A scan or operation is already running, please wait...",
+    "toast.cooldown": "⏳ Cooldown active — wait {n}s before retrying",
+    "scan.fast_busy": "Fast scanning...",
+    "scan.deep_busy": "Deep comparing...",
+    "scan.deep_btn_busy": "⏳ Deep compare (~3.5s)...",
+    "toast.backend_busy": "⚠️ Backend busy: another job is running",
+    "toast.scan_deep_done": "✅ Deep file-hash scan complete",
+    "toast.scan_fast_done": "⚡ Fast scan complete",
+    "toast.scan_fail": "❌ Scan failed:",
+    "toast.unknown_err": "Unknown error",
+    "toast.conn_ex": "❌ Connection/runtime exception:",
+    "scan.done_cooldown": "Done (cooling down)",
+    "toast.admin_busy": "⚠️ System busy — cannot open admin menu",
+    "toast.reset_busy": "⚠️ System busy — cannot rebuild baseline",
+    "toast.job_busy": "⚠️ Another job is running, please wait",
+    "reset.busy_msg": "Rebuilding baseline...",
+    "reset.btn_busy": "⏳ Rebuilding baseline...",
+    "toast.backend_busy2": "⚠️ Backend busy — try again shortly",
+    "toast.reset_ok": "🛡️ Baseline rebuilt — files & ports are the new golden reference",
+    "toast.reset_fail": "❌ Baseline rebuild failed:",
+    "toast.reset_ex": "❌ Baseline rebuild exception:",
+    "posture.score": "Security Score: {n} / 100",
+    "posture.pass": "PASS",
+    "posture.warn": "WARN",
+    "posture.alert": "ALERT",
+    "fim.files_count": "Files:",
+    "fim.path_label": "Paths:",
+    "fim.suspicious": "{n} suspicious",
+    "fim.protected": "Protected",
+    "fim.dir_off": "Directory inactive",
+    "fim.clean": "✅ All monitored web/system files match the baseline 100%. No tampering or webshell signatures.",
+    "fim.deleted": "Deleted",
+    "fim.no_baseline": "No baseline",
+    "fim.added": "Added",
+    "web.conn_fail": "Connection failed",
+    "web.hash_ok": "Baseline match",
+    "web.changed": "Changed",
+    "web.redirect_https": "Auto-redirect to HTTPS",
+    "web.http_plain": "Plain HTTP",
+    "net.external": "EXTERNAL (WAN)",
+    "net.lan": "LAN",
+    "net.proc_unknown": "Kernel / PID unreadable",
+    "rk.alerts": "🚨 {n} anomalies ({ms} ms)",
+    "rk.all_pass": "✅ All 6 core checks passed | LKM baseline: {n} ({ms} ms)",
+    "rk.pass": "PASS",
+    "rk.crit": "CRITICAL",
+    "svc.running": "Running",
+    "svc.stopped": "Stopped!",
+    "svc.inactive": "Inactive",
+    "sess.empty": "No interactive TTY sessions (collector uses non-interactive SSH)",
+    "auth.attempts": "{n} attempts",
+    "disk.used": "Used: {u} GB / Total: {t} GB (Avail: {a} GB)",
+    "disk.model": "Disk model: ",
+    "disk.hours": "Power-on hours:",
+    "disk.hours_unit": "hours",
+    "files.showing": "Showing first {shown} (matched: {matched} / monitored: {total})",
+    "cf.unset_token": "⚠️ API token not set",
+    "cf.not_configured": "Not configured",
+    "cf.click_config": "Click to configure Cloudflare API token ➔",
+    "cf.unset_hint": "Cloudflare API Token not configured. Click “⚙️ Configure API Token” to pull edge probe logs with zero NAS disk I/O.",
+    "cf.sync_err": "❌ Sync error:",
+    "cf.syncing": "⏳ Edge syncing...",
+    "cf.connected": "✅ Connected to 9SEC Edge WAF ({n} probes)",
+    "cf.hits_unit": "{n} hits",
+    "cf.countries_unit": "{n} countries",
+    "cf.sync_pending": "Syncing...",
+    "cf.no_probe_24h": "No anomalous probe paths in 24h",
+    "cf.path_hits": "{n}x",
+    "cf.empty_events": "✅ No anomalous directory scans or WAF blocks observed at Cloudflare edge in the last 24 hours.",
+    "cf.block": "BLOCK",
+    "cf.challenge": "CHALLENGE",
+    "cf.need_fields": "⚠️ Enter Cloudflare API Token and Zone ID",
+    "cf.testing": "⏳ Validating token with Cloudflare...",
+    "cf.saving": "⏳ Validating and saving settings...",
+    "cf.test_ok": "✅ Cloudflare API connection & permissions verified!",
+    "cf.save_ok": "✅ Settings saved! Background edge intel sync started.",
+    "cf.enabled_toast": "✅ Cloudflare edge intel enabled",
+    "cf.verify_fail": "Verification failed",
+    "cf.ex": "❌ Connection exception:",
+    "cf.sync_toast": "🔄 Syncing latest probe logs from Cloudflare edge...",
+    "cf.sync_done": "✅ Cloudflare edge intel sync complete",
+    "cf.sync_fail": "❌ Sync failed:",
+    "setup.need_host_user": "⚠️ Enter NAS IP and SSH username first",
+    "setup.probing": "Probing NAS kernel & DSM over SSH...",
+    "setup.probe_ok_title": "✅ SSH test succeeded! NAS probe complete",
+    "setup.probe_sys": "System version: ",
+    "setup.probe_arch": "Kernel / arch: ",
+    "setup.probe_py": "Python: ",
+    "setup.probe_ok_toast": "✅ NAS connection & probe succeeded!",
+    "setup.probe_fail_title": "❌ Connection failed",
+    "setup.unknown_conn": "Unknown connection error",
+    "setup.probe_ex": "❌ Connection request exception:",
+    "setup.keygen_toast": "🔑 Generating passphrase-protected Ed25519 key pair...",
+    "setup.keygen_ok": "✅ New key generated (load passphrase via ssh-agent). Copy the auth command to the NAS.",
+    "setup.keygen_fail": "❌ Generation failed:",
+    "setup.req_ex": "❌ Request error:",
+    "setup.copied": "📋 Auth command copied to clipboard!",
+    "setup.copied_short": "📋 Copied!",
+    "setup.skip_ok": "🚪 Opened offline SOC (existing host/key unchanged)",
+    "setup.skip_fail": "Unable to skip setup",
+    "setup.need_fields": "⚠️ Enter NAS host IP and SSH username",
+    "setup.reject_localhost": "⚠️ nas_host cannot be 127.0.0.1 (that is the local UI). Use the real NAS IP.",
+    "setup.saved_default": "Settings saved",
+    "setup.saved_live": "🛡️ Settings saved — monitoring is live",
+    "setup.saved_warn": "💾 Settings saved (SSH not live: {w})",
+    "setup.saved_offline": "💾 Connection settings saved (offline)",
+    "setup.save_fail": "Save failed",
+    "setup.save_ex": "❌ Save exception:",
+    "setup.need_config_toast": "⚠️ Complete NAS connection & baseline setup to enable the SOC",
+    "setup.cf_testing": "⏳ Validating token permissions via Cloudflare GraphQL API...",
+    "setup.cf_ok_toast": "✅ Cloudflare API verified",
+    "setup.cf_fail": "❌ Verification failed:",
+    "setup.cf_fail_toast": "❌ Cloudflare verification failed",
+    "setup.cf_net": "❌ Network error:",
+    "setup.cf_unreachable": "Unable to reach Cloudflare",
+    "hash.none_deleted": "n/a / deleted",
   },
   "jp": {
     "brand.sub_default": "ホスト: NAS123 • 読込中...",
@@ -373,12 +947,299 @@ const I18N = {
     "setup.user_label": "SSH ログインユーザー",
     "setup.port_label": "SSH ポート (変更可)",
     "setup.key_label": "SSH 秘密鍵パス (認証鍵)",
-    "setup.keygen_link": "🔑 新規鍵の自動生成とガイド",
+    "setup.keygen_link": "🔑 パスフレーズ付き鍵を生成",
     "setup.btn_test": "SSH接続テスト & NAS自動検出",
     "setup.cf_header": "🌐 Cloudflare エッジログ監視 (任意・後で設定可)",
-    "setup.btn_save": "🛡️ 保存してダッシュボードを開く",
+    "setup.btn_save": "🛡️ テストしてオンライン化",
     "setup.btn_close": "閉じる",
-    "setup.footnote": "🔒 認証情報はローカルの data/ ディレクトリのみに保存されます"
+    "setup.footnote": "🔒 認証情報はローカルの data/ ディレクトリのみに保存されます",
+    "page.title": "Nine-Security | NAS Sentinel - Synology DSM リアルタイムセキュリティSOC",
+    "toast.placeholder": "システム通知",
+    "overview.chart_temp_legend": "温度°C",
+    "overview.web_latency_title": "⚡ Nginx応答遅延 (ms) と接続数",
+    "overview.web_latency_legend": "遅延 (ms)",
+    "overview.web_conns_legend": "接続数",
+    "overview.anom_title": "🚨 Web/システムファイル変更・不審ファイルを検知",
+    "overview.anom_goto": "完全ファイルビューアへ →",
+    "overview.posture_title": "🛡️ NASセキュリティ態勢リアルタイム検査",
+    "overview.score_prefix": "セキュリティスコア:",
+    "overview.events_title": "🔔 リアルタイムセキュリティ/システムイベント",
+    "overview.events_sub": "直近150件を自動保存",
+    "th.status": "状態",
+    "th.severity": "重大度",
+    "th.file_path": "ファイル完全パス",
+    "th.reason": "変更理由 / 検知特徴",
+    "th.perms_owner": "現在の権限 / 所有者",
+    "th.sha256": "現在の SHA-256 ハッシュ",
+    "th.change_type": "変更タイプ",
+    "th.trigger": "トリガー理由",
+    "th.perm_change": "権限変更",
+    "th.hash_diff": "基準 SHA-256 → 現在",
+    "th.ms_ts": "ミリ秒タイムスタンプ",
+    "th.level": "レベル",
+    "th.inotify_mask": "カーネルイベントフラグ (inotify)",
+    "th.trigger_path": "トリガーファイルパス",
+    "th.live_perms": "現在の権限 / 所有者",
+    "th.live_hash": "即時SHA-256 / 脅威判定",
+    "th.endpoint": "エンドポイント",
+    "th.url_path": "URLパス",
+    "th.conn_status": "接続状態",
+    "th.latency": "応答遅延",
+    "th.size": "コンテンツサイズ",
+    "th.resp_hash": "応答 SHA-256",
+    "th.tls": "TLS / 証明書指紋",
+    "th.baseline_cmp": "基準比較",
+    "th.category": "カテゴリ",
+    "th.bytes": "サイズ (Bytes)",
+    "th.mode": "権限 (Mode)",
+    "th.owner": "所有者",
+    "th.mtime": "最終更新時刻",
+    "th.fingerprint": "SHA-256 / 指紋",
+    "th.scope": "接続範囲",
+    "th.proto": "プロトコル",
+    "th.local_addr": "ローカルアドレス:ポート",
+    "th.remote_addr": "リモートIP:ポート",
+    "th.process": "関連プロセス (PID/Name)",
+    "th.baseline_status": "基準状態",
+    "th.bind": "バインドアドレス",
+    "th.port": "ポート",
+    "th.proc_desc": "プロセス / サービス説明",
+    "th.time": "時刻",
+    "th.action": "処置",
+    "th.src_ip_country": "送信元IPと国",
+    "th.probe_path": "探査パス (Path & Query)",
+    "th.threat_class": "脅威分類",
+    "th.status_code": "ステータスコード",
+    "th.ua": "クライアント特徴 (User-Agent)",
+    "th.engine": "対応ツールエンジン",
+    "th.module": "検出モジュール (chkrootkit / rkhunter)",
+    "th.result": "リアルタイムカーネル/メモリ比較結果",
+    "th.service": "サービス名",
+    "th.svc_desc": "機能説明",
+    "th.proc_count": "プロセス数",
+    "th.run_as": "実行アカウント",
+    "th.account": "アカウント",
+    "th.tty": "端末 (TTY)",
+    "th.src_host": "接続元ホストIP",
+    "th.login_time": "ログイン時刻",
+    "th.key_type": "鍵タイプ",
+    "th.key_comment": "鍵コメント / 識別",
+    "th.key_hash": "ハッシュ識別 (SHA-256 先頭16)",
+    "th.attacker_ip": "攻撃元IP",
+    "th.fail_count": "失敗試行回数",
+    "th.last_seen": "最終観測日",
+    "th.defense_note": "防御状態と備考",
+    "fim.targets_title": "📂 保護対象Web/重要システムディレクトリ",
+    "fim.baseline_prefix": "ベースライン作成:",
+    "fim.rebuild_btn": "🛡️ 基準の再構築/保守",
+    "fim.inotify_title": "⚡ Linux inotify ミリ秒級リアルタイムファイルイベント",
+    "fim.inotify_sub": "リアルタイム監視中：250のWeb/システムディレクトリ",
+    "fim.diff_title": "🔍 ファイル整合性差分と不審Webshellアラート",
+    "fim.diff_sub": "比較項目：SHA-256、権限、所有者、追加/削除、Webshell特徴",
+    "fim.web_title": "🌐 Nginx / DSM エンドポイント即時プローブと応答ハッシュ検証",
+    "fim.web_sub": "本機から NAS 80/443/5000/5001 の改ざん・証明書を検査",
+    "fim.explorer_title": "🗄️ Web/システムファイル SHA-256 ベースライン検索",
+    "fim.explorer_count": "表示 -- / -- ファイル",
+    "fim.search_ph": "ファイル名、パス、またはSHA-256で検索...",
+    "fim.cat_all": "すべての監視カテゴリ",
+    "fim.cat_web_root": "DSM Webルート (/usr/syno/synoman, html)",
+    "fim.cat_web_config": "Nginx設定とテンプレート (/etc/nginx, share/nginx)",
+    "fim.cat_user_web": "ユーザーWebディレクトリ (/volume1/web)",
+    "fim.cat_security": "セキュリティ設定 (sshd, sysctl, firewall)",
+    "fim.cat_binary": "システムバイナリ (/bin, /usr/bin, /usr/sbin)",
+    "fim.cat_shared": "共有・一時領域 (/volume1/public, tmp)",
+    "fim.refresh": "🔄 リストを更新",
+    "net.conns_title": "🔌 アクティブTCP/UDP接続の監視",
+    "net.conns_sub": "WAN外部接続とLAN管理接続を自動表示",
+    "net.ports_title": "📡 監視ポート棚卸と基準比較",
+    "net.ports_sub": "未承認の開放ポートは高リスク警報を自動発行",
+    "cf.panel_title": "🌐 Cloudflare エッジ探査とWAF防御情報",
+    "cf.checking": "確認中...",
+    "cf.sync_btn": "🔄 即時同期",
+    "cf.config_btn": "⚙️ APIトークン設定",
+    "cf.stats_title": "エッジ防御と探査統計 (24H)",
+    "cf.stat_total": "遮断探査総数",
+    "cf.stat_total_unit": "0 回",
+    "cf.stat_countries": "探査元の国数",
+    "cf.stat_countries_unit": "0 カ国",
+    "cf.stat_last_sync": "最終エッジ同期",
+    "cf.never_synced": "未同期",
+    "cf.top_paths": "最も探査された機密パス TOP 5",
+    "cf.no_paths": "探査パス記録なし",
+    "sec.rootkit_title": "🕵️ DSM Rootkit・バイナリ検知 (chkrootkit + rkhunter)",
+    "sec.detecting": "検出中...",
+    "sec.daemons_title": "⚙️ コアデーモン稼働状態",
+    "sec.daemons_sub": "Nginx、SSH、Cloudflared等を監視",
+    "sec.sessions_title": "🔑 アクティブセッション(utmp)と認可SSH鍵",
+    "sec.utmp_header": "アクティブログインセッション (/var/run/utmp)：",
+    "sec.keys_header": "認可済みSSH公開鍵 (~/.ssh/authorized_keys)：",
+    "sec.disk_title": "💽 ディスク容量とSMART健康監視",
+    "sec.smart_badge": "PASSED (不良セクタ 0)",
+    "reset.warning_title": "⚠️ 注意：この操作では：",
+    "reset.li1": "現在の1,786個のシステム/WebファイルSHA-256を正規基準としアラートをクリア",
+    "reset.li2": "現在の監視ポートと105のカーネルモジュールを承認リストに記録",
+    "reset.li3": "正規のDSM更新や意図的な設定変更後にのみ実行してください",
+    "reset.footer": "自身で変更していない場合は実行しないでください。不正改ざんを隠す恐れがあります！",
+    "cf.desc": "Cloudflare GraphQL APIでエッジから悪意あるパス探査とWAF遮断を取得。NASのディスクI/Oはゼロです。",
+    "cf.token_label": "Cloudflare API Token",
+    "cf.token_ph": "Zone.Analytics:Read 権限の API Token",
+    "cf.token_help": "Cloudflare ➔ My Profile ➔ API Tokens で Zone - Analytics - Read 権限のトークンを作成",
+    "cf.zone_label": "Zone ID",
+    "cf.zone_ph": "例：42a1b7... (32桁の16進数)",
+    "cf.zone_help": "Cloudflareでドメイン Overview 右下から Zone ID をコピー",
+    "cf.enable_label": "エッジ脅威情報の自動同期を有効化 (60秒毎)",
+    "setup.ssh_help_body_1": "<strong>1. DSM SSHを有効化</strong>：DSMデスクトップ ➔ コントロールパネル ➔ ターミナルとSNMP ➔ 「SSHサービスを有効にする」(Port 22)。",
+    "setup.ssh_help_body_2": "<strong>2. 管理者権限を確認</strong>：`administrators` グループのユーザーのみSSH可能です。",
+    "setup.ssh_help_body_3": "<strong>3. SSH鍵を認可</strong>：下の「🔑 パスフレーズ付き鍵を生成」をクリックし、認可コマンドをDSMのタスクスケジューラで1回実行。監視は<code>BatchMode</code>のため<code>ssh-agent</code>で鍵を読み込んでください。",
+    "setup.host_ph": "例：192.168.1.100",
+    "setup.user_ph": "例：admin または root",
+    "setup.port_hint": "(変更可)",
+    "setup.port_title": "NASのSSHポートを変更している場合（例：2222、5022）はここに入力",
+    "setup.keygen_link": "🔑 パスフレーズ付き鍵を生成",
+    "setup.key_default_opt": "(システム既定鍵 / ~/.ssh/ 自動解決)",
+    "setup.key_custom_ph": "例：~/.ssh/id_ed25519（~/.ssh内のみ）",
+    "setup.passphrase_ph": "新しい鍵のパスフレーズ（8文字以上・空白不可）",
+    "setup.key_auth_title": "🔑 この鍵をSynology NASへ素早く認可",
+    "setup.key_auth_desc": "NAS端末に1回ログインし、次の1行コマンドを貼り付けて公開鍵を認可：",
+    "setup.copy_btn": "📋 コピー",
+    "setup.cf_expand": "▶ 展開",
+    "setup.cf_collapse": "▼ 閉じる",
+    "setup.cf_token_ph": "Zone.Analytics:Read 権限のToken",
+    "setup.cf_zone_ph": "32桁の Zone Tag",
+    "setup.cf_enable": "Cloudflareエッジ脅威情報の自動同期を有効化",
+    "setup.btn_test_cf": "🧪 接続テスト",
+    "setup.btn_skip": "🚪 後で設定・先にSOCを開く",
+    "setup.btn_persist": "💾 接続設定を保存",
+    "setup.btn_golive": "🛡️ テストしてオンライン化",
+    "setup.btn_skip_busy": "⏳ オフラインSOCを開いています...",
+    "setup.btn_save_busy": "⏳ 保存してSSHテスト中...",
+    "setup.btn_persist_busy": "⏳ 設定を保存中...",
+    "kpi.diff_init": "変更: 0 | 追加: 0 | 削除: 0",
+    "kpi.latency_init": "平均遅延: -- ms",
+    "kpi.net_detail_init": "LAN: -- | WAN: --",
+    "kpi.unauth_init": "未承認ポート: 0",
+    "kpi.disk_gb_init": "空き: -- GB / -- GB",
+    "kpi.svc_init": "サービス: --/--",
+    "status.not_configured": "未設定",
+    "status.need_setup": "セットアップウィザードでNAS接続と基準設定を完了してください",
+    "status.offline": "オフラインモード",
+    "status.ssh_error": "SSH接続異常",
+    "toast.busy": "⚠️ 他の走査/処理が実行中です。少々お待ちください...",
+    "toast.cooldown": "⏳ クールダウン中です。{n}秒後に再実行してください",
+    "scan.fast_busy": "クイック走査中...",
+    "scan.deep_busy": "ディープ比較中...",
+    "scan.deep_btn_busy": "⏳ ディープ比較中 (~3.5秒)...",
+    "toast.backend_busy": "⚠️ バックエンド処理中です。少々お待ちください",
+    "toast.scan_deep_done": "✅ ディープハッシュ走査完了",
+    "toast.scan_fast_done": "⚡ クイック走査完了",
+    "toast.scan_fail": "❌ 走査失敗:",
+    "toast.unknown_err": "不明なエラー",
+    "toast.conn_ex": "❌ 接続または実行例外:",
+    "scan.done_cooldown": "完了 (クールダウン中)",
+    "toast.admin_busy": "⚠️ 処理中のため管理メニューを開けません",
+    "toast.reset_busy": "⚠️ 処理中のためベースライン再構築できません",
+    "toast.job_busy": "⚠️ 他の処理が実行中です。少々お待ちください",
+    "reset.busy_msg": "ベースライン再構築中...",
+    "reset.btn_busy": "⏳ ベースライン再構築中...",
+    "toast.backend_busy2": "⚠️ バックエンドがビジーです。後でもう一度",
+    "toast.reset_ok": "🛡️ 基準再構築成功。ファイルとポートを新基準に設定しました",
+    "toast.reset_fail": "❌ 基準再構築失敗:",
+    "toast.reset_ex": "❌ 基準再構築例外:",
+    "posture.score": "セキュリティスコア: {n} / 100",
+    "posture.pass": "合格",
+    "posture.warn": "注意",
+    "posture.alert": "警報",
+    "fim.files_count": "ファイル数:",
+    "fim.path_label": "パス:",
+    "fim.suspicious": "{n} 不審",
+    "fim.protected": "保護中",
+    "fim.dir_off": "ディレクトリ未使用",
+    "fim.clean": "✅ 監視中のWeb/システムファイルは基準と100%一致。改ざんやWebshellは検知されていません。",
+    "fim.deleted": "削除済み",
+    "fim.no_baseline": "基準なし",
+    "fim.added": "追加",
+    "web.conn_fail": "接続失敗",
+    "web.hash_ok": "基準一致",
+    "web.changed": "変更",
+    "web.redirect_https": "HTTPSへ自動転送",
+    "web.http_plain": "平文HTTP",
+    "net.external": "EXTERNAL (外部)",
+    "net.lan": "LAN (内部)",
+    "net.proc_unknown": "カーネル / PID読取不可",
+    "rk.alerts": "🚨 {n} 件の異常 ({ms} ms)",
+    "rk.all_pass": "✅ 6項目すべて合格 | LKM基準: {n} ({ms} ms)",
+    "rk.pass": "合格 (PASS)",
+    "rk.crit": "警報 (CRITICAL)",
+    "svc.running": "実行中",
+    "svc.stopped": "停止!",
+    "svc.inactive": "未使用",
+    "sess.empty": "対話型TTYセッションなし（監視は非対話SSHを使用）",
+    "auth.attempts": "{n} 回",
+    "disk.used": "使用: {u} GB / 合計: {t} GB (空き: {a} GB)",
+    "disk.model": "物理ディスク型番：",
+    "disk.hours": "通電時間:",
+    "disk.hours_unit": "時間",
+    "files.showing": "先頭 {shown} 件表示 (一致: {matched} / 監視総数: {total})",
+    "cf.unset_token": "⚠️ APIトークン未設定",
+    "cf.not_configured": "未設定",
+    "cf.click_config": "ここをクリックしてCloudflare APIトークンを設定 ➔",
+    "cf.unset_hint": "Cloudflare API Token未設定。「⚙️ APIトークン設定」からNASディスクI/Oゼロでエッジ探査ログを取得できます。",
+    "cf.sync_err": "❌ 同期エラー:",
+    "cf.syncing": "⏳ エッジ同期中...",
+    "cf.connected": "✅ 9SEC Edge WAF 接続中 ({n} 件の探査)",
+    "cf.hits_unit": "{n} 回",
+    "cf.countries_unit": "{n} カ国",
+    "cf.sync_pending": "同期中...",
+    "cf.no_probe_24h": "過去24時間に異常探査パスなし",
+    "cf.path_hits": "{n}回",
+    "cf.empty_events": "✅ 過去24時間、Cloudflareエッジで異常なディレクトリスキャンやWAF遮断は観測されていません。",
+    "cf.block": "BLOCK 遮断",
+    "cf.challenge": "CHALLENGE 検証",
+    "cf.need_fields": "⚠️ Cloudflare API Token と Zone ID を入力してください",
+    "cf.testing": "⏳ CloudflareでTokenを検証中...",
+    "cf.saving": "⏳ 検証して設定を保存中...",
+    "cf.test_ok": "✅ Cloudflare API接続と権限の検証に成功！",
+    "cf.save_ok": "✅ 設定を保存しました。エッジ脅威情報のバックグラウンド同期を開始しました。",
+    "cf.enabled_toast": "✅ Cloudflareエッジ情報を有効化しました",
+    "cf.verify_fail": "検証失敗",
+    "cf.ex": "❌ 接続例外:",
+    "cf.sync_toast": "🔄 Cloudflareエッジから最新探査ログを同期中...",
+    "cf.sync_done": "✅ Cloudflareエッジ情報の同期完了",
+    "cf.sync_fail": "❌ 同期失敗:",
+    "setup.need_host_user": "⚠️ 先にNAS IPとSSHユーザー名を入力してください",
+    "setup.probing": "SSH経由でNASカーネルとDSMを検出中...",
+    "setup.probe_ok_title": "✅ SSH接続テスト成功！NASシステム検出完了",
+    "setup.probe_sys": "システム版：",
+    "setup.probe_arch": "カーネル/アーキテクチャ：",
+    "setup.probe_py": "Python環境：",
+    "setup.probe_ok_toast": "✅ NAS接続と検出に成功！",
+    "setup.probe_fail_title": "❌ 接続失敗",
+    "setup.unknown_conn": "不明な接続エラー",
+    "setup.probe_ex": "❌ 接続リクエスト例外:",
+    "setup.keygen_toast": "🔑 パスフレーズ付きEd25519鍵ペアを生成中...",
+    "setup.keygen_ok": "✅ 新しい鍵を生成しました（ssh-agentでパスフレーズを読込）。認可コマンドをNASへコピー。",
+    "setup.keygen_fail": "❌ 生成失敗:",
+    "setup.req_ex": "❌ リクエスト異常:",
+    "setup.copied": "📋 認可コマンドをクリップボードにコピーしました！",
+    "setup.copied_short": "📋 コピーしました！",
+    "setup.skip_ok": "🚪 オフラインSOCを開きました（既存ホスト/鍵は未変更）",
+    "setup.skip_fail": "セットアップをスキップできません",
+    "setup.need_fields": "⚠️ NASホストIPとSSHユーザー名を入力してください",
+    "setup.reject_localhost": "⚠️ nas_host に 127.0.0.1 は使えません（ローカルUI用）。実際のNAS IPを入力してください。",
+    "setup.saved_default": "設定を保存しました",
+    "setup.saved_live": "🛡️ 設定を保存し、監視をオンライン化しました",
+    "setup.saved_warn": "💾 設定を保存しました（SSH未オンライン：{w}）",
+    "setup.saved_offline": "💾 接続設定を保存しました（オフライン）",
+    "setup.save_fail": "保存失敗",
+    "setup.save_ex": "❌ 保存例外:",
+    "setup.need_config_toast": "⚠️ 先にNAS接続と基準設定を完了してSOCを有効化してください",
+    "setup.cf_testing": "⏳ Cloudflare GraphQL APIでToken権限を検証中...",
+    "setup.cf_ok_toast": "✅ Cloudflare API検証成功",
+    "setup.cf_fail": "❌ 検証失敗:",
+    "setup.cf_fail_toast": "❌ Cloudflare検証失敗",
+    "setup.cf_net": "❌ ネットワーク異常:",
+    "setup.cf_unreachable": "Cloudflareに接続できません",
+    "hash.none_deleted": "なし/削除済み",
   }
 };
 
@@ -390,6 +1251,14 @@ function t(key, fallback = "") {
     return I18N["zh-TW"][key];
   }
   return fallback || key;
+}
+
+function tf(key, vars = {}, fallback = "") {
+  let s = t(key, fallback);
+  Object.keys(vars).forEach((k) => {
+    s = s.replaceAll("{" + k + "}", String(vars[k]));
+  });
+  return s;
 }
 
 function initLanguage() {
@@ -416,6 +1285,7 @@ function selectLanguage(lang) {
 
 function applyLanguage(lang, notify = false) {
   document.documentElement.setAttribute("lang", lang === "zh-TW" ? "zh-Hant" : (lang === "jp" ? "ja" : "en"));
+  document.title = t("page.title");
 
   const labelEl = document.getElementById("currentLangLabel");
   if (labelEl) {
@@ -753,10 +1623,10 @@ async function fetchStatus() {
       const badge = document.getElementById("threatBadge");
       if (badge) {
         badge.className = "badge badge-warn";
-        badge.textContent = "尚未設定";
+        badge.textContent = t("status.not_configured");
       }
       const idEl = document.getElementById("nasIdentity");
-      if (idEl) idEl.textContent = "請透過安裝精靈完成 NAS 連線與基線配置";
+      if (idEl) idEl.textContent = t("status.need_setup");
       openSetupModal(true);
       return;
     }
@@ -764,7 +1634,7 @@ async function fetchStatus() {
       const badge = document.getElementById("threatBadge");
       if (badge) {
         badge.className = "badge badge-warn";
-        badge.textContent = "離線模式";
+        badge.textContent = t("status.offline");
       }
       const idEl = document.getElementById("nasIdentity");
       if (idEl) {
@@ -779,7 +1649,7 @@ async function fetchStatus() {
     } else if (json.last_error) {
       const badge = document.getElementById("threatBadge");
       badge.className = "badge badge-crit";
-      badge.textContent = "SSH 連線異常";
+      badge.textContent = t("status.ssh_error");
       document.getElementById("nasIdentity").textContent = json.last_error;
     }
   } catch (err) {
@@ -790,7 +1660,7 @@ async function fetchStatus() {
 async function triggerScan(mode) {
   // Anti-Fooling Check 1: Already busy
   if (isOperationBusy) {
-    showToast("⚠️ 目前已有掃描或系統作業正在進行中，請稍候...", "warn");
+    showToast(t("toast.busy"), "warn");
     return;
   }
 
@@ -798,15 +1668,15 @@ async function triggerScan(mode) {
   const now = Date.now();
   if (now - lastScanCompletedTime < 2000) {
     const remainSec = Math.ceil((2000 - (now - lastScanCompletedTime)) / 1000);
-    showToast(`⏳ 系統防刷冷卻中，請等待 ${remainSec} 秒後再執行`, "warn");
+    showToast(tf("toast.cooldown", { n: remainSec }), "warn");
     return;
   }
 
-  const primaryText = mode === "deep" ? "全量深度比對中..." : "快速掃描中...";
+  const primaryText = mode === "deep" ? t("scan.deep_busy") : t("scan.fast_busy");
   setControlsBusy(true, primaryText);
   if (mode === "deep") {
     const btnDeep = document.getElementById("btnDeepScan");
-    if (btnDeep) btnDeep.textContent = "⏳ 深度比對中 (~3.5s)...";
+    if (btnDeep) btnDeep.textContent = t("scan.deep_btn_busy");
   }
 
   try {
@@ -816,7 +1686,7 @@ async function triggerScan(mode) {
     });
 
     if (res.status === 429) {
-      showToast("⚠️ 後端回報：系統已有其他作業正在執行，請稍候", "warn");
+      showToast(t("toast.backend_busy"), "warn");
       return;
     }
 
@@ -827,12 +1697,12 @@ async function triggerScan(mode) {
       if (document.getElementById("tab-fim").classList.contains("active")) {
         loadFilesExplorer();
       }
-      showToast(mode === "deep" ? "✅ 深度檔案雜湊掃描完成" : "⚡ 快速掃描完成", "info");
+      showToast(mode === "deep" ? t("toast.scan_deep_done") : t("toast.scan_fast_done"), "info");
     } else {
-      showToast(`❌ 掃描失敗: ${json.error || json.last_error || "未明錯誤"}`, "crit");
+      showToast(`${t("toast.scan_fail")} ${json.error || json.last_error || t("toast.unknown_err")}`, "crit");
     }
   } catch (err) {
-    showToast(`❌ 連線或執行例外: ${err.message || err}`, "crit");
+    showToast(`${t("toast.conn_ex")} ${err.message || err}`, "crit");
   } finally {
     lastScanCompletedTime = Date.now();
 
@@ -842,13 +1712,13 @@ async function triggerScan(mode) {
     const btnDeep = document.getElementById("btnDeepScan");
 
     if (primaryIcon) primaryIcon.textContent = "✅";
-    if (primaryTxt) primaryTxt.textContent = "完成 (冷卻中)";
-    if (btnDeep) btnDeep.textContent = "🔍 深度";
+    if (primaryTxt) primaryTxt.textContent = t("scan.done_cooldown");
+    if (btnDeep) btnDeep.textContent = t("scan.deep");
 
     setTimeout(() => {
       setControlsBusy(false);
       if (primaryIcon) primaryIcon.textContent = "⚡";
-      if (primaryTxt) primaryTxt.textContent = "快速掃描";
+      if (primaryTxt) primaryTxt.textContent = t("scan.fast");
       countdown = pollInterval;
     }, 2000);
   }
@@ -856,7 +1726,7 @@ async function triggerScan(mode) {
 
 function toggleAdminMenu(event) {
   if (isOperationBusy) {
-    showToast("⚠️ 系統作業執行中，無法開啟管理選單", "warn");
+    showToast(t("toast.admin_busy"), "warn");
     return;
   }
   if (event) event.stopPropagation();
@@ -871,7 +1741,7 @@ function closeAdminMenu() {
 
 function openResetBaselineModal() {
   if (isOperationBusy) {
-    showToast("⚠️ 系統作業執行中，無法進行基線重設", "warn");
+    showToast(t("toast.reset_busy"), "warn");
     return;
   }
   closeAdminMenu();
@@ -921,21 +1791,21 @@ function switchGuideTab(tabId) {
 
 async function confirmResetBaseline() {
   if (isOperationBusy) {
-    showToast("⚠️ 目前已有作業正在執行，請稍候", "warn");
+    showToast(t("toast.job_busy"), "warn");
     return;
   }
 
-  setControlsBusy(true, "正在重設基線...");
+  setControlsBusy(true, t("reset.busy_msg"));
   const btn = document.getElementById("btnConfirmResetBaseline");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "⏳ 正在重建基線中...";
+    btn.textContent = t("reset.btn_busy");
   }
 
   try {
     const res = await apiFetch("/api/baseline/reset", { method: "POST" });
     if (res.status === 429) {
-      showToast("⚠️ 後端回報：系統忙碌中，請稍候再試", "warn");
+      showToast(t("toast.backend_busy2"), "warn");
       return;
     }
     const json = await res.json();
@@ -944,24 +1814,24 @@ async function confirmResetBaseline() {
       renderDashboard(json.data);
       loadFilesExplorer();
       closeResetBaselineModal();
-      showToast("🛡️ 安全基準重建成功！所有檔案與埠已設為新基線", "info");
+      showToast(t("toast.reset_ok"), "info");
     } else {
-      showToast("❌ 重建基線失敗: " + (json.error || json.last_error), "crit");
+      showToast(t("toast.reset_fail") + " " + (json.error || json.last_error), "crit");
     }
   } catch (err) {
-    showToast("❌ 重建基線例外: " + err, "crit");
+    showToast(t("toast.reset_ex") + " " + err, "crit");
   } finally {
     lastScanCompletedTime = Date.now();
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "⚠️ 確認重建基準";
+      btn.textContent = t("reset.btn_confirm");
     }
     setTimeout(() => {
       setControlsBusy(false);
       const primaryIcon = document.getElementById("scanPrimaryIcon");
       const primaryTxt = document.getElementById("scanPrimaryText");
       if (primaryIcon) primaryIcon.textContent = "⚡";
-      if (primaryTxt) primaryTxt.textContent = "快速掃描";
+      if (primaryTxt) primaryTxt.textContent = t("scan.fast");
       countdown = pollInterval;
     }, 2000);
   }
@@ -1038,7 +1908,7 @@ function renderDashboard(data) {
           <td class="mono" style="color:#fbbf24;">${escapeHtml((ev.flags || []).join(", "))}</td>
           <td class="mono" style="color:#ff6699;">${escapeHtml(ev.path)}</td>
           <td class="mono">${escapeHtml(ev.mode)} (${escapeHtml(ev.owner)})</td>
-          <td class="mono">${escapeHtml((ev.hash || "無/已刪除").slice(0, 20))}... ${suspText}</td>
+          <td class="mono">${escapeHtml((ev.hash || t("hash.none_deleted")).slice(0, 20))}... ${suspText}</td>
         </tr>`;
       }).join("");
     }
@@ -1180,7 +2050,7 @@ function renderDashboard(data) {
         <td><span class="badge ${badgeCls}">${escapeHtml(a.severity)}</span></td>
         <td class="mono" style="color:#ff6699;">${escapeHtml(a.path)}</td>
         <td>${escapeHtml((a.reasons || []).join("；"))}</td>
-        <td class="mono">${escapeHtml(cur.mode || "已刪除")} (${escapeHtml(cur.owner || "-")})</td>
+        <td class="mono">${escapeHtml(cur.mode || t("fim.deleted"))} (${escapeHtml(cur.owner || "-")})</td>
         <td class="mono">${escapeHtml((cur.hash || "").slice(0, 20))}...</td>
       </tr>`;
     }).join("");
@@ -1189,10 +2059,10 @@ function renderDashboard(data) {
   }
 
   // Render Posture Checklist
-  document.getElementById("securityScoreText").textContent = `安全評分: ${data.security_score} / 100`;
+  document.getElementById("securityScoreText").textContent = tf("posture.score", { n: data.security_score });
   document.getElementById("postureList").innerHTML = (sec.posture_checks || []).map((c) => {
     const bCls = c.status === "pass" ? "badge-ok" : c.status === "warn" ? "badge-warn" : "badge-crit";
-    const bTxt = c.status === "pass" ? "通過" : c.status === "warn" ? "注意" : "警報";
+    const bTxt = c.status === "pass" ? t("posture.pass") : c.status === "warn" ? t("posture.warn") : t("posture.alert");
     return `<div class="check-item">
       <div>
         <div style="font-weight:600; font-size:13.5px;">${escapeHtml(c.label)}</div>
@@ -1214,30 +2084,30 @@ function renderDashboard(data) {
   }).join("");
 
   // Render Tab 2: FIM Targets Grid
-  document.getElementById("fimBaselineTimestamp").textContent = `基線建立時間: ${fim.baseline_created_at || "--"}`;
-  document.getElementById("fimTargetsGrid").innerHTML = (fim.targets || []).map((t) => {
-    const bCls = t.suspicious_count > 0 ? "badge-crit" : t.exists ? "badge-ok" : "badge-warn";
-    const bTxt = t.suspicious_count > 0 ? `${t.suspicious_count} 可疑` : t.exists ? "受保護中" : "目錄未啟用";
+  document.getElementById("fimBaselineTimestamp").textContent = `${t("fim.baseline_prefix")} ${fim.baseline_created_at || "--"}`;
+  document.getElementById("fimTargetsGrid").innerHTML = (fim.targets || []).map((tgt) => {
+    const bCls = tgt.suspicious_count > 0 ? "badge-crit" : tgt.exists ? "badge-ok" : "badge-warn";
+    const bTxt = tgt.suspicious_count > 0 ? tf("fim.suspicious", { n: tgt.suspicious_count }) : tgt.exists ? t("fim.protected") : t("fim.dir_off");
     return `<div class="target-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-weight:600; font-size:13.5px;">${escapeHtml(t.label)}</span>
+        <span style="font-weight:600; font-size:13.5px;">${escapeHtml(tgt.label)}</span>
         <span class="badge ${bCls}">${bTxt}</span>
       </div>
-      <div class="mono" style="font-size:12px; color:var(--text-muted);">檔案數: ${t.file_count} | 路徑: ${escapeHtml((t.paths || []).join(", "))}</div>
+      <div class="mono" style="font-size:12px; color:var(--text-muted);">${t("fim.files_count")} ${tgt.file_count} | ${t("fim.path_label")} ${escapeHtml((tgt.paths || []).join(", "))}</div>
     </div>`;
   }).join("");
 
   // Render Tab 2: FIM Anomalies Table
   const fimAnomBody = document.getElementById("fimAnomaliesBody");
   if (!fim.anomalies || fim.anomalies.length === 0) {
-    fimAnomBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:22px; color:#00ff41; font-family:var(--font-mono);">✅ 目前所有受監控之網頁伺服器與系統設定檔案均與安全基線 100% 吻合，未發現竄改或可疑 Webshell。</td></tr>`;
+    fimAnomBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:22px; color:#00ff41; font-family:var(--font-mono);">${t("fim.clean")}</td></tr>`;
   } else {
     fimAnomBody.innerHTML = fim.anomalies.map((a) => {
       const cur = a.current || {};
       const base = a.baseline || {};
       const bCls = a.severity === "CRITICAL" ? "badge-crit" : "badge-warn";
-      const modeDiff = base.mode ? `${base.mode} → ${cur.mode || "刪除"}` : `${cur.mode || "-"} (新增)`;
-      const hashDiff = `${(base.hash || "無基線").slice(0, 12)}... → ${(cur.hash || "已刪除").slice(0, 12)}...`;
+      const modeDiff = base.mode ? `${base.mode} → ${cur.mode || t("fim.deleted")}` : `${cur.mode || "-"} (${t("fim.added")})`;
+      const hashDiff = `${(base.hash || t("fim.no_baseline")).slice(0, 12)}... → ${(cur.hash || t("fim.deleted")).slice(0, 12)}...`;
       return `<tr>
         <td><span class="badge ${bCls}">${escapeHtml(a.type)}</span></td>
         <td><span class="badge ${bCls}">${escapeHtml(a.severity)}</span></td>
@@ -1255,13 +2125,13 @@ function renderDashboard(data) {
     const url = `${scheme}://${data.nas_host}:${ep.port}${ep.path}`;
     const statusBadge = ep.reachable
       ? `<span class="badge badge-ok">HTTP ${ep.status}</span>`
-      : `<span class="badge badge-crit">連線失敗</span>`;
+      : `<span class="badge badge-crit">${t("web.conn_fail")}</span>`;
     const matchBadge = ep.baseline_match && (!ep.anomaly_notes || ep.anomaly_notes.length === 0)
-      ? `<span class="badge badge-ok">基線吻合</span>`
-      : `<span class="badge badge-warn">${escapeHtml((ep.anomaly_notes || []).join(", ") || "異動")}</span>`;
+      ? `<span class="badge badge-ok">${t("web.hash_ok")}</span>`
+      : `<span class="badge badge-warn">${escapeHtml((ep.anomaly_notes || []).join(", ") || t("web.changed"))}</span>`;
     const tlsInfo = ep.cert
       ? `${escapeHtml(ep.cert.tls_version)} (${escapeHtml(ep.cert.sha256.slice(0, 14))}...)`
-      : ep.redirects_to_https ? "自動導向 HTTPS" : "HTTP 明文";
+      : ep.redirects_to_https ? t("web.redirect_https") : t("web.http_plain");
     return `<tr>
       <td style="font-weight:600;">${escapeHtml(ep.label)}</td>
       <td class="mono"><a href="${escapeHtml(url)}" target="_blank" style="color:#00e5ff; text-decoration:none;">${escapeHtml(url)}</a></td>
@@ -1277,9 +2147,9 @@ function renderDashboard(data) {
   // Render Tab 3: Active Connections
   document.getElementById("activeConnsBody").innerHTML = (net.connections || []).map((c) => {
     const scopeBadge = c.scope === "external"
-      ? `<span class="badge badge-warn">EXTERNAL (外網)</span>`
+      ? `<span class="badge badge-warn">${t("net.external")}</span>`
       : c.scope === "lan"
-      ? `<span class="badge badge-ok">LAN (區網)</span>`
+      ? `<span class="badge badge-ok">${t("net.lan")}</span>`
       : `<span class="badge">LOOPBACK</span>`;
     return `<tr>
       <td>${scopeBadge}</td>
@@ -1287,7 +2157,7 @@ function renderDashboard(data) {
       <td class="mono">${escapeHtml(c.local_ip)}:${escapeHtml(c.local_port)}</td>
       <td class="mono" style="font-weight:600;">${escapeHtml(c.remote_ip)}:${escapeHtml(c.remote_port)}</td>
       <td class="mono">${escapeHtml(c.state)}</td>
-      <td class="mono">${escapeHtml(c.process || "系統核心/無權限讀取 PID")}</td>
+      <td class="mono">${escapeHtml(c.process || t("net.proc_unknown"))}</td>
     </tr>`;
   }).join("");
 
@@ -1315,10 +2185,10 @@ function renderDashboard(data) {
   if (rkBadge) {
     if ((rk.alert_count || 0) > 0) {
       rkBadge.className = "badge badge-crit";
-      rkBadge.textContent = `🚨 ${rk.alert_count} 項異常 (${rk.duration_ms || 0} ms)`;
+      rkBadge.textContent = tf("rk.alerts", { n: rk.alert_count, ms: rk.duration_ms || 0 });
     } else {
       rkBadge.className = "badge badge-ok";
-      rkBadge.textContent = `✅ 6 項核心檢測全數通過 | LKM 模組基線: ${rk.loaded_modules_count || 0} 個 (${rk.duration_ms || 0} ms)`;
+      rkBadge.textContent = tf("rk.all_pass", { n: rk.loaded_modules_count || 0, ms: rk.duration_ms || 0 });
     }
   }
 
@@ -1326,7 +2196,7 @@ function renderDashboard(data) {
   if (rkBody) {
     rkBody.innerHTML = (rk.checks || []).map((c) => {
       const bCls = c.status === "pass" ? "badge-ok" : c.severity === "CRITICAL" ? "badge-crit" : "badge-warn";
-      const bTxt = c.status === "pass" ? "通過 (PASS)" : "警報 (CRITICAL)";
+      const bTxt = c.status === "pass" ? t("rk.pass") : t("rk.crit");
       return `<tr>
         <td><span class="badge ${bCls}">${bTxt}</span></td>
         <td class="mono"><span class="badge">${escapeHtml(c.tool || "rkhunter")}</span></td>
@@ -1338,10 +2208,10 @@ function renderDashboard(data) {
 
   document.getElementById("servicesBody").innerHTML = (sec.services || []).map((s) => {
     const sBadge = s.running
-      ? `<span class="badge badge-ok">執行中</span>`
+      ? `<span class="badge badge-ok">${t("svc.running")}</span>`
       : s.critical
-      ? `<span class="badge badge-crit">已停止!</span>`
-      : `<span class="badge">未啟用</span>`;
+      ? `<span class="badge badge-crit">${t("svc.stopped")}</span>`
+      : `<span class="badge">${t("svc.inactive")}</span>`;
     return `<tr>
       <td>${sBadge}</td>
       <td class="mono" style="font-weight:700;">${escapeHtml(s.name)}</td>
@@ -1354,7 +2224,7 @@ function renderDashboard(data) {
 
   const sessBody = document.getElementById("activeSessionsBody");
   if (!sec.active_sessions || sec.active_sessions.length === 0) {
-    sessBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">目前無互動式 TTY 登入工作階段 (監控採集使用非互動式 SSH 通道)</td></tr>`;
+    sessBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">${t("sess.empty")}</td></tr>`;
   } else {
     sessBody.innerHTML = sec.active_sessions.map((s) => `<tr>
       <td class="mono" style="font-weight:600;">${escapeHtml(s.user)}</td>
@@ -1382,7 +2252,7 @@ function renderDashboard(data) {
     } else {
       bruteBody.innerHTML = bruteRows.map((b) => `<tr>
         <td class="mono" style="color:#ff6699; font-weight:600;">${escapeHtml(b.ip)}</td>
-        <td class="mono">${escapeHtml(String(b.attempts))} 次</td>
+        <td class="mono">${tf("auth.attempts", { n: b.attempts })}</td>
         <td class="mono">${escapeHtml(b.last_seen)}</td>
         <td>${escapeHtml(b.note)}</td>
       </tr>`).join("");
@@ -1402,7 +2272,7 @@ function renderDashboard(data) {
   const disksHtml = (sys.disks || []).map((d) => `<div class="check-item">
     <div>
       <div style="font-weight:600;">${escapeHtml(d.label)} (${escapeHtml(d.mount)})</div>
-      <div class="mono" style="font-size:12px; color:var(--text-muted);">已用: ${d.used_gb} GB / 總計: ${d.total_gb} GB (可用: ${d.avail_gb} GB)</div>
+      <div class="mono" style="font-size:12px; color:var(--text-muted);">${tf("disk.used", { u: d.used_gb, t: d.total_gb, a: d.avail_gb })}</div>
     </div>
     <span class="badge badge-ok">${d.percent}%</span>
   </div>`).join("");
@@ -1411,8 +2281,8 @@ function renderDashboard(data) {
     ${disksHtml}
     <div class="check-item">
       <div>
-        <div style="font-weight:600;">實體硬碟型號：${escapeHtml(sm.model)}</div>
-        <div style="font-size:12px; color:var(--text-muted);">通電時數: ${sm.power_on_hours?.toLocaleString()} 小時 | Reallocated: ${sm.reallocated_sectors} | Pending: ${sm.pending_sectors}</div>
+        <div style="font-weight:600;">${t("disk.model")}${escapeHtml(sm.model)}</div>
+        <div style="font-size:12px; color:var(--text-muted);">${t("disk.hours")} ${sm.power_on_hours?.toLocaleString()} ${t("disk.hours_unit")} | Reallocated: ${sm.reallocated_sectors} | Pending: ${sm.pending_sectors}</div>
         <div style="font-size:12px; color:#fbbf24; margin-top:3px;">💡 ${escapeHtml(sm.note)}</div>
       </div>
       <span class="badge badge-ok">${escapeHtml(sm.status)}</span>
@@ -1433,7 +2303,7 @@ async function loadFilesExplorer() {
   const res = await apiFetch(`/api/files?q=${encodeURIComponent(q)}&category=${encodeURIComponent(cat)}&limit=250`);
   const json = await res.json();
   document.getElementById("fileExplorerCount").textContent =
-    `顯示前 ${json.items.length} 筆 (符合: ${json.total_matched} / 總監控: ${json.total_monitored} 檔)`;
+    tf("files.showing", { shown: json.items.length, matched: json.total_matched, total: json.total_monitored });
 
   document.getElementById("fileExplorerBody").innerHTML = (json.items || []).map((f) => {
     const bCls = f.status === "OK" ? "badge-ok" : "badge-crit";
@@ -1597,17 +2467,17 @@ function renderCloudflareIntel(cf) {
   if (!cf || !cf.configured) {
     if (cfBadge) {
       cfBadge.className = "badge badge-warn";
-      cfBadge.textContent = "⚠️ 未設定 API 權杖";
+      cfBadge.textContent = t("cf.unset_token");
     }
-    if (totalEl) totalEl.textContent = "0 次";
-    if (countriesEl) countriesEl.textContent = "0 國";
-    if (lastSyncEl) lastSyncEl.textContent = "未配置";
+    if (totalEl) totalEl.textContent = t("cf.stat_total_unit");
+    if (countriesEl) countriesEl.textContent = t("cf.stat_countries_unit");
+    if (lastSyncEl) lastSyncEl.textContent = t("cf.not_configured");
     if (topPathsEl) {
-      topPathsEl.innerHTML = `<span class="badge" style="color:var(--text-secondary); cursor:pointer;" onclick="openCfConfigModal()">點擊此處設定 Cloudflare API 權杖 ➔</span>`;
+      topPathsEl.innerHTML = `<span class="badge" style="color:var(--text-secondary); cursor:pointer;" onclick="openCfConfigModal()">${t("cf.click_config")}</span>`;
     }
     if (eventsBody) {
       eventsBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-secondary); font-family:var(--font-mono);">
-        尚未配置 Cloudflare API Token。點擊右上角「⚙️ 設定 API 權杖」即可免安裝套件、免寫 NAS 磁碟直接從 Cloudflare 邊界即時拉取刺探日誌。
+        ${t("cf.unset_hint")}
       </td></tr>`;
     }
     return;
@@ -1617,28 +2487,28 @@ function renderCloudflareIntel(cf) {
   if (cfBadge) {
     if (cf.last_error) {
       cfBadge.className = "badge badge-crit";
-      cfBadge.textContent = `❌ 同步錯誤: ${(cf.last_error || "").slice(0, 24)}...`;
+      cfBadge.textContent = `${t("cf.sync_err")} ${(cf.last_error || "").slice(0, 24)}...`;
     } else if (cf.sync_in_progress) {
       cfBadge.className = "badge badge-warn";
-      cfBadge.textContent = "⏳ 邊界同步中...";
+      cfBadge.textContent = t("cf.syncing");
     } else {
       cfBadge.className = "badge badge-ok";
-      cfBadge.textContent = `✅ 已連線 9SEC Edge WAF (${cf.total_events_24h || 0} 筆刺探)`;
+      cfBadge.textContent = tf("cf.connected", { n: cf.total_events_24h || 0 });
     }
   }
 
-  if (totalEl) totalEl.textContent = `${cf.total_events_24h || 0} 次`;
-  if (countriesEl) countriesEl.textContent = `${cf.distinct_countries_count || 0} 國`;
-  if (lastSyncEl) lastSyncEl.textContent = cf.last_sync ? formatTimeTs(cf.last_sync) : "同步中...";
+  if (totalEl) totalEl.textContent = tf("cf.hits_unit", { n: cf.total_events_24h || 0 });
+  if (countriesEl) countriesEl.textContent = tf("cf.countries_unit", { n: cf.distinct_countries_count || 0 });
+  if (lastSyncEl) lastSyncEl.textContent = cf.last_sync ? formatTimeTs(cf.last_sync) : t("cf.sync_pending");
 
   if (topPathsEl) {
     const top = cf.top_probed_paths || [];
     if (top.length === 0) {
-      topPathsEl.innerHTML = `<span class="badge badge-ok">過去 24H 無異常刺探路徑</span>`;
+      topPathsEl.innerHTML = `<span class="badge badge-ok">${t("cf.no_probe_24h")}</span>`;
     } else {
       topPathsEl.innerHTML = top.map(p => `
         <span class="badge badge-warn" style="font-family:var(--font-mono); font-size:11.5px;">
-          ${escapeHtml(p.path)} <strong style="color:var(--accent); margin-left:4px;">${p.count}次</strong>
+          ${escapeHtml(p.path)} <strong style="color:var(--accent); margin-left:4px;">${tf("cf.path_hits", { n: p.count })}</strong>
         </span>
       `).join("");
     }
@@ -1648,14 +2518,14 @@ function renderCloudflareIntel(cf) {
     const evs = cf.recent_events || [];
     if (evs.length === 0) {
       eventsBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:22px; color:#00ff41; font-family:var(--font-mono);">
-        ✅ 過去 24 小時內 Cloudflare 邊界節點未觀測到異常目錄掃描或 WAF 阻擋事件。
+        ${t("cf.empty_events")}
       </td></tr>`;
     } else {
       eventsBody.innerHTML = evs.map(ev => {
         const actionBadge = ev.action === "BLOCK"
-          ? `<span class="badge badge-crit">BLOCK 阻擋</span>`
+          ? `<span class="badge badge-crit">${t("cf.block")}</span>`
           : ev.action.includes("CHALLENGE")
-          ? `<span class="badge badge-warn">CHALLENGE 驗證</span>`
+          ? `<span class="badge badge-warn">${t("cf.challenge")}</span>`
           : `<span class="badge">${escapeHtml(ev.action)}</span>`;
 
         const sevBadge = ev.severity === "CRITICAL"
@@ -1728,7 +2598,7 @@ async function submitCfConfig(testOnly = false) {
       msg.style.background = "rgba(255, 0, 85, 0.15)";
       msg.style.color = "#ff6699";
       msg.style.border = "1px solid #ff0055";
-      msg.textContent = "⚠️ 請填寫 Cloudflare API Token 與 Zone ID";
+      msg.textContent = t("cf.need_fields");
     }
     return;
   }
@@ -1740,7 +2610,7 @@ async function submitCfConfig(testOnly = false) {
     msg.style.background = "rgba(0, 229, 255, 0.1)";
     msg.style.color = "#00e5ff";
     msg.style.border = "1px solid #00e5ff";
-    msg.textContent = testOnly ? "⏳ 正在向 Cloudflare 驗證 Token..." : "⏳ 正在驗證並儲存設定...";
+    msg.textContent = testOnly ? t("cf.testing") : t("cf.saving");
   }
 
   try {
@@ -1754,10 +2624,10 @@ async function submitCfConfig(testOnly = false) {
         msg.style.background = "rgba(0, 255, 65, 0.15)";
         msg.style.color = "#00ff41";
         msg.style.border = "1px solid #00ff41";
-        msg.textContent = testOnly ? "✅ Cloudflare API 連線與權限驗證成功！" : "✅ 設定已儲存！已開始背景即時同步邊界安全情報。";
+        msg.textContent = testOnly ? t("cf.test_ok") : t("cf.save_ok");
       }
       if (!testOnly) {
-        showToast("✅ Cloudflare 邊界情報已啟用", "info");
+        showToast(t("cf.enabled_toast"), "info");
         setTimeout(() => {
           closeCfConfigModal();
           fetchStatus();
@@ -1768,7 +2638,7 @@ async function submitCfConfig(testOnly = false) {
         msg.style.background = "rgba(255, 0, 85, 0.15)";
         msg.style.color = "#ff6699";
         msg.style.border = "1px solid #ff0055";
-        msg.textContent = `❌ ${json.error || "驗證失敗"}`;
+        msg.textContent = `❌ ${json.error || t("cf.verify_fail")}`;
       }
     }
   } catch (err) {
@@ -1776,7 +2646,7 @@ async function submitCfConfig(testOnly = false) {
       msg.style.background = "rgba(255, 0, 85, 0.15)";
       msg.style.color = "#ff6699";
       msg.style.border = "1px solid #ff0055";
-      msg.textContent = `❌ 連線例外: ${err.message || err}`;
+      msg.textContent = `${t("cf.ex")} ${err.message || err}`;
     }
   } finally {
     if (btnTest) btnTest.disabled = false;
@@ -1785,16 +2655,16 @@ async function submitCfConfig(testOnly = false) {
 }
 
 async function triggerCfSync() {
-  showToast("🔄 正在向 Cloudflare 邊界同步最新刺探日誌...", "info");
+  showToast(t("cf.sync_toast"), "info");
   try {
     const res = await apiFetch("/api/cloudflare/sync", { method: "POST" });
     const json = await res.json();
     setTimeout(() => {
       fetchStatus();
-      showToast("✅ Cloudflare 邊界情報同步完成", "info");
+      showToast(t("cf.sync_done"), "info");
     }, 1500);
   } catch (err) {
-    showToast(`❌ 同步失敗: ${err.message || err}`, "crit");
+    showToast(`${t("cf.sync_fail")} ${err.message || err}`, "crit");
   }
 }
 
@@ -1847,7 +2717,7 @@ function populateSetupForm(cfg, detectedKeys) {
   if (keyCustom) keyCustom.value = cfg.ssh_key_path || "";
 
   if (keySelect) {
-    keySelect.innerHTML = '<option value="">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>';
+    keySelect.innerHTML = `<option value="">${t("setup.key_default_opt")}</option>`;
     detectedKeys.forEach(k => {
       const opt = document.createElement("option");
       opt.value = k;
@@ -1862,7 +2732,7 @@ function populateSetupForm(cfg, detectedKeys) {
     cfToken.value = "";
     cfToken.placeholder = cfg.cloudflare_api_token_set
       ? `Token on file (${cfg.cloudflare_api_token_masked || "***"}) — leave blank to keep`
-      : "具備 Zone.Analytics:Read 權限之 Token";
+      : t("setup.cf_token_ph");
   }
   if (cfZone && cfg.cloudflare_zone_id) cfZone.value = cfg.cloudflare_zone_id;
   if (cfEnabled) cfEnabled.checked = Boolean(cfg.cloudflare_enabled);
@@ -1891,7 +2761,7 @@ function openSetupModal(isInitial = false) {
 
 function closeSetupModal() {
   if (isSetupInitial && (!appConfig || !appConfig.is_configured)) {
-    showToast("⚠️ 請先完成 NAS 連線與基線配置以啟用戰情室", "warn");
+    showToast(t("setup.need_config_toast"), "warn");
     return;
   }
   const modal = document.getElementById("setupWizardModal");
@@ -1931,7 +2801,7 @@ function toggleSetupCfSection() {
   if (!sec) return;
   const isHidden = sec.style.display === "none" || !sec.style.display;
   sec.style.display = isHidden ? "flex" : "none";
-  if (icon) icon.textContent = isHidden ? "▼ 收合" : "▶ 展開";
+  if (icon) icon.textContent = isHidden ? t("setup.cf_collapse") : t("setup.cf_expand");
 }
 
 async function testSetupCfConnection() {
@@ -1946,21 +2816,21 @@ async function testSetupCfConnection() {
       msg.style.background = "rgba(255, 0, 85, 0.15)";
       msg.style.color = "#ff6699";
       msg.style.border = "1px solid #ff0055";
-      msg.textContent = "⚠️ 請填寫 Cloudflare API Token 與 Zone ID";
+      msg.textContent = t("cf.need_fields");
     }
     return;
   }
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "⏳ 測試中...";
+    btn.textContent = t("cf.testing");
   }
   if (msg) {
     msg.style.display = "block";
     msg.style.background = "rgba(0, 229, 255, 0.1)";
     msg.style.color = "#00e5ff";
     msg.style.border = "1px solid #00e5ff";
-    msg.textContent = "⏳ 正在向 Cloudflare GraphQL API 驗證 Token 權限...";
+    msg.textContent = t("setup.cf_testing");
   }
 
   try {
@@ -1974,29 +2844,29 @@ async function testSetupCfConnection() {
         msg.style.background = "rgba(0, 255, 65, 0.15)";
         msg.style.color = "#00ff41";
         msg.style.border = "1px solid #00ff41";
-        msg.textContent = "✅ Cloudflare API 連線與權限驗證成功！";
+        msg.textContent = t("cf.test_ok");
       }
-      showToast("✅ Cloudflare API 驗證成功", "ok");
+      showToast(t("setup.cf_ok_toast"), "ok");
     } else {
       if (msg) {
         msg.style.background = "rgba(255, 0, 85, 0.15)";
         msg.style.color = "#ff6699";
         msg.style.border = "1px solid #ff0055";
-        msg.textContent = "❌ 驗證失敗: " + (json.error || "無法連線至 Cloudflare");
+        msg.textContent = t("setup.cf_fail") + " " + (json.error || t("setup.cf_unreachable"));
       }
-      showToast("❌ Cloudflare 驗證失敗", "danger");
+      showToast(t("setup.cf_fail_toast"), "danger");
     }
   } catch (e) {
     if (msg) {
       msg.style.background = "rgba(255, 0, 85, 0.15)";
       msg.style.color = "#ff6699";
       msg.style.border = "1px solid #ff0055";
-      msg.textContent = "❌ 網路異常: " + e.message;
+      msg.textContent = t("setup.cf_net") + " " + e.message;
     }
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "🧪 測試連線 (Test)";
+      btn.textContent = t("setup.btn_test_cf");
     }
   }
 }
@@ -2013,13 +2883,13 @@ async function testNasConnection() {
   const resBox = document.getElementById("setupProbeResult");
 
   if (!host || !user) {
-    showToast("⚠️ 請先填寫 NAS IP 與 SSH 帳號", "warn");
+    showToast(t("setup.need_host_user"), "warn");
     return;
   }
 
   if (btn) btn.disabled = true;
   if (icon) icon.textContent = "⏳";
-  if (text) text.textContent = "正在透過 SSH 探測 NAS 核心與 DSM...";
+  if (text) text.textContent = t("setup.probing");
   if (resBox) resBox.style.display = "none";
 
   try {
@@ -2036,21 +2906,21 @@ async function testNasConnection() {
         resBox.style.color = "#00ff41";
         const fp = json.ssh_host_key_fp ? `<br>• SSH Host Key：<strong>${escapeHtml(json.ssh_host_key_fp)}</strong>` : "";
         resBox.innerHTML = `
-          <div style="font-weight:700; font-size:13px; margin-bottom:4px;">✅ SSH 連線測試成功！NAS 系統探測完成</div>
+          <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${t("setup.probe_ok_title")}</div>
           <div style="color:#d1fae5; font-size:12px;">
-            • 系統版本：<strong>${escapeHtml(json.system.dsm_version)}</strong><br>
-            • 核心架構：<strong>${escapeHtml(json.system.kernel)} (${escapeHtml(json.system.arch)})</strong><br>
-            • Python 環境：<strong>${escapeHtml(json.system.python)}</strong>${fp}
+            • ${t("setup.probe_sys")}<strong>${escapeHtml(json.system.dsm_version)}</strong><br>
+            • ${t("setup.probe_arch")}<strong>${escapeHtml(json.system.kernel)} (${escapeHtml(json.system.arch)})</strong><br>
+            • ${t("setup.probe_py")}<strong>${escapeHtml(json.system.python)}</strong>${fp}
           </div>
         `;
-        showToast("✅ NAS 連線與探測成功！", "info");
+        showToast(t("setup.probe_ok_toast"), "info");
       } else {
         resBox.style.background = "rgba(255, 0, 85, 0.12)";
         resBox.style.border = "1px solid #ff0055";
         resBox.style.color = "#ff4d88";
         resBox.innerHTML = `
-          <div style="font-weight:700; font-size:13px; margin-bottom:4px;">❌ 連線失敗</div>
-          <div style="color:#ffccd7; font-size:12px;">${escapeHtml(json.error || "未知連線錯誤")}</div>
+          <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${t("setup.probe_fail_title")}</div>
+          <div style="color:#ffccd7; font-size:12px;">${escapeHtml(json.error || t("setup.unknown_conn"))}</div>
         `;
       }
     }
@@ -2060,12 +2930,12 @@ async function testNasConnection() {
       resBox.style.background = "rgba(255, 0, 85, 0.12)";
       resBox.style.border = "1px solid #ff0055";
       resBox.style.color = "#ff4d88";
-      resBox.textContent = `❌ 連線請求例外: ${err.message || err}`;
+      resBox.textContent = `${t("setup.probe_ex")} ${err.message || err}`;
     }
   } finally {
     if (btn) btn.disabled = false;
     if (icon) icon.textContent = "⚡";
-    if (text) text.textContent = "測試 SSH 連線並自動探測 NAS";
+    if (text) text.textContent = t("setup.btn_test");
   }
 }
 
@@ -2080,7 +2950,7 @@ async function generateNewSshKey() {
     return;
   }
   if (passInput) passInput.value = passphrase;
-  showToast("🔑 正在產生受密碼保護的 Ed25519 金鑰對...", "info");
+  showToast(t("setup.keygen_toast"), "info");
   try {
     const res = await apiFetch("/api/setup/generate-key", {
       method: "POST",
@@ -2095,12 +2965,12 @@ async function generateNewSshKey() {
       const cmdText = document.getElementById("setupKeyCommandText");
       if (cmdText) cmdText.value = json.dsm_command;
       if (helperPanel) helperPanel.style.display = "block";
-      showToast("✅ 新金鑰已生成（請用 ssh-agent 載入密碼）。複製授權指令至 NAS。", "info");
+      showToast(t("setup.keygen_ok"), "info");
     } else {
-      showToast(`❌ 生成失敗: ${json.error}`, "crit");
+      showToast(`${t("setup.keygen_fail")} ${json.error}`, "crit");
     }
   } catch (err) {
-    showToast(`❌ 請求異常: ${err.message || err}`, "crit");
+    showToast(`${t("setup.req_ex")} ${err.message || err}`, "crit");
   }
 }
 
@@ -2108,11 +2978,11 @@ function copySetupKeyCmd() {
   const cmdText = document.getElementById("setupKeyCommandText");
   if (!cmdText || !cmdText.value) return;
   navigator.clipboard.writeText(cmdText.value).then(() => {
-    showToast("📋 已複製授權指令到剪貼簿！", "info");
+    showToast(t("setup.copied"), "info");
   }).catch(() => {
     cmdText.select();
     document.execCommand("copy");
-    showToast("📋 已複製！", "info");
+    showToast(t("setup.copied_short"), "info");
   });
 }
 
@@ -2126,7 +2996,7 @@ async function skipSetupOffline() {
   }
   if (btnSkip) {
     btnSkip.disabled = true;
-    btnSkip.textContent = "⏳ 進入離線戰情室...";
+    btnSkip.textContent = t("setup.btn_skip_busy");
   }
   try {
     // Empty body on purpose: server must NOT rewrite nas_host / key from form defaults.
@@ -2146,20 +3016,20 @@ async function skipSetupOffline() {
         msgBox.style.color = "#fbbf24";
         msgBox.textContent = "✅ " + (json.message || "Offline SOC unlocked (SSH fields unchanged)");
       }
-      showToast("🚪 已進入離線戰情室（既有主機／金鑰未變更）", "info");
+      showToast(t("setup.skip_ok"), "info");
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
       }, 600);
     } else {
-      showToast("❌ " + (json.error || "無法略過設定"), "crit");
+      showToast("❌ " + (json.error || t("setup.skip_fail")), "crit");
     }
   } catch (err) {
     showToast(`❌ ${err.message || err}`, "crit");
   } finally {
     if (btnSkip) {
       btnSkip.disabled = false;
-      btnSkip.textContent = "🚪 稍後設定，先進入戰情室";
+      btnSkip.textContent = t("setup.btn_skip");
     }
   }
 }
@@ -2185,11 +3055,11 @@ async function saveSetupConfig(options) {
   const msgBox = document.getElementById("setupSaveMsg");
 
   if (!host || !user) {
-    showToast("⚠️ 請輸入 NAS 主機 IP 與 SSH 帳號", "warn");
+    showToast(t("setup.need_fields"), "warn");
     return;
   }
   if (["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(host.toLowerCase())) {
-    showToast("⚠️ nas_host 不可為 127.0.0.1（那是本機 UI）。請填實際 NAS IP。", "warn");
+    showToast(t("setup.reject_localhost"), "warn");
     return;
   }
 
@@ -2200,11 +3070,11 @@ async function saveSetupConfig(options) {
 
   if (btnSave) {
     btnSave.disabled = true;
-    if (goLive) btnSave.textContent = "⏳ 儲存並測試 SSH...";
+    if (goLive) btnSave.textContent = t("setup.btn_save_busy");
   }
   if (btnPersist) {
     btnPersist.disabled = true;
-    if (persistOnly) btnPersist.textContent = "⏳ 儲存參數中...";
+    if (persistOnly) btnPersist.textContent = t("setup.btn_persist_busy");
   }
   if (msgBox) msgBox.style.display = "none";
 
@@ -2239,14 +3109,14 @@ async function saveSetupConfig(options) {
         msgBox.style.background = offline ? "rgba(251, 191, 36, 0.12)" : "rgba(0, 255, 65, 0.15)";
         msgBox.style.border = offline ? "1px solid rgba(251, 191, 36, 0.45)" : "1px solid #00ff41";
         msgBox.style.color = offline ? "#fbbf24" : "#00ff41";
-        msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || "設定已儲存");
+        msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || t("setup.saved_default"));
       }
       showToast(
         live
-          ? "🛡️ 設定已儲存，監控已上線"
+          ? t("setup.saved_live")
           : (json.warning
-            ? `💾 設定已儲存（SSH 未上線：${json.warning}）`
-            : "💾 連線設定已儲存（離線）"),
+            ? tf("setup.saved_warn", { w: json.warning })
+            : t("setup.saved_offline")),
         live ? "info" : "warn"
       );
       appConfig = json.config || { is_configured: true, offline_mode: offline };
@@ -2262,7 +3132,7 @@ async function saveSetupConfig(options) {
         msgBox.style.border = "1px solid #ff0055";
         msgBox.style.color = "#ff6699";
         const hint = json.hint ? ` — ${json.hint}` : "";
-        msgBox.textContent = "❌ " + (json.error || "儲存失敗") + hint;
+        msgBox.textContent = "❌ " + (json.error || t("setup.save_fail")) + hint;
       }
     }
   } catch (err) {
@@ -2271,16 +3141,16 @@ async function saveSetupConfig(options) {
       msgBox.style.background = "rgba(255, 0, 85, 0.15)";
       msgBox.style.border = "1px solid #ff0055";
       msgBox.style.color = "#ff6699";
-      msgBox.textContent = `❌ 儲存例外錯誤: ${err.message || err}`;
+      msgBox.textContent = `${t("setup.save_ex")} ${err.message || err}`;
     }
   } finally {
     if (btnSave) {
       btnSave.disabled = false;
-      btnSave.textContent = "🛡️ 測試並上線 (Test & go live)";
+      btnSave.textContent = t("setup.btn_golive");
     }
     if (btnPersist) {
       btnPersist.disabled = false;
-      btnPersist.textContent = "💾 儲存連線設定";
+      btnPersist.textContent = t("setup.btn_persist");
     }
   }
 }

@@ -9,6 +9,7 @@ and this project follows semantic versioning once tagged releases begin.
 
 ### Fixed
 
+- EN / JP UI localization: expanded `I18N` tables (~287 keys), wired previously Chinese-only dashboard / setup / admin / Cloudflare strings via `data-i18n`, and localized JS toasts/errors (including #5 skip / save / go-live). Moved `/app.js` to end of `index.html` so initial language apply covers setup modals. Language-menu labels (`TW [繁體中文]`, `JP [日本語]`, `EN [English]`) intentionally remain bilingual.
 - Setup wizard no longer dead-ends without a reachable NAS: added **Skip / offline SOC** (`POST /api/setup/skip-offline` + UI button) that sets `is_configured=true` with `offline_mode=true`, dismisses the modal, and pauses SSH poller/inotify until a real Save & Launch succeeds.
 - Offline skip **no longer rewrites** `nas_host` / `nas_user` / `nas_port` / `ssh_key_path` (flags only). Removed dangerous SSH/`probe` fallback to `127.0.0.1` when host is blank. Reject saving `nas_host` of `127.0.0.1`/`localhost` (that is `web_host` only).
 - `/api/setup/save` **always persists** connection settings; SSH probe only gates going live. UI splits **儲存連線設定** (draft) vs **測試並上線** (save + probe; on timeout still keeps the saved host/key and stays offline). Blank key field keeps the existing key.
