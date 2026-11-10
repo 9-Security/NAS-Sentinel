@@ -140,7 +140,7 @@ const I18N = {
     "guide.content_faq": '<div class="guide-card"><div class="guide-card-title">Q1: 收到「🚨 偵測到檔案完整性異常」紅框警報該怎麼做？</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 點擊頂部「查看檔案異動詳情」表格，確認變更檔案的路徑與修改時間。<br>2. <strong>若為您本人的合法操作</strong>（如剛升級 DSM 或修改設定）：點選「⚙️ 管理 ▾ ➔ 重建安全基線」消除警報。<br>3. <strong>若非本人操作</strong>：請立即檢查登入紀錄並將可疑檔案隔離。</p></div><div class="guide-card"><div class="guide-card-title">Q2: 為什麼 NAS Sentinel 監控不會影響 NAS 效能？</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">採集腳本由本機端注入 NAS 記憶體中執行，無磁碟 I/O 寫入負擔，單次快速掃描僅約 0.4 秒，CPU 佔用小於 1%，絕不縮短硬碟壽命。</p></div><div class="guide-card"><div class="guide-card-title">Q3: 如何重啟或關閉 NAS Sentinel？</div><p style="font-size:12.5px; color:var(--text-secondary);">本地伺服器為獨立執行程序，關閉啟動終端機即可停止；重新雙擊 <code>start-nas-sentinel.bat</code> 即可重啟。</p></div>',
     "admin.cf_settings": "Cloudflare 邊界日誌設定...",
     "admin.cf_desc": "設定 API Token 撈取刺探情報",
-    "theme.toggle_title": "切換深色 / 淺色主題 (Toggle Dark/Light Mode)",
+    "theme.toggle_title": "切換深色 / 淺色主題",
     "lang.toggle_title": "切換語系",
     "alert.banner_title": "🚨 偵測到檔案完整性或安全異常！",
     "alert.banner_desc": "請立即檢視下方「檔案異動警報」或「網路監聽埠」清單。",
@@ -333,8 +333,7 @@ const I18N = {
     "setup.user_ph": "例如：admin 或 root",
     "setup.port_hint": "(可自訂)",
     "setup.port_title": "若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改",
-    "setup.keygen_link": "🔑 產生受密碼保護的新金鑰",
-    "setup.key_default_opt": "(系統預設金鑰 / ~/.ssh/ 自動解析)",
+        "setup.key_default_opt": "(系統預設金鑰 / ~/.ssh/ 自動解析)",
     "setup.key_custom_ph": "例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）",
     "setup.passphrase_ph": "新金鑰 Passphrase（至少 8 字元；禁止空白密碼）",
     "setup.key_auth_title": "🔑 快速授權此金鑰至 Synology NAS",
@@ -714,8 +713,7 @@ const I18N = {
     "setup.user_ph": "e.g. admin or root",
     "setup.port_hint": "(customizable)",
     "setup.port_title": "If your NAS uses a custom SSH port (e.g. 2222, 5022), set it here",
-    "setup.keygen_link": "🔑 Generate Passphrase-Protected Key",
-    "setup.key_default_opt": "(Default key / auto-resolve ~/.ssh/)",
+        "setup.key_default_opt": "(Default key / auto-resolve ~/.ssh/)",
     "setup.key_custom_ph": "e.g. ~/.ssh/id_ed25519 (must be under ~/.ssh)",
     "setup.passphrase_ph": "New key passphrase (min 8 chars; empty not allowed)",
     "setup.key_auth_title": "🔑 Quickly authorize this key on Synology NAS",
@@ -1095,8 +1093,7 @@ const I18N = {
     "setup.user_ph": "例：admin または root",
     "setup.port_hint": "(変更可)",
     "setup.port_title": "NASのSSHポートを変更している場合（例：2222、5022）はここに入力",
-    "setup.keygen_link": "🔑 パスフレーズ付き鍵を生成",
-    "setup.key_default_opt": "(システム既定鍵 / ~/.ssh/ 自動解決)",
+        "setup.key_default_opt": "(システム既定鍵 / ~/.ssh/ 自動解決)",
     "setup.key_custom_ph": "例：~/.ssh/id_ed25519（~/.ssh内のみ）",
     "setup.passphrase_ph": "新しい鍵のパスフレーズ（8文字以上・空白不可）",
     "setup.key_auth_title": "🔑 この鍵をSynology NASへ素早く認可",
@@ -1244,12 +1241,15 @@ const I18N = {
 };
 
 function t(key, fallback = "") {
-  if (I18N[currentLang] && I18N[currentLang][key] !== undefined) {
-    return I18N[currentLang][key];
+  const pack = I18N[currentLang];
+  if (pack && pack[key] !== undefined) return pack[key];
+  // Fail closed for EN/JP: never silently leak Traditional Chinese via zh-TW fallback.
+  if (currentLang === "en" || currentLang === "jp") {
+    if (fallback) return fallback;
+    if (I18N.en && I18N.en[key] !== undefined) return I18N.en[key];
+    return key;
   }
-  if (I18N["zh-TW"] && I18N["zh-TW"][key] !== undefined) {
-    return I18N["zh-TW"][key];
-  }
+  if (I18N["zh-TW"] && I18N["zh-TW"][key] !== undefined) return I18N["zh-TW"][key];
   return fallback || key;
 }
 
@@ -1259,6 +1259,49 @@ function tf(key, vars = {}, fallback = "") {
     s = s.replaceAll("{" + k + "}", String(vars[k]));
   });
   return s;
+}
+
+function applyStaticI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const key = el.getAttribute("data-i18n");
+    const val = t(key);
+    if (!val) return;
+    try {
+      if (el.tagName === "TITLE" || el.tagName === "OPTION") el.textContent = val.replace(/<[^>]+>/g, "");
+      else if (/[<][a-zA-Z]/.test(val)) el.innerHTML = val;
+      else el.textContent = val;
+    } catch (err) {
+      try { el.textContent = val.replace(/<[^>]+>/g, ""); } catch (_) {}
+    }
+  });
+  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-title");
+    const val = t(key);
+    if (val) el.setAttribute("title", val);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    const val = t(key);
+    if (val) el.setAttribute("placeholder", val);
+  });
+}
+
+// After dashboard render: refresh pure chrome only.
+// Dual-purpose live fields (threatBadge, KPIs, alert banner, scores, …) always have an
+// id and also carry data-i18n as an initial placeholder — never overwrite those.
+function applyChromeI18n() {
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    if (el.id) return;
+    const key = el.getAttribute("data-i18n");
+    const val = t(key);
+    if (!val) return;
+    try {
+      if (/[<][a-zA-Z]/.test(val)) el.innerHTML = val;
+      else el.textContent = val;
+    } catch (err) {
+      try { el.textContent = val; } catch (_) {}
+    }
+  });
 }
 
 function initLanguage() {
@@ -1284,6 +1327,7 @@ function selectLanguage(lang) {
 }
 
 function applyLanguage(lang, notify = false) {
+  currentLang = lang;
   document.documentElement.setAttribute("lang", lang === "zh-TW" ? "zh-Hant" : (lang === "jp" ? "ja" : "en"));
   document.title = t("page.title");
 
@@ -1292,23 +1336,7 @@ function applyLanguage(lang, notify = false) {
     labelEl.textContent = lang === "zh-TW" ? "TW" : lang.toUpperCase();
   }
 
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.getAttribute("data-i18n");
-    const val = t(key);
-    if (val) el.innerHTML = val;
-  });
-
-  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-title");
-    const val = t(key);
-    if (val) el.setAttribute("title", val);
-  });
-
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    const key = el.getAttribute("data-i18n-placeholder");
-    const val = t(key);
-    if (val) el.setAttribute("placeholder", val);
-  });
+  applyStaticI18n();
 
   if (currentSnapshot) {
     renderDashboard(currentSnapshot);
@@ -1361,7 +1389,7 @@ function toggleTheme() {
   }
 
   const msgs = {
-    "zh-TW": newTheme === "light" ? "已切換為淺色主題 (Light Mode)" : "已切換為深色主題 (Dark Mode)",
+    "zh-TW": newTheme === "light" ? "已切換為淺色主題" : "已切換為深色主題",
     "en": newTheme === "light" ? "Switched to Light Mode" : "Switched to Dark Mode",
     "jp": newTheme === "light" ? "ライトモードに切り替えました" : "ダークモードに切り替えました"
   };
@@ -1376,7 +1404,7 @@ function updateThemeButtonUI(theme) {
   if (text) text.textContent = theme.toUpperCase();
   if (btn) {
     const titles = {
-      "zh-TW": theme === "light" ? "切換至深色主題 (Dark Mode)" : "切換至淺色主題 (Light Mode)",
+      "zh-TW": theme === "light" ? "切換至深色主題" : "切換至淺色主題",
       "en": theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode",
       "jp": theme === "light" ? "ダークモードに切り替える" : "ライトモードに切り替える"
     };
@@ -1514,6 +1542,237 @@ const PORT_DESCRIPTIONS = {
     33304: "Synology MIB ローカルサービス",
   }
 };
+
+
+// Stable-id label packs for server-fed UI strings (never rely on Chinese source text).
+const SERVER_LABELS = {
+  "zh-TW": {},
+  "en": {
+    // FIM targets
+    "nginx_etc": "Nginx Server Config (/etc/nginx)",
+    "nginx_share": "Nginx Templates & Error Pages (/usr/syno/share/nginx)",
+    "nginx_tmp_html": "HTTP Redirect Landing (/var/tmp/nginx/html)",
+    "dsm_synoman": "DSM Web Admin Tree (/usr/syno/synoman)",
+    "letsencrypt_root": "Let's Encrypt Webroot (/var/lib/letsencrypt)",
+    "web_station": "User Web Station (/volume1/web)",
+    "security_configs": "Security & Firewall Configs (/etc/sysctl.d, firewall.d, ssh)",
+    "system_binaries": "Critical System Binaries Baseline (rkhunter)",
+    "shared_watched": "Shared & Temp Watch Paths (/volume1/public, /volume1/tmp)",
+    // services
+    "svc.nginx": "Nginx Web & Reverse Proxy",
+    "svc.sshd": "OpenSSH Remote Admin",
+    "svc.cloudflared": "Cloudflare Tunnel Service",
+    "svc.scemd": "Synology Hardware/Thermal Core (scemd)",
+    "svc.postgres": "PostgreSQL System Database",
+    "svc.syslog-ng": "System Logging (syslog-ng)",
+    "svc.chronyd": "NTP Time Sync (chronyd)",
+    "svc.nfsd": "NFS File Service",
+    "svc.named": "DNS Server (named)",
+    // web endpoints
+    "http_80_root": "HTTP :80 Redirect Entry",
+    "http_5000_root": "DSM HTTP :5000 Redirect Page",
+    "http_5000_login": "DSM :5000 login.cgi",
+    "https_443_root": "HTTPS :443 Reverse-Proxy Entry",
+    "https_5001_index": "DSM HTTPS :5001 Admin Desktop",
+    "https_5001_login": "DSM HTTPS :5001 Login API",
+    // rootkit checks
+    "rkhunter_binaries": "Critical Binary Anti-Trojan (System Binary SHA-256)",
+    "ld_preload": "LD_PRELOAD Linker Hijack Check (/etc/ld.so.preload & environ)",
+    "chkproc": "Hidden/Ghost Process Cross-Check (/proc vs ps)",
+    "ifpromisc": "NIC Promiscuous Mode Sniff Check (IFF_PROMISC)",
+    "lkm_modules": "Linux Kernel Module (LKM) Baseline (/proc/modules)",
+    "shm_tmp_rootkit": "Known Rootkit Paths & /dev/shm,/tmp Odd Files/ELF Scan",
+    // posture
+    "inotify_stream": "Linux inotify Millisecond File Watch Engine",
+    "ssh_pubkey": "SSH Key-Only Auth & Root Login Denied",
+    "kernel_hardening": "Kernel Pointer & dmesg Privacy (kptr/dmesg_restrict)",
+    "source_route": "IPv4 Source-Route Packet Reject",
+    "ipv6_loopback": "IPv6 Loopback (::1) & Chrony UDP Control Port Hardening",
+    "dsm_firewall": "DSM Firewall Source Allowlist Rules",
+    "rootkit_scanner": "Rootkit & Binary Anti-Trojan Engine (chkrootkit + rkhunter)",
+    "web_fim": "Nginx & DSM Web Server File Integrity (FIM)",
+    // disks
+    "disk./": "System Partition (/)",
+    "disk./volume1": "Data Volume (/volume1)",
+    // CF probe classes
+    "cf.sensitive_config": "Sensitive Config Probing",
+    "cf.wordpress": "WordPress / CMS Vulnerability Scan",
+    "cf.db_admin": "Database Admin Probe",
+    "cf.vcs_leak": "VCS Source Leak Scan",
+    "cf.webshell": "Webshell / Backdoor Recon",
+    "cf.api_expose": "API / Frontend Framework Exposure Probe",
+    "cf.backup": "Backup File Download Attempt",
+    "cf.cgi": "CGI / Command Execution Probe",
+    "cf.scanner": "Known Automated Penetration Scanner",
+    "cf.unknown": "Unknown Directory Probe / Crawler",
+    // common reason phrases
+    "reason.world_writable": "File mode is world-writable",
+    "reason.suid": "Unexpected SUID permission bit",
+    "reason.unexpected_script": "Unexpected script under DSM web tree",
+    "reason.webshell": "Content matched high-risk webshell/RCE signatures",
+    "reason.unreachable": "Endpoint unreachable",
+    "reason.hash_mismatch": "Response body SHA-256 differs from baseline",
+    "reason.cert_mismatch": "TLS certificate fingerprint differs from pinned baseline",
+        "reason.status_change": "HTTP status code changed",
+    "flag.in_create": "IN_CREATE (created)",
+    "flag.in_modify": "IN_MODIFY (modified)",
+    "flag.in_close_write": "IN_CLOSE_WRITE (write closed)",
+    "flag.in_attrib": "IN_ATTRIB (attr/mode change)",
+    "flag.in_moved_from": "IN_MOVED_FROM (moved/renamed out)",
+    "flag.in_moved_to": "IN_MOVED_TO (moved/renamed in)",
+    "flag.in_delete": "IN_DELETE (deleted)",
+    "flag.in_create_child": "IN_CREATE (file in new subdir)",
+    "flag.in_delete_self": "IN_DELETE_SELF (watch target deleted)",
+    "flag.in_move_self": "IN_MOVE_SELF (watch target moved)",
+  },
+  "jp": {
+    "nginx_etc": "Nginxサーバー設定 (/etc/nginx)",
+    "nginx_share": "Nginxテンプレート/エラーページ (/usr/syno/share/nginx)",
+    "nginx_tmp_html": "HTTPリダイレクト入口 (/var/tmp/nginx/html)",
+    "dsm_synoman": "DSM Web管理ツリー (/usr/syno/synoman)",
+    "letsencrypt_root": "Let's Encrypt検証ディレクトリ (/var/lib/letsencrypt)",
+    "web_station": "ユーザーWebディレクトリ (/volume1/web)",
+    "security_configs": "セキュリティ/ファイアウォール設定 (/etc/sysctl.d, firewall.d, ssh)",
+    "system_binaries": "重要システムバイナリ基準 (rkhunter)",
+    "shared_watched": "共有・一時監視パス (/volume1/public, /volume1/tmp)",
+    "svc.nginx": "Nginx Web / リバースプロキシ",
+    "svc.sshd": "OpenSSH リモート管理",
+    "svc.cloudflared": "Cloudflare Tunnel サービス",
+    "svc.scemd": "Synology ハードウェア/温度制御 (scemd)",
+    "svc.postgres": "PostgreSQL システムDB",
+    "svc.syslog-ng": "システムログ (syslog-ng)",
+    "svc.chronyd": "NTP時刻同期 (chronyd)",
+    "svc.nfsd": "NFSファイルサービス",
+    "svc.named": "DNSサーバー (named)",
+    "http_80_root": "HTTP :80 リダイレクト入口",
+    "http_5000_root": "DSM HTTP :5000 リダイレクト",
+    "http_5000_login": "DSM :5000 login.cgi",
+    "https_443_root": "HTTPS :443 リバースプロキシ入口",
+    "https_5001_index": "DSM HTTPS :5001 管理デスクトップ",
+    "https_5001_login": "DSM HTTPS :5001 ログインAPI",
+    "rkhunter_binaries": "重要バイナリ改ざん検知 (System Binary SHA-256)",
+    "ld_preload": "LD_PRELOAD ハイジャック検知 (/etc/ld.so.preload & environ)",
+    "chkproc": "隠蔽/ゴーストプロセス突合 (/proc vs ps)",
+    "ifpromisc": "NICプロミスキャス検知 (IFF_PROMISC)",
+    "lkm_modules": "Linuxカーネルモジュール(LKM)基準 (/proc/modules)",
+    "shm_tmp_rootkit": "既知Rootkit経路と /dev/shm,/tmp 異常ファイル/ELF走査",
+    "inotify_stream": "Linux inotify ミリ秒級ファイル監視エンジン",
+    "ssh_pubkey": "SSH鍵認証強制・Rootログイン禁止",
+    "kernel_hardening": "カーネルポインタ/dmesgプライバシー (kptr/dmesg_restrict)",
+    "source_route": "IPv4 Source-Route パケット拒否",
+    "ipv6_loopback": "IPv6 Loopback (::1) と Chrony UDP 制御ポート収束",
+    "dsm_firewall": "DSMファイアウォール送信元ホワイトリスト",
+    "rootkit_scanner": "Rootkit / バイナリ改ざんエンジン (chkrootkit + rkhunter)",
+    "web_fim": "Nginx / DSM Webサーバーファイル整合性 (FIM)",
+    "disk./": "システムパーティション (/)",
+    "disk./volume1": "データボリューム (/volume1)",
+    "cf.sensitive_config": "機密設定ファイル探査",
+    "cf.wordpress": "WordPress / CMS 脆弱性スキャン",
+    "cf.db_admin": "DB管理画面探査",
+    "cf.vcs_leak": "VCSソース漏洩スキャン",
+    "cf.webshell": "Webshell / バックドア偵察",
+    "cf.api_expose": "API / フロント露出探査",
+    "cf.backup": "バックアップファイル取得試行",
+    "cf.cgi": "CGI / コマンド実行探査",
+    "cf.scanner": "既知の自動ペネトレーションスキャナ",
+    "cf.unknown": "不明なディレクトリ探査 / クローラ",
+    "reason.world_writable": "ファイルが全員書き込み可能",
+    "reason.suid": "予期しないSUID権限",
+    "reason.unexpected_script": "DSM Webツリーに予期しないスクリプト",
+    "reason.webshell": "高リスクWebshell/RCE特徴に一致",
+    "reason.unreachable": "エンドポイント到達不可",
+    "reason.hash_mismatch": "応答ボディSHA-256が基準と不一致",
+    "reason.cert_mismatch": "TLS証明書指紋がピン留め基準と不一致",
+        "reason.status_change": "HTTPステータスコードが変化",
+    "flag.in_create": "IN_CREATE (作成)",
+    "flag.in_modify": "IN_MODIFY (変更)",
+    "flag.in_close_write": "IN_CLOSE_WRITE (書き込み完了)",
+    "flag.in_attrib": "IN_ATTRIB (属性/権限変更)",
+    "flag.in_moved_from": "IN_MOVED_FROM (移動/改名元)",
+    "flag.in_moved_to": "IN_MOVED_TO (移動/改名先)",
+    "flag.in_delete": "IN_DELETE (削除)",
+    "flag.in_create_child": "IN_CREATE (新規サブディレクトリ内)",
+    "flag.in_delete_self": "IN_DELETE_SELF (監視対象削除)",
+    "flag.in_move_self": "IN_MOVE_SELF (監視対象移動)",
+  }
+};
+
+const CF_LABEL_TO_ID = {
+  "敏感設定檔探測": "cf.sensitive_config",
+  "WordPress / CMS 漏洞掃描": "cf.wordpress",
+  "資料庫後台刺探": "cf.db_admin",
+  "版本庫源碼洩漏掃描": "cf.vcs_leak",
+  "Webshell / 後門踩點": "cf.webshell",
+  "API / 前端架構暴露探測": "cf.api_expose",
+  "備份檔案下載嘗試": "cf.backup",
+  "CGI / 系統指令執行探測": "cf.cgi",
+  "已知自動化滲透掃描器": "cf.scanner",
+  "未明目錄刺探 / 爬蟲": "cf.unknown",
+};
+
+const REASON_PHRASES = [
+  ["檔案權限含全員可寫入 (World-Writable)", "reason.world_writable"],
+  ["發現非預期 SUID 權限檔案", "reason.suid"],
+  ["檔案內容命中高風險 Webshell/遠端執行特徵", "reason.webshell"],
+  ["端點無法連線", "reason.unreachable"],
+  ["網頁回應內容 SHA-256 與基線不符", "reason.hash_mismatch"],
+  ["TLS 憑證指紋與基線不符（已釘選；拒絕信任新憑證，請於基線重置後確認）", "reason.cert_mismatch"],
+  ["IN_CREATE (新建)", "flag.in_create"],
+  ["IN_MODIFY (修改)", "flag.in_modify"],
+  ["IN_CLOSE_WRITE (寫入完成)", "flag.in_close_write"],
+  ["IN_ATTRIB (權限/屬性變更)", "flag.in_attrib"],
+  ["IN_MOVED_FROM (移出/更名)", "flag.in_moved_from"],
+  ["IN_MOVED_TO (移入/更名)", "flag.in_moved_to"],
+  ["IN_DELETE (刪除)", "flag.in_delete"],
+  ["IN_CREATE (新建子目錄內檔案)", "flag.in_create_child"],
+  ["IN_DELETE_SELF (目標刪除)", "flag.in_delete_self"],
+  ["IN_MOVE_SELF (目標移動)", "flag.in_move_self"],
+];
+
+function sl(id, fallback) {
+  if (!id) return fallback || "";
+  if (currentLang === "zh-TW") return fallback || id;
+  const pack = SERVER_LABELS[currentLang] || SERVER_LABELS.en;
+  return (pack && pack[id]) || (SERVER_LABELS.en && SERVER_LABELS.en[id]) || fallback || id;
+}
+
+function localizeServerText(text) {
+  if (text == null || text === "") return text;
+  if (currentLang === "zh-TW") return String(text);
+  let s = String(text);
+  // Exact CF / reason maps first
+  if (CF_LABEL_TO_ID[s]) return sl(CF_LABEL_TO_ID[s], s);
+  for (const [zh, id] of REASON_PHRASES) {
+    if (s.includes(zh)) s = s.split(zh).join(sl(id, zh));
+  }
+  // DSM unexpected script reason with dynamic ext
+  s = s.replace(/DSM 系統網頁目錄出現非預期腳本檔 \(([^)]+)\)/g, (_, ext) => {
+    return currentLang === "jp"
+      ? `DSM Webディレクトリに予期しないスクリプト (${ext})`
+      : `Unexpected script under DSM web tree (${ext})`;
+  });
+  s = s.replace(/HTTP 狀態碼改變 \(([^)]+)\)/g, (_, ch) => {
+    return currentLang === "jp" ? `HTTPステータス変更 (${ch})` : `HTTP status changed (${ch})`;
+  });
+  return s;
+}
+
+function localizeTargetLabel(tgt) {
+  return sl(tgt && tgt.id, tgt && tgt.label);
+}
+
+function localizeServiceLabel(svc) {
+  return sl(svc && svc.name ? `svc.${svc.name}` : "", svc && svc.label);
+}
+
+function localizeEndpointLabel(ep) {
+  return sl(ep && ep.id, ep && ep.label);
+}
+
+function localizeCheckLabel(chk) {
+  return sl(chk && chk.id, chk && chk.label);
+}
+
 
 function getPortDescription(port) {
   const dict = PORT_DESCRIPTIONS[currentLang] || PORT_DESCRIPTIONS["zh-TW"];
@@ -1900,12 +2159,12 @@ function renderDashboard(data) {
       inoBody.innerHTML = inoEvents.map((ev) => {
         const bCls = ev.severity === "CRITICAL" ? "badge-crit" : ev.severity === "WARNING" ? "badge-warn" : "badge-ok";
         const suspText = (ev.suspicious && ev.suspicious.length > 0)
-          ? `<div style="color:#ff3377; font-weight:600; margin-top:2px;">⚠️ ${escapeHtml(ev.suspicious.join("；"))}</div>`
+          ? `<div style="color:#ff3377; font-weight:600; margin-top:2px;">⚠️ ${escapeHtml(ev.suspicious.map(localizeServerText).join("；"))}</div>`
           : "";
         return `<tr>
           <td class="mono">${escapeHtml(ev.iso_time)}</td>
           <td><span class="badge ${bCls}">${escapeHtml(ev.severity)}</span></td>
-          <td class="mono" style="color:#fbbf24;">${escapeHtml((ev.flags || []).join(", "))}</td>
+          <td class="mono" style="color:#fbbf24;">${escapeHtml((ev.flags || []).map(localizeServerText).join(", "))}</td>
           <td class="mono" style="color:#ff6699;">${escapeHtml(ev.path)}</td>
           <td class="mono">${escapeHtml(ev.mode)} (${escapeHtml(ev.owner)})</td>
           <td class="mono">${escapeHtml((ev.hash || t("hash.none_deleted")).slice(0, 20))}... ${suspText}</td>
@@ -1939,7 +2198,7 @@ function renderDashboard(data) {
       document.getElementById("alertBannerTitle").textContent =
         `🚨 安全警報：偵測到 ${fim.anomaly_count} 項檔案異動、${net.unauthorized_ports.length} 個非基線埠、${rk.alert_count || 0} 項 Rootkit 異常！`;
     }
-    const firstReasons = (fim.anomalies || []).slice(0, 2).map((a) => `${a.path} (${a.reasons.join(", ")})`).join(" ； ");
+    const firstReasons = (fim.anomalies || []).slice(0, 2).map((a) => `${a.path} (${(a.reasons || []).map(localizeServerText).join(", ")})`).join(" ； ");
     document.getElementById("alertBannerDesc").textContent = firstReasons || (currentLang === "en" ? "Please inspect file integrity, rootkit checks, or listening port lists immediately." : currentLang === "jp" ? "直ちにファイル整合性、Rootkit検知、監視ポートリストを確認してください。" : "請立即檢查檔案完整性、Rootkit 檢測或監聽埠異動清單。");
   } else {
     banner.style.display = "none";
@@ -2049,7 +2308,7 @@ function renderDashboard(data) {
         <td><span class="badge ${badgeCls}">${escapeHtml(a.type)}</span></td>
         <td><span class="badge ${badgeCls}">${escapeHtml(a.severity)}</span></td>
         <td class="mono" style="color:#ff6699;">${escapeHtml(a.path)}</td>
-        <td>${escapeHtml((a.reasons || []).join("；"))}</td>
+        <td>${escapeHtml((a.reasons || []).map(localizeServerText).join("；"))}</td>
         <td class="mono">${escapeHtml(cur.mode || t("fim.deleted"))} (${escapeHtml(cur.owner || "-")})</td>
         <td class="mono">${escapeHtml((cur.hash || "").slice(0, 20))}...</td>
       </tr>`;
@@ -2065,8 +2324,8 @@ function renderDashboard(data) {
     const bTxt = c.status === "pass" ? t("posture.pass") : c.status === "warn" ? t("posture.warn") : t("posture.alert");
     return `<div class="check-item">
       <div>
-        <div style="font-weight:600; font-size:13.5px;">${escapeHtml(c.label)}</div>
-        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${escapeHtml(c.detail)}</div>
+        <div style="font-weight:600; font-size:13.5px;">${escapeHtml(localizeCheckLabel(c))}</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">${escapeHtml(localizeServerText(c.detail))}</div>
       </div>
       <span class="badge ${bCls}">${bTxt}</span>
     </div>`;
@@ -2076,10 +2335,10 @@ function renderDashboard(data) {
   document.getElementById("eventList").innerHTML = (data.events || []).map((ev) => {
     return `<div class="event-item ${escapeHtml(ev.level)}">
       <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
-        <span style="font-weight:700;">[${escapeHtml(ev.category)}] ${escapeHtml(ev.title)}</span>
+        <span style="font-weight:700;">[${escapeHtml(localizeServerText(ev.category))}] ${escapeHtml(localizeServerText(ev.title))}</span>
         <span class="mono" style="color:var(--text-muted); font-size:11.5px;">${escapeHtml(ev.time)}</span>
       </div>
-      <div style="color:var(--text-muted); font-size:12px;">${escapeHtml(ev.detail)}</div>
+      <div style="color:var(--text-muted); font-size:12px;">${escapeHtml(localizeServerText(ev.detail))}</div>
     </div>`;
   }).join("");
 
@@ -2090,7 +2349,7 @@ function renderDashboard(data) {
     const bTxt = tgt.suspicious_count > 0 ? tf("fim.suspicious", { n: tgt.suspicious_count }) : tgt.exists ? t("fim.protected") : t("fim.dir_off");
     return `<div class="target-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <span style="font-weight:600; font-size:13.5px;">${escapeHtml(tgt.label)}</span>
+        <span style="font-weight:600; font-size:13.5px;">${escapeHtml(localizeTargetLabel(tgt))}</span>
         <span class="badge ${bCls}">${bTxt}</span>
       </div>
       <div class="mono" style="font-size:12px; color:var(--text-muted);">${t("fim.files_count")} ${tgt.file_count} | ${t("fim.path_label")} ${escapeHtml((tgt.paths || []).join(", "))}</div>
@@ -2112,7 +2371,7 @@ function renderDashboard(data) {
         <td><span class="badge ${bCls}">${escapeHtml(a.type)}</span></td>
         <td><span class="badge ${bCls}">${escapeHtml(a.severity)}</span></td>
         <td class="mono" style="color:#ff6699;">${escapeHtml(a.path)}</td>
-        <td>${escapeHtml((a.reasons || []).join("；"))}</td>
+        <td>${escapeHtml((a.reasons || []).map(localizeServerText).join("；"))}</td>
         <td class="mono">${escapeHtml(modeDiff)}</td>
         <td class="mono">${escapeHtml(hashDiff)}</td>
       </tr>`;
@@ -2128,12 +2387,12 @@ function renderDashboard(data) {
       : `<span class="badge badge-crit">${t("web.conn_fail")}</span>`;
     const matchBadge = ep.baseline_match && (!ep.anomaly_notes || ep.anomaly_notes.length === 0)
       ? `<span class="badge badge-ok">${t("web.hash_ok")}</span>`
-      : `<span class="badge badge-warn">${escapeHtml((ep.anomaly_notes || []).join(", ") || t("web.changed"))}</span>`;
+      : `<span class="badge badge-warn">${escapeHtml((ep.anomaly_notes || []).map(localizeServerText).join(", ") || t("web.changed"))}</span>`;
     const tlsInfo = ep.cert
       ? `${escapeHtml(ep.cert.tls_version)} (${escapeHtml(ep.cert.sha256.slice(0, 14))}...)`
       : ep.redirects_to_https ? t("web.redirect_https") : t("web.http_plain");
     return `<tr>
-      <td style="font-weight:600;">${escapeHtml(ep.label)}</td>
+      <td style="font-weight:600;">${escapeHtml(localizeEndpointLabel(ep))}</td>
       <td class="mono"><a href="${escapeHtml(url)}" target="_blank" style="color:#00e5ff; text-decoration:none;">${escapeHtml(url)}</a></td>
       <td>${statusBadge}</td>
       <td class="mono">${ep.latency_ms ?? "--"} ms</td>
@@ -2200,8 +2459,8 @@ function renderDashboard(data) {
       return `<tr>
         <td><span class="badge ${bCls}">${bTxt}</span></td>
         <td class="mono"><span class="badge">${escapeHtml(c.tool || "rkhunter")}</span></td>
-        <td style="font-weight:600;">${escapeHtml(c.label)}</td>
-        <td class="mono">${escapeHtml(c.detail)}</td>
+        <td style="font-weight:600;">${escapeHtml(localizeCheckLabel(c))}</td>
+        <td class="mono">${escapeHtml(localizeServerText(c.detail))}</td>
       </tr>`;
     }).join("");
   }
@@ -2215,7 +2474,7 @@ function renderDashboard(data) {
     return `<tr>
       <td>${sBadge}</td>
       <td class="mono" style="font-weight:700;">${escapeHtml(s.name)}</td>
-      <td>${escapeHtml(s.label)}</td>
+      <td>${escapeHtml(localizeServiceLabel(s))}</td>
       <td class="mono">${s.process_count}</td>
       <td class="mono">${escapeHtml((s.users || []).join(", ") || "-")}</td>
       <td class="mono">${escapeHtml((s.pids || []).join(", ") || "-")}</td>
@@ -2271,7 +2530,7 @@ function renderDashboard(data) {
   const sm = data.smart_reference || {};
   const disksHtml = (sys.disks || []).map((d) => `<div class="check-item">
     <div>
-      <div style="font-weight:600;">${escapeHtml(d.label)} (${escapeHtml(d.mount)})</div>
+      <div style="font-weight:600;">${escapeHtml(sl(d.mount ? ("disk." + d.mount) : "", d.label))} (${escapeHtml(d.mount)})</div>
       <div class="mono" style="font-size:12px; color:var(--text-muted);">${tf("disk.used", { u: d.used_gb, t: d.total_gb, a: d.avail_gb })}</div>
     </div>
     <span class="badge badge-ok">${d.percent}%</span>
@@ -2283,13 +2542,16 @@ function renderDashboard(data) {
       <div>
         <div style="font-weight:600;">${t("disk.model")}${escapeHtml(sm.model)}</div>
         <div style="font-size:12px; color:var(--text-muted);">${t("disk.hours")} ${sm.power_on_hours?.toLocaleString()} ${t("disk.hours_unit")} | Reallocated: ${sm.reallocated_sectors} | Pending: ${sm.pending_sectors}</div>
-        <div style="font-size:12px; color:#fbbf24; margin-top:3px;">💡 ${escapeHtml(sm.note)}</div>
+        <div style="font-size:12px; color:#fbbf24; margin-top:3px;">💡 ${escapeHtml(localizeServerText(sm.note))}</div>
       </div>
       <span class="badge badge-ok">${escapeHtml(sm.status)}</span>
     </div>
   `;
 
   drawCharts(data.history || []);
+  // Only refresh pure panel/chart chrome. Do NOT call applyStaticI18n() here —
+  // that would clobber ~18 live fields that also carry data-i18n placeholders.
+  applyChromeI18n();
 }
 
 function debouncedLoadFiles() {
@@ -2529,8 +2791,8 @@ function renderCloudflareIntel(cf) {
           : `<span class="badge">${escapeHtml(ev.action)}</span>`;
 
         const sevBadge = ev.severity === "CRITICAL"
-          ? `<span class="badge badge-crit">${escapeHtml(ev.probe_label)}</span>`
-          : `<span class="badge badge-warn">${escapeHtml(ev.probe_label)}</span>`;
+          ? `<span class="badge badge-crit">${escapeHtml(localizeServerText(ev.probe_label))}</span>`
+          : `<span class="badge badge-warn">${escapeHtml(localizeServerText(ev.probe_label))}</span>`;
 
         const queryStr = ev.query ? `?${escapeHtml(ev.query)}` : "";
         const uaShort = (ev.user_agent || "").slice(0, 36) + (ev.user_agent && ev.user_agent.length > 36 ? "..." : "");
