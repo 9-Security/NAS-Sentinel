@@ -1,7 +1,7 @@
 # NAS Sentinel — Zero-Footprint Real-Time Security & File Integrity Monitoring for Synology DSM
 
 <p align="center">
-  <b>English</b> | <a href="README.zh-TW.md">繁體中文</a> | <a href="docs/USER_GUIDE.md">📖 User Guide</a> | <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a>
+  <b>English</b> | <a href="README.zh-TW.md">繁體中文</a> | <a href="docs/USER_GUIDE.md">📖 User Guide</a> | <a href="docs/ARCHITECTURE.md">🏗️ Architecture</a> | <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
@@ -184,6 +184,7 @@ NAS-Sentinel/
 ├── Dockerfile                   # Docker container definition
 ├── docker-compose.yml           # Docker Compose deployment file
 ├── LICENSE                      # MIT Open-Source License
+├── CHANGELOG.md                 # Keep a Changelog release notes
 ├── README.md                    # Primary English documentation (this file)
 └── README.zh-TW.md              # Traditional Chinese documentation (繁體中文說明)
 ```
