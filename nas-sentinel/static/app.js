@@ -2164,7 +2164,14 @@ async function skipSetupOffline() {
   }
 }
 
-async function saveSetupConfig(persistWithoutConnect = false) {
+async function saveSetupConfig(options) {
+  // Backward-compatible: saveSetupConfig(true) => persist only; saveSetupConfig(false) => try go live.
+  const opts = (typeof options === "boolean")
+    ? { persistOnly: options, goLive: !options }
+    : Object.assign({ persistOnly: false, goLive: true }, options || {});
+  const persistOnly = Boolean(opts.persistOnly);
+  const goLive = Boolean(opts.goLive) && !persistOnly;
+
   const host = (document.getElementById("setupNasHost").value || "").trim();
   const user = (document.getElementById("setupNasUser").value || "").trim();
   const port = parseInt(document.getElementById("setupNasPort").value || "22", 10);
@@ -2181,6 +2188,10 @@ async function saveSetupConfig(persistWithoutConnect = false) {
     showToast("⚠️ 請輸入 NAS 主機 IP 與 SSH 帳號", "warn");
     return;
   }
+  if (["127.0.0.1", "localhost", "::1", "0.0.0.0"].includes(host.toLowerCase())) {
+    showToast("⚠️ nas_host 不可為 127.0.0.1（那是本機 UI）。請填實際 NAS IP。", "warn");
+    return;
+  }
 
   if (!getApiToken()) {
     showApiAuthModal("Enter API token before saving settings (data/api_token.txt).");
@@ -2189,15 +2200,11 @@ async function saveSetupConfig(persistWithoutConnect = false) {
 
   if (btnSave) {
     btnSave.disabled = true;
-    if (!persistWithoutConnect) {
-      btnSave.textContent = "⏳ 正在驗證連線並建立初始基線...";
-    }
+    if (goLive) btnSave.textContent = "⏳ 儲存並測試 SSH...";
   }
   if (btnPersist) {
     btnPersist.disabled = true;
-    if (persistWithoutConnect) {
-      btnPersist.textContent = "⏳ 儲存參數中...";
-    }
+    if (persistOnly) btnPersist.textContent = "⏳ 儲存參數中...";
   }
   if (msgBox) msgBox.style.display = "none";
 
@@ -2208,7 +2215,8 @@ async function saveSetupConfig(persistWithoutConnect = false) {
       nas_port: port,
       cloudflare_enabled: cfEnabled,
       cloudflare_zone_id: cfZone,
-      persist_without_connect: Boolean(persistWithoutConnect),
+      persist_without_connect: persistOnly,
+      go_live: goLive,
     };
     // Blank key = keep existing server-side; only send when the user typed/selected one.
     if (key) payload.ssh_key_path = key;
@@ -2224,24 +2232,29 @@ async function saveSetupConfig(persistWithoutConnect = false) {
     }
     const json = await res.json();
     if (json.ok) {
-      const offline = Boolean(json.persisted_without_connect || json.offline_mode || persistWithoutConnect);
+      const live = Boolean(json.live);
+      const offline = !live;
       if (msgBox) {
         msgBox.style.display = "block";
         msgBox.style.background = offline ? "rgba(251, 191, 36, 0.12)" : "rgba(0, 255, 65, 0.15)";
         msgBox.style.border = offline ? "1px solid rgba(251, 191, 36, 0.45)" : "1px solid #00ff41";
         msgBox.style.color = offline ? "#fbbf24" : "#00ff41";
-        msgBox.textContent = "✅ " + (json.message || "設定已成功儲存！");
+        msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || "設定已儲存");
       }
       showToast(
-        offline ? "💾 連線參數已儲存（尚未驗證 SSH）" : "🛡️ 設定已儲存！進入戰情室...",
-        "info"
+        live
+          ? "🛡️ 設定已儲存，監控已上線"
+          : (json.warning
+            ? `💾 設定已儲存（SSH 未上線：${json.warning}）`
+            : "💾 連線設定已儲存（離線）"),
+        live ? "info" : "warn"
       );
       appConfig = json.config || { is_configured: true, offline_mode: offline };
       isSetupInitial = false;
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
-      }, offline ? 700 : 1200);
+      }, offline ? 900 : 1200);
     } else {
       if (msgBox) {
         msgBox.style.display = "block";
@@ -2263,11 +2276,11 @@ async function saveSetupConfig(persistWithoutConnect = false) {
   } finally {
     if (btnSave) {
       btnSave.disabled = false;
-      btnSave.textContent = "🛡️ 儲存並進入戰情室 (Save & Launch)";
+      btnSave.textContent = "🛡️ 測試並上線 (Test & go live)";
     }
     if (btnPersist) {
       btnPersist.disabled = false;
-      btnPersist.textContent = "💾 僅儲存連線參數";
+      btnPersist.textContent = "💾 儲存連線設定";
     }
   }
 }
