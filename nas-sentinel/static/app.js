@@ -1357,12 +1357,33 @@ function renderDashboard(data) {
     <td class="mono">${escapeHtml(k.id)}</td>
   </tr>`).join("");
 
-  document.getElementById("bruteForceBody").innerHTML = (sec.historical_brute_force || []).map((b) => `<tr>
-    <td class="mono" style="color:#ff6699; font-weight:600;">${escapeHtml(b.ip)}</td>
-    <td class="mono">${b.attempts} 次</td>
-    <td class="mono">${escapeHtml(b.last_seen)}</td>
-    <td>${escapeHtml(b.note)}</td>
-  </tr>`).join("");
+  const bruteRows = sec.historical_brute_force || [];
+  const bruteBody = document.getElementById("bruteForceBody");
+  const bruteBadge = document.getElementById("bruteForceBadge");
+  if (bruteBody) {
+    if (bruteRows.length === 0) {
+      bruteBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:18px; color:var(--text-secondary); font-family:var(--font-mono); font-size:12px;">
+        No auth-log intelligence loaded. Live auth logs are not shipped by default.
+        Demo sample rows appear only when <code>NAS_SENTINEL_DEMO_AUTH_INTEL=1</code>.
+      </td></tr>`;
+    } else {
+      bruteBody.innerHTML = bruteRows.map((b) => `<tr>
+        <td class="mono" style="color:#ff6699; font-weight:600;">${escapeHtml(b.ip)}</td>
+        <td class="mono">${escapeHtml(String(b.attempts))} 次</td>
+        <td class="mono">${escapeHtml(b.last_seen)}</td>
+        <td>${escapeHtml(b.note)}</td>
+      </tr>`).join("");
+    }
+  }
+  if (bruteBadge) {
+    if (sec.historical_brute_force_is_demo) {
+      bruteBadge.className = "badge badge-warn";
+      bruteBadge.textContent = "SAMPLE / DEMO DATA ONLY";
+    } else {
+      bruteBadge.className = "badge";
+      bruteBadge.textContent = "No live auth-log feed";
+    }
+  }
 
   const sm = data.smart_reference || {};
   const disksHtml = (sys.disks || []).map((d) => `<div class="check-item">
