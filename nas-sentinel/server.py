@@ -1904,6 +1904,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                     "persisted_without_connect": True,
                     "offline_mode": True,
                     "warning": warning,
+                    "error_code": (test_res or {}).get("error_code") if probe_error else None,
                     "message": (
                         "連線參數已儲存"
                         + (f"（SSH 尚未上線：{warning}）" if warning else "（未測試 SSH）")

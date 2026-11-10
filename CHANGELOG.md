@@ -9,6 +9,7 @@ and this project follows semantic versioning once tagged releases begin.
 
 ### Added
 
+- **P1 guided SSH setup:** Setup wizard shows always-visible DSM step cards (enable SSH → administrators group → generate key + copy-to-clipboard authorize command) with novice-first zh-TW / EN / JP copy. SSH probe failures map coarse `error_code` values to actionable “what to do next” recovery UI (retry / jump to steps / copy authorize command). `/api/setup/save` returns `error_code` when go-live probe fails. README / README.zh-TW match the guided flow; terminal/file digs remain backup paths. Security model unchanged (Bearer on `/api/*`, loopback-only local-token, no `0.0.0.0` defaults).
 - **P0 novice unlock:** `GET /api/auth/local-token` returns the API token only to TCP loopback peers (`127.0.0.1` / `::1`; never trusts `X-Forwarded-For`). The browser auto-stores it on first visit so users need not dig `data/api_token.txt`. Auth gate adds Localhost unlock / Copy token; Bearer auth remains required for all other `/api/*`. Start scripts and README / README.zh-TW describe auto-unlock as primary and the token file as backup.
 
 ### Fixed

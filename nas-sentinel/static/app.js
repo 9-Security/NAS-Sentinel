@@ -225,7 +225,7 @@ const I18N = {
     "guide.tab_faq": "❓ 常見問題 FAQ",
     "guide.btn_github": "在 GitHub 閱讀完整技術文檔",
     "guide.btn_gotit": "我知道了 (Got it)",
-    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> 系統零足跡架構原理 (Zero-Footprint Architecture)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinel 採主從式無足跡架構。本機端 Python 伺服器（<code>http://127.0.0.1:8088</code>）透過 SSH 加密通道將遙測探針注入 NAS 記憶體中執行，<strong>完全不在 NAS 本地磁碟落檔、不佔用系統空間、亦不需安裝任何第三方套件</strong>。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> 首次連線設定與金鑰授權 (Setup & SSH Key)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 點擊右上角「⚙️ 管理 ▾」➔「系統連線與參數設定...」。<br>2. 輸入 NAS IP 與 SSH 帳號（需具備 administrators 權限）。若變更過 SSH Port（如 2222），請一併修改。<br>3. 點選「🔑 產生專用 Ed25519 金鑰」，展開快速授權指令並複製單行指令至 NAS 終端機貼上執行一次即可完成免密授權。<br>4. 點擊「🧪 測試 NAS 連線」，確認連線成功後儲存進入戰情室。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> 自動排程與即時推播 (Telemetry Modes)</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>背景輪詢</strong>：預設每 15 秒自動探測一次 NAS 系統指標、網路連線與關鍵檔案異動。<br>- <strong>核心串流</strong>：利用 Linux inotify 即時捕捉檔案新增、修改與權限變更，具備毫秒級告警推播能力。</p></div>',
+    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> 系統零足跡架構原理 (Zero-Footprint Architecture)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinel 採主從式無足跡架構。本機端 Python 伺服器（<code>http://127.0.0.1:8088</code>）透過 SSH 加密通道將遙測探針注入 NAS 記憶體中執行，<strong>完全不在 NAS 本地磁碟落檔、不佔用系統空間、亦不需安裝任何第三方套件</strong>。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> 首次連線設定與金鑰授權 (Setup & SSH Key)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 開啟「⚙️ 管理 ▾」➔「系統連線與參數設定...」。<br>2. 依精靈步驟卡：在 DSM 開啟 SSH、確認管理員群組、產生金鑰並複製指令到「任務排程表」執行一次。<br>3. 填入 NAS 區網 IP 與管理員帳號，按「測試連線」；失敗時會顯示接下來該怎麼做。<br>4. 成功後按「測試並上線」進入戰情室。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> 自動排程與即時推播 (Telemetry Modes)</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>背景輪詢</strong>：預設每 15 秒自動探測一次 NAS 系統指標、網路連線與關鍵檔案異動。<br>- <strong>核心串流</strong>：利用 Linux inotify 即時捕捉檔案新增、修改與權限變更，具備毫秒級告警推播能力。</p></div>',
     "guide.content_fim": '<div class="guide-card"><div class="guide-card-title">⚡ 快速掃描 vs 深度掃描</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">- <strong>快速掃描 (Fast Scan ~0.4s)</strong>：每 15 秒自動觸發，針對 <code>.php</code>, <code>.sh</code>, <code>.cgi</code>, <code>.conf</code> 等高風險檔案與帳號設定比對修改時間 (mtime) 與檔案大小。<br>- <strong>深度掃描 (Deep Scan ~3.5s)</strong>：全量計算全系統 1,786 個 DSM 網頁核心檔案與系統二進位指令的 <strong>完整 SHA-256 雜湊碼</strong>，徹底揪出被偷換的木馬檔案。</p></div><div class="guide-card"><div class="guide-card-title">🛡️ 何時需要「重建安全基線」？</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">當您進行了下列<strong>合法維護操作</strong>時，戰情室會偵測到變更並顯示紅框警報：<br>1. 剛完成 Synology DSM 韌體升級。<br>2. 安裝或更新了官方套件（如 Web Station、Python）。<br>3. 管理員主動編輯了合法設定檔或更新了 SSH 金鑰。<br>此時請點擊「<strong>⚙️ 管理 ▾ ➔ 重建安全基線...</strong>」，系統將以目前狀態寫入為新的合法黃金基準並清除異動警報。</p></div><div class="guide-card"><div class="guide-card-title">🗄️ 檢索監控清單 (Search Monitored Files)</div><p style="font-size:12.5px; color:var(--text-secondary);">點選管理選單中的「檢索 1,786 監控檔案」，即可在 FIM 分頁搜尋過濾所有受監控檔案的完整路徑、SHA-256 雜湊碼與擁有者權限。</p></div>',
     "guide.content_inotify": '<div class="guide-card"><div class="guide-card-title">⚡ Linux inotify 核心事件串流機制</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">透過在 NAS 核心常駐之 inotify 監控程序，主動監控 <code>/usr/syno/synoman</code>, <code>/etc/nginx</code>, <code>/volume1/public</code>, <code>/volume1/tmp</code> 等敏感路徑。在檔案被寫入完成 (CLOSE_WRITE) 或屬性變更 (ATTRIB) 的毫秒瞬間，即時透過 stdout 推播回戰情室。</p></div><div class="guide-card"><div class="guide-card-title">🚨 Webshell 啟發式動態偵測</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">當任何檔案被寫入共享區或網頁目錄時，引擎自動檢查內容是否包含後門特徵：<br><code>eval(base64_decode(...))</code>, <code>passthru()</code>, <code>shell_exec()</code>, <code>assert()</code>。<br>一旦命中特徵，即時將威脅等級升至最高級別並標紅警示。</p></div><div class="guide-card"><div class="guide-card-title">🚫 SUID 提權與未授權公鑰寫入防護</div><p style="font-size:12.5px; color:var(--text-secondary);">- 嚴密防範 <code>chmod +s</code> 本機提權後門。<br>- 任何未經允許對 <code>~/.ssh/authorized_keys</code> 寫入的行為皆會被毫秒級捕捉。</p></div>',
     "guide.content_cf": '<div class="guide-card"><div class="guide-card-title">🌐 邊界刺探情資 (Edge Security Intel)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">透過 Cloudflare GraphQL API，直接從全球邊界 CDN 節點拉取外部對您網域的「惡意目錄刺探（如 <code>/.git/config</code>, <code>/wp-login.php</code>, <code>/.env</code>）」與「WAF 攔截事件」，完全不耗損 NAS 本地硬碟 I/O。</p></div><div class="guide-card"><div class="guide-card-title">🔑 API Token 建立與權限規範</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 前往 Cloudflare ➔ <strong>My Profile</strong> ➔ <strong>API Tokens</strong>。<br>2. 建立 Token，權限僅需給予單一項目：<strong><code>Zone - Analytics - Read</code></strong>。<br>3. 進入網域主頁，從右下方複製 <strong>Zone ID</strong>（32 位元字串）。</p></div><div class="guide-card"><div class="guide-card-title">🧪 測試連線功能 (Test Connection)</div><p style="font-size:12.5px; color:var(--text-secondary);">在設定精靈的 Cloudflare 區塊輸入後，可隨時點擊「<strong>🧪 測試連線 (Test)</strong>」確認 Token 與 Zone ID 的有效性，驗證通過再點擊儲存啟用。</p></div>',
@@ -267,23 +267,54 @@ const I18N = {
     "cf.btn_test": "🧪 測試連線",
     "cf.btn_save": "💾 儲存並啟用",
     "cf.btn_cancel": "取消",
-    "setup.title": "NAS Sentinel // 系統連線與安裝精靈",
-    "setup.sub": "Zero-Footprint Synology DSM 即時安全監控",
-    "setup.quick_title": "✨ 零技術門檻快速啟用 (Quick Setup)",
-    "setup.quick_desc": "輸入您的 Synology NAS 內部 IP 與 SSH 帳號，點擊「⚡ 測試連線與自動探測 NAS」，系統將自動檢測 DSM 版本、CPU 架構並在背景初始化安全基線。",
+    "setup.title": "NAS Sentinel // 連線引導精靈",
+    "setup.sub": "跟著 DSM 畫面點幾下，即可開始監控",
+    "setup.quick_title": "✨ 跟著畫面點三步，連上您的 NAS",
+    "setup.quick_desc": "先在 Synology 網頁桌面開啟遠端登入與管理員權限，再產生金鑰並複製授權指令。完成後填入 NAS IP，按「測試連線」即可。",
     "setup.ssh_help_header": "💡 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？",
     "setup.ssh_help_show": "▶ 展開教學",
     "setup.ssh_help_hide": "▼ 收合教學",
-    "setup.host_label": "NAS 主機 IP / 網址",
-    "setup.user_label": "SSH 登入帳號",
-    "setup.port_label": "SSH Port (可自訂)",
-    "setup.key_label": "SSH 私鑰路徑 (Authentication Key)",
-    "setup.keygen_link": "🔑 產生受密碼保護的新金鑰",
-    "setup.btn_test": "測試 SSH 連線並自動探測 NAS",
+    "setup.step1_title": "在 DSM 開啟遠端登入（SSH）",
+    "setup.step1_body": "用瀏覽器登入 Synology 網頁桌面 → <strong>控制台</strong> → <strong>終端機與 SNMP</strong> → <strong>終端機</strong> → 勾選「啟用 SSH 服務」並套用。連接埠多半是 <code>22</code>；若您改過，請把數字填到下方。",
+    "setup.step2_title": "確認帳號在「管理員」群組",
+    "setup.step2_body": "Synology 只允許<strong>管理員群組</strong>（<code>administrators</code>）帳號用 SSH。到 <strong>控制台</strong> → <strong>使用者與群組</strong>，確認您要用的帳號已加入管理員。",
+    "setup.step3_title": "產生金鑰，並在 NAS 上授權一次",
+    "setup.step3_body": "點「產生專用金鑰」並設定一組至少 8 字元的保護密碼。複製出現的一行指令，到 DSM <strong>控制台 → 任務排程表</strong> → 新增「使用者定義的指令碼」，貼上後<strong>執行一次</strong>即可（不必開黑視窗終端機）。",
+    "setup.step3_hint": "金鑰檔只會存在這台電腦的 ~/.ssh/",
+    "setup.form_header": "填寫連線資料（本機 ↔ NAS）",
+    "setup.host_label": "NAS 區網 IP",
+    "setup.user_label": "NAS 管理員帳號",
+    "setup.port_label": "SSH 連接埠",
+    "setup.key_label": "本機登入金鑰（建議用上方產生）",
+    "setup.keygen_link": "🔑 產生專用金鑰",
+    "setup.btn_test": "測試連線並探測 NAS",
     "setup.cf_header": "🌐 Cloudflare 邊界日誌監控 (選填，可稍後設定)",
     "setup.btn_save": "🛡️ 測試並上線 (Test & go live)",
     "setup.btn_close": "關閉",
     "setup.footnote": "🔒 密鑰僅儲存在本地端 data/ 目錄",
+    "setup.passphrase_hint": "產生後請在這台電腦解鎖金鑰一次（ssh-agent），背景監控才會自動連線。空白密碼的金鑰不允許自動產生。",
+    "setup.err.next": "接下來請這樣做：",
+    "setup.err.retry": "再試一次連線",
+    "setup.err.copy_auth": "複製授權指令",
+    "setup.err.scroll_steps": "查看上方 DSM 步驟",
+    "setup.err.timeout.title": "連不上 NAS（逾時）",
+    "setup.err.timeout.body": "這台電腦在限定時間內沒收到 NAS 回應。",
+    "setup.err.timeout.steps": "<ol><li>確認下方 IP 是 NAS 的<strong>區網位址</strong>（不是 127.0.0.1）。</li><li>確認 SSH 連接埠與 DSM「終端機」設定一致（常見是 22）。</li><li>依上方步驟 1 確認已勾選「啟用 SSH 服務」。</li><li>確認這台電腦與 NAS 在同一個網路。</li></ol>",
+    "setup.err.refused.title": "連線被拒絕",
+    "setup.err.refused.body": "NAS 有回應，但拒絕了 SSH 連線——多半是還沒開啟 SSH，或連接埠填錯。",
+    "setup.err.refused.steps": "<ol><li>到 DSM：控制台 → 終端機與 SNMP → 勾選「啟用 SSH 服務」並套用。</li><li>核對下方連接埠是否與 DSM 顯示的相同。</li><li>完成後按「再試一次連線」。</li></ol>",
+    "setup.err.unreachable.title": "找不到這台 NAS",
+    "setup.err.unreachable.body": "IP／主機名稱無法連線或無法解析。",
+    "setup.err.unreachable.steps": "<ol><li>在 DSM 資訊中心或路由器確認正確的區網 IP。</li><li>用瀏覽器先開得了 DSM 網頁（例如 http://192.168.x.x:5000）。</li><li>不要填 127.0.0.1（那是本機儀表板，不是 NAS）。</li></ol>",
+    "setup.err.auth_failed.title": "帳號或金鑰尚未通過驗證",
+    "setup.err.auth_failed.body": "SSH 已通，但登入被拒。通常是金鑰還沒授權、帳號不是管理員，或本機金鑰尚未解鎖。",
+    "setup.err.auth_failed.steps": "<ol><li>依上方步驟 3：複製授權指令，到 DSM「任務排程表」用<strong>同一管理員帳號</strong>執行一次。</li><li>確認帳號已在管理員群組（步驟 2）。</li><li>若剛產生金鑰，請在本機解鎖金鑰（ssh-agent）後再試。</li></ol>",
+    "setup.err.host_key_mismatch.title": "NAS 身分指紋與先前記錄不符",
+    "setup.err.host_key_mismatch.body": "這可能是 NAS 重裝／換機，或是網路環境異常。請先確認您連到的是自己的 NAS。",
+    "setup.err.host_key_mismatch.steps": "<ol><li>確認 IP 確實是您的 Synology（可對照 DSM 網頁）。</li><li>若您剛重裝或更換 NAS，可關閉伺服器後刪除本機 <code>nas-sentinel/data/ssh_known_hosts</code>，再重新測試以接受新指紋。</li><li>不確定時請勿略過此警告。</li></ol>",
+    "setup.err.ssh_failed.title": "SSH 連線失敗",
+    "setup.err.ssh_failed.body": "無法完成連線。請依上方三步驟再檢查一次。",
+    "setup.err.ssh_failed.steps": "<ol><li>確認 SSH 已啟用、帳號是管理員、金鑰已授權。</li><li>再按「測試連線」。</li><li>仍失敗時，可先「儲存連線設定」稍後再上線。</li></ol>",
     "page.title": "Nine-Security | NAS Sentinel - Synology DSM 即時安全監控中心",
     "toast.placeholder": "系統提示訊息",
     "overview.chart_temp_legend": "溫度°C",
@@ -421,16 +452,16 @@ const I18N = {
     "cf.enable_label": "啟用邊界安全情報自動排程同步 (每 60 秒)",
     "setup.ssh_help_body_1": "<strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。",
     "setup.ssh_help_body_2": "<strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。",
-    "setup.ssh_help_body_3": "<strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。",
+    "setup.ssh_help_body_3": "<strong>3. 授權 SSH 金鑰</strong>：點擊「🔑 產生專用金鑰」，複製指令到 DSM「任務排程表」執行一次；本機請解鎖金鑰後再測試連線。",
     "setup.host_ph": "例如：192.168.1.100",
-    "setup.user_ph": "例如：admin 或 root",
-    "setup.port_hint": "(可自訂)",
-    "setup.port_title": "若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改",
-        "setup.key_default_opt": "(系統預設金鑰 / ~/.ssh/ 自動解析)",
+    "setup.user_ph": "例如：admin",
+    "setup.port_hint": "(預設 22)",
+    "setup.port_title": "若您的 NAS 修改過 SSH 連接埠（例如 2222），請在此修改",
+    "setup.key_default_opt": "(自動使用本機 ~/.ssh 預設金鑰)",
     "setup.key_custom_ph": "例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）",
-    "setup.passphrase_ph": "新金鑰 Passphrase（至少 8 字元；禁止空白密碼）",
-    "setup.key_auth_title": "🔑 快速授權此金鑰至 Synology NAS",
-    "setup.key_auth_desc": "登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：",
+    "setup.passphrase_ph": "新金鑰保護密碼（至少 8 字元）",
+    "setup.key_auth_title": "🔑 複製這行指令，到 DSM 任務排程表執行一次",
+    "setup.key_auth_desc": "任務使用者請選您的管理員帳號。執行成功後回到這裡按「測試連線」。",
     "setup.copy_btn": "📋 複製",
     "setup.cf_expand": "▶ 展開",
     "setup.cf_collapse": "▼ 收合",
@@ -546,11 +577,11 @@ const I18N = {
     "setup.probe_fail_title": "❌ 連線失敗",
     "setup.unknown_conn": "未知連線錯誤",
     "setup.probe_ex": "❌ 連線請求例外:",
-    "setup.keygen_toast": "🔑 正在產生受密碼保護的 Ed25519 金鑰對...",
-    "setup.keygen_ok": "✅ 新金鑰已生成（請用 ssh-agent 載入密碼）。複製授權指令至 NAS。",
+    "setup.keygen_toast": "🔑 正在產生受保護的專用金鑰...",
+    "setup.keygen_ok": "✅ 金鑰已產生。請複製授權指令到 DSM 任務排程表執行一次，並在本機解鎖金鑰。",
     "setup.keygen_fail": "❌ 生成失敗:",
     "setup.req_ex": "❌ 請求異常:",
-    "setup.copied": "📋 已複製授權指令到剪貼簿！",
+    "setup.copied": "📋 已複製授權指令！請到 DSM 任務排程表貼上並執行一次。",
     "setup.copied_short": "📋 已複製！",
     "setup.skip_ok": "🚪 已進入離線戰情室（既有主機／金鑰未變更）",
     "setup.skip_fail": "無法略過設定",
@@ -605,7 +636,7 @@ const I18N = {
     "guide.tab_faq": "❓ FAQ",
     "guide.btn_github": "View Full Tech Docs on GitHub",
     "guide.btn_gotit": "Got it",
-    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> Zero-Footprint Architecture</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinel operates in an agentless, zero-footprint model. The local Python server (<code>http://127.0.0.1:8088</code>) injects lightweight telemetry probes into the NAS via SSH encrypted memory execution. <strong>Zero files are written to NAS disks, zero root partition space is used, and no extra packages are required</strong>.</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> Initial Connection & SSH Key Authorization</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. Open "⚙️ Admin ▾" ➔ "System Connection & Settings...".<br>2. Enter your NAS IP and SSH account (must belong to the administrators group). If using a custom SSH port (e.g. 2222), enter it here.<br>3. Click "🔑 Generate Dedicated Ed25519 Key", expand the quick authorization command, and paste it into your NAS terminal once.<br>4. Click "🧪 Test NAS Connection" to verify DSM and Linux kernel details, then click Save & Launch.</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> Telemetry & Push Modes</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>Background Polling</strong>: Automatically probes system metrics, network connections, and key file changes every 15 seconds.<br>- <strong>Kernel Streaming</strong>: Leverages Linux inotify to detect file creations, edits, and permission changes with sub-second alert dispatch.</p></div>',
+    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> Zero-Footprint Architecture</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinel operates in an agentless, zero-footprint model. The local Python server (<code>http://127.0.0.1:8088</code>) injects lightweight telemetry probes into the NAS via SSH encrypted memory execution. <strong>Zero files are written to NAS disks, zero root partition space is used, and no extra packages are required</strong>.</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> Initial Connection & SSH Key Authorization</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. Open "⚙️ Admin ▾" ➔ "System Connection & Settings...".<br>2. Follow the wizard step cards: enable SSH in DSM, confirm administrators group, generate a key and Run the copied command once in Task Scheduler.<br>3. Enter the NAS LAN IP and admin username, then click Test connection — failures show what to do next.<br>4. On success, click Test & go live to enter the SOC.</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> Telemetry & Push Modes</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>Background Polling</strong>: Automatically probes system metrics, network connections, and key file changes every 15 seconds.<br>- <strong>Kernel Streaming</strong>: Leverages Linux inotify to detect file creations, edits, and permission changes with sub-second alert dispatch.</p></div>',
     "guide.content_fim": '<div class="guide-card"><div class="guide-card-title">⚡ Fast Scan vs Deep Scan</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">- <strong>Fast Scan (~0.4s)</strong>: Automatically runs every 15s. Audits high-risk files (<code>.php</code>, <code>.sh</code>, <code>.cgi</code>, <code>.conf</code>) and security configs by comparing mtime and size.<br>- <strong>Deep Scan (~3.5s)</strong>: Computes full <strong>SHA-256 hashes</strong> across all 1,786 DSM web files and system binaries to expose stealthy backdoor replacements.</p></div><div class="guide-card"><div class="guide-card-title">🛡️ When to "Rebuild Baseline"?</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">When performing <strong>legitimate maintenance</strong>, an alert will be raised because files changed:<br>1. Just upgraded Synology DSM firmware.<br>2. Installed or updated official packages (e.g. Web Station, Python).<br>3. Legitimate administrator edits to configs or authorized_keys.<br>Simply click "<strong>⚙️ Admin ▾ ➔ Rebuild Baseline...</strong>" to save the clean state as the new golden reference.</p></div><div class="guide-card"><div class="guide-card-title">🗄️ Search Monitored Files</div><p style="font-size:12.5px; color:var(--text-secondary);">Click "Search 1,786 Monitored Files" in the Admin menu to filter paths, SHA-256 hashes, and permissions in the FIM tab.</p></div>',
     "guide.content_inotify": '<div class="guide-card"><div class="guide-card-title">⚡ Linux inotify Kernel Event Stream</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">A resident inotify daemon on the NAS monitors sensitive paths like <code>/usr/syno/synoman</code>, <code>/etc/nginx</code>, <code>/volume1/public</code>, and <code>/volume1/tmp</code>. As soon as a file is written (CLOSE_WRITE) or permissions change (ATTRIB), events stream to the dashboard in milliseconds.</p></div><div class="guide-card"><div class="guide-card-title">🚨 Real-Time Webshell Heuristics</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">When files are written to shared folders or web directories, the engine scans for backdoor patterns:<br><code>eval(base64_decode(...))</code>, <code>passthru()</code>, <code>shell_exec()</code>, <code>assert()</code>.<br>Matching signatures trigger immediate critical alerts.</p></div><div class="guide-card"><div class="guide-card-title">🚫 SUID Escalation & Unauthorized Key Injection</div><p style="font-size:12.5px; color:var(--text-secondary);">- Detects <code>chmod +s</code> local privilege escalation backdoors.<br>- Any unauthorized write to <code>~/.ssh/authorized_keys</code> is trapped in real time.</p></div>',
     "guide.content_cf": '<div class="guide-card"><div class="guide-card-title">🌐 Edge Security Intelligence</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">Using Cloudflare GraphQL API, pull path probing attempts (e.g. <code>/.git/config</code>, <code>/wp-login.php</code>, <code>/.env</code>) and WAF blocks directly from Cloudflare global edge with zero NAS disk I/O.</p></div><div class="guide-card"><div class="guide-card-title">🔑 API Token Setup & Permissions</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. Go to Cloudflare ➔ <strong>My Profile</strong> ➔ <strong>API Tokens</strong>.<br>2. Create a Token with a single read-only permission: <strong><code>Zone - Analytics - Read</code></strong>.<br>3. Go to domain overview and copy the 32-character <strong>Zone ID</strong>.</p></div><div class="guide-card"><div class="guide-card-title">🧪 Connection Verification</div><p style="font-size:12.5px; color:var(--text-secondary);">Click "<strong>🧪 Test Connection</strong>" in setup wizard to verify Token & Zone ID before saving.</p></div>',
@@ -647,23 +678,54 @@ const I18N = {
     "cf.btn_test": "🧪 Test Connection",
     "cf.btn_save": "💾 Save & Enable",
     "cf.btn_cancel": "Cancel",
-    "setup.title": "NAS Sentinel // Setup & Connection Wizard",
-    "setup.sub": "Zero-Footprint Synology DSM Real-Time Security Monitor",
-    "setup.quick_title": "✨ One-Click Quick Start (Quick Setup)",
-    "setup.quick_desc": "Enter your Synology NAS LAN IP and SSH user, then click '⚡ Test Connection & Probe NAS'. The system auto-detects DSM version, CPU arch, and establishes baseline.",
+    "setup.title": "NAS Sentinel // Guided Connection Wizard",
+    "setup.sub": "Follow a few DSM clicks to start monitoring",
+    "setup.quick_title": "✨ Three on-screen steps to connect your NAS",
+    "setup.quick_desc": "In the Synology web desktop, enable remote login and admin access, generate a key, then copy the authorize command. Enter your NAS IP and click Test Connection.",
     "setup.ssh_help_header": "💡 First time? How to obtain Synology NAS SSH access & key authentication?",
     "setup.ssh_help_show": "▶ Show Guide",
     "setup.ssh_help_hide": "▼ Hide Guide",
-    "setup.host_label": "NAS LAN IP / Hostname",
-    "setup.user_label": "SSH Username",
-    "setup.port_label": "SSH Port (Customizable)",
-    "setup.key_label": "SSH Private Key Path",
-    "setup.keygen_link": "🔑 Generate Passphrase-Protected Key",
-    "setup.btn_test": "Test SSH Connection & Probe NAS",
+    "setup.step1_title": "Turn on remote login (SSH) in DSM",
+    "setup.step1_body": "Open the Synology web desktop → <strong>Control Panel</strong> → <strong>Terminal & SNMP</strong> → <strong>Terminal</strong> → check <strong>Enable SSH service</strong> and Apply. Port is usually <code>22</code>; if you changed it, enter that number below.",
+    "setup.step2_title": "Make sure the account is an administrator",
+    "setup.step2_body": "Only users in the <strong>administrators</strong> group can use SSH. Go to <strong>Control Panel</strong> → <strong>User & Group</strong> and confirm your account is in administrators.",
+    "setup.step3_title": "Generate a key and authorize it once on the NAS",
+    "setup.step3_body": "Click <strong>Generate key</strong> and choose a protection password (min 8 characters). Copy the one-line command, then in DSM open <strong>Control Panel → Task Scheduler</strong> → create a <strong>User-defined script</strong>, paste it, and <strong>Run once</strong> (no terminal window needed).",
+    "setup.step3_hint": "The key file stays only on this PC under ~/.ssh/",
+    "setup.form_header": "Connection details (this PC ↔ NAS)",
+    "setup.host_label": "NAS LAN IP",
+    "setup.user_label": "NAS admin username",
+    "setup.port_label": "SSH port",
+    "setup.key_label": "Login key on this PC (prefer Generate above)",
+    "setup.keygen_link": "🔑 Generate key",
+    "setup.btn_test": "Test connection & probe NAS",
     "setup.cf_header": "🌐 Cloudflare Edge Log Monitoring (Optional)",
     "setup.btn_save": "🛡️ Test & go live",
     "setup.btn_close": "Close",
     "setup.footnote": "🔒 Credentials stored strictly in local data/ directory",
+    "setup.passphrase_hint": "After generating, unlock the key once on this PC (ssh-agent) so background monitoring can connect. Empty-password keys cannot be auto-generated.",
+    "setup.err.next": "What to do next:",
+    "setup.err.retry": "Retry connection",
+    "setup.err.copy_auth": "Copy authorize command",
+    "setup.err.scroll_steps": "Jump to DSM steps",
+    "setup.err.timeout.title": "Cannot reach the NAS (timeout)",
+    "setup.err.timeout.body": "This PC did not get a response from the NAS in time.",
+    "setup.err.timeout.steps": "<ol><li>Confirm the IP below is the NAS <strong>LAN address</strong> (not 127.0.0.1).</li><li>Confirm the SSH port matches DSM Terminal settings (often 22).</li><li>Follow step 1 above and ensure SSH is enabled.</li><li>Confirm this PC and the NAS are on the same network.</li></ol>",
+    "setup.err.refused.title": "Connection refused",
+    "setup.err.refused.body": "The NAS answered but refused SSH — usually SSH is off or the port is wrong.",
+    "setup.err.refused.steps": "<ol><li>In DSM: Control Panel → Terminal & SNMP → enable SSH and Apply.</li><li>Check that the port below matches DSM.</li><li>Then click Retry connection.</li></ol>",
+    "setup.err.unreachable.title": "NAS not found",
+    "setup.err.unreachable.body": "The IP/hostname could not be reached or resolved.",
+    "setup.err.unreachable.steps": "<ol><li>Confirm the LAN IP in DSM Info Center or your router.</li><li>Open the DSM web UI first (e.g. http://192.168.x.x:5000).</li><li>Do not use 127.0.0.1 (that is this dashboard, not the NAS).</li></ol>",
+    "setup.err.auth_failed.title": "Account or key not accepted",
+    "setup.err.auth_failed.body": "SSH reached the NAS, but login failed. Usually the key is not authorized yet, the user is not an admin, or the key is still locked on this PC.",
+    "setup.err.auth_failed.steps": "<ol><li>Follow step 3: copy the authorize command and Run it once in DSM Task Scheduler as the <strong>same admin user</strong>.</li><li>Confirm the account is in administrators (step 2).</li><li>If you just generated a key, unlock it on this PC (ssh-agent) and retry.</li></ol>",
+    "setup.err.host_key_mismatch.title": "NAS identity fingerprint changed",
+    "setup.err.host_key_mismatch.body": "This can happen after a NAS reinstall/replacement — or an unexpected network change. Confirm you are talking to your own NAS.",
+    "setup.err.host_key_mismatch.steps": "<ol><li>Verify the IP really is your Synology (open DSM in a browser).</li><li>If you reinstalled or replaced the NAS, stop the server, delete local <code>nas-sentinel/data/ssh_known_hosts</code>, then test again to accept the new fingerprint.</li><li>If unsure, do not ignore this warning.</li></ol>",
+    "setup.err.ssh_failed.title": "SSH connection failed",
+    "setup.err.ssh_failed.body": "Connection could not complete. Recheck the three DSM steps above.",
+    "setup.err.ssh_failed.steps": "<ol><li>Confirm SSH is on, the account is admin, and the key is authorized.</li><li>Click Test connection again.</li><li>You can still Save connection settings and go live later.</li></ol>",
     "page.title": "Nine-Security | NAS Sentinel - Synology DSM Real-Time Security SOC",
     "toast.placeholder": "System notification",
     "overview.chart_temp_legend": "Temp °C",
@@ -801,16 +863,16 @@ const I18N = {
     "cf.enable_label": "Enable edge intel auto-sync (every 60s)",
     "setup.ssh_help_body_1": "<strong>1. Enable DSM SSH</strong>: DSM Desktop ➔ Control Panel ➔ Terminal & SNMP ➔ Enable SSH service (Port 22).",
     "setup.ssh_help_body_2": "<strong>2. Admin required</strong>: Only users in the `administrators` group may SSH in.",
-    "setup.ssh_help_body_3": "<strong>3. Authorize SSH key</strong>: Click “🔑 Generate passphrase-protected key”, paste the auth command into DSM Task Scheduler once. Scans use <code>BatchMode</code> — load the key via <code>ssh-agent</code>.",
+    "setup.ssh_help_body_3": "<strong>3. Authorize SSH key</strong>: Click “🔑 Generate key”, paste the command into DSM Task Scheduler once, then unlock the key on this PC before testing.",
     "setup.host_ph": "e.g. 192.168.1.100",
-    "setup.user_ph": "e.g. admin or root",
-    "setup.port_hint": "(customizable)",
-    "setup.port_title": "If your NAS uses a custom SSH port (e.g. 2222, 5022), set it here",
-        "setup.key_default_opt": "(Default key / auto-resolve ~/.ssh/)",
+    "setup.user_ph": "e.g. admin",
+    "setup.port_hint": "(default 22)",
+    "setup.port_title": "If your NAS uses a custom SSH port (e.g. 2222), set it here",
+    "setup.key_default_opt": "(Auto-use default key under ~/.ssh)",
     "setup.key_custom_ph": "e.g. ~/.ssh/id_ed25519 (must be under ~/.ssh)",
-    "setup.passphrase_ph": "New key passphrase (min 8 chars; empty not allowed)",
-    "setup.key_auth_title": "🔑 Quickly authorize this key on Synology NAS",
-    "setup.key_auth_desc": "Log into the NAS terminal once and paste this one-liner to authorize the public key:",
+    "setup.passphrase_ph": "New key protection password (min 8 characters)",
+    "setup.key_auth_title": "🔑 Copy this command and Run it once in DSM Task Scheduler",
+    "setup.key_auth_desc": "Set the task user to your admin account. After it succeeds, come back and click Test connection.",
     "setup.copy_btn": "📋 Copy",
     "setup.cf_expand": "▶ Expand",
     "setup.cf_collapse": "▼ Collapse",
@@ -926,11 +988,11 @@ const I18N = {
     "setup.probe_fail_title": "❌ Connection failed",
     "setup.unknown_conn": "Unknown connection error",
     "setup.probe_ex": "❌ Connection request exception:",
-    "setup.keygen_toast": "🔑 Generating passphrase-protected Ed25519 key pair...",
-    "setup.keygen_ok": "✅ New key generated (load passphrase via ssh-agent). Copy the auth command to the NAS.",
+    "setup.keygen_toast": "🔑 Generating a protected key...",
+    "setup.keygen_ok": "✅ Key generated. Copy the authorize command into DSM Task Scheduler and unlock the key on this PC.",
     "setup.keygen_fail": "❌ Generation failed:",
     "setup.req_ex": "❌ Request error:",
-    "setup.copied": "📋 Auth command copied to clipboard!",
+    "setup.copied": "📋 Authorize command copied! Paste it into DSM Task Scheduler and Run once.",
     "setup.copied_short": "📋 Copied!",
     "setup.skip_ok": "🚪 Opened offline SOC (existing host/key unchanged)",
     "setup.skip_fail": "Unable to skip setup",
@@ -985,7 +1047,7 @@ const I18N = {
     "guide.tab_faq": "❓ よくある質問 FAQ",
     "guide.btn_github": "GitHubで完全技術ドキュメントを表示",
     "guide.btn_gotit": "了解 (Got it)",
-    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> ゼロフットプリント設計原理</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinelは完全エージェントレスのゼロフットプリント設計を採用しています。ローカルのPythonサーバー（<code>http://127.0.0.1:8088</code>）からSSH暗号化通信経由で監視スクリプトをNASのメモリ内に直接挿入して実行するため、<strong>NASのディスク書き込みゼロ、ルートパーティション容量消費ゼロ、追加パッケージ導入不要</strong>です。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> 初回接続・SSH鍵設定</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 右上の「⚙️ 管理 ▾」➔「システム接続・基本設定...」を開きます。<br>2. NASのIPアドレスとSSHログインユーザー（administratorsグループ必須）を入力します。ポートを変更している場合は変更後のポート（例：2222）を指定します。<br>3. 「🔑 専用Ed25519鍵を生成」をクリックし、展開されたコマンドをNASのターミナルに1回貼り付けて実行します。<br>4. 「🧪 NAS接続テスト」をクリックして正常通信を確認後、保存してダッシュボードに入ります。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> 監視モードとアラート</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>定期ポーリング</strong>：15秒ごとにシステム指標、ネットワーク接続、重要ファイル変更を自動収集します。<br>- <strong>リアルタイム検知</strong>：Linux inotifyによりファイル生成や権限変更をミリ秒単位で即時通知します。</p></div>',
+    "guide.content_quickstart": '<div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">1</span> ゼロフットプリント設計原理</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS Sentinelは完全エージェントレスのゼロフットプリント設計を採用しています。ローカルのPythonサーバー（<code>http://127.0.0.1:8088</code>）からSSH暗号化通信経由で監視スクリプトをNASのメモリ内に直接挿入して実行するため、<strong>NASのディスク書き込みゼロ、ルートパーティション容量消費ゼロ、追加パッケージ導入不要</strong>です。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">2</span> 初回接続・SSH鍵設定</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. 「⚙️ 管理 ▾」➔「システム接続・基本設定...」を開きます。<br>2. ウィザードのステップカードに従い、DSMでSSHを有効化・管理者グループを確認・鍵を生成してタスクスケジューラで認可コマンドを1回実行します。<br>3. NASのLAN IPと管理者アカウントを入力し「接続テスト」を押します。失敗時は次にやる手順が表示されます。<br>4. 成功したら「テストしてオンライン化」でダッシュボードに入ります。</p></div><div class="guide-card"><div class="guide-card-title"><span class="guide-step-badge">3</span> 監視モードとアラート</div><p style="font-size:12.5px; color:var(--text-secondary);">- <strong>定期ポーリング</strong>：15秒ごとにシステム指標、ネットワーク接続、重要ファイル変更を自動収集します。<br>- <strong>リアルタイム検知</strong>：Linux inotifyによりファイル生成や権限変更をミリ秒単位で即時通知します。</p></div>',
     "guide.content_fim": '<div class="guide-card"><div class="guide-card-title">⚡ クイック走査 vs ディープ走査</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">- <strong>クイック走査 (~0.4秒)</strong>：15秒ごとに自動実行。高リスクファイル（<code>.php</code>, <code>.sh</code>, <code>.cgi</code>, <code>.conf</code>）と主要設定のmtimeおよびサイズを高速検査します。<br>- <strong>ディープ走査 (~3.5秒)</strong>：全1,786個のDSM Web中核ファイルおよびシステムバイナリの<strong>完全SHA-256ハッシュ</strong>を計算し、改ざんやトロイの木馬を徹底検出します。</p></div><div class="guide-card"><div class="guide-card-title">🛡️ 「ベースライン再構築」の実行タイミング</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">以下の<strong>正規のメンテナンス操作</strong>を行った際、ファイル変更により赤枠アラートが発生します：<br>1. Synology DSMの正規アップデート完了直後。<br>2. 公式パッケージ（Web StationやPython等）の導入・更新直後。<br>3. 管理者自身が設定ファイルやSSH公開鍵を更新した場合。<br>「<strong>⚙️ 管理 ▾ ➔ ベースライン再構築...</strong>」をクリックして現在の正規状態を新たな基準として保存してください。</p></div><div class="guide-card"><div class="guide-card-title">🗄️ 監視ファイル一覧の検索</div><p style="font-size:12.5px; color:var(--text-secondary);">管理メニューの「監視対象1,786ファイルを検索」から、FIMタブで全ファイルのパス、SHA-256ハッシュ、所有者権限を素早く絞り込めます。</p></div>',
     "guide.content_inotify": '<div class="guide-card"><div class="guide-card-title">⚡ Linux inotify カーネルイベントストリーム</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">NAS上で常駐するinotifyデーモンが、<code>/usr/syno/synoman</code>、<code>/etc/nginx</code>、<code>/volume1/public</code>、<code>/volume1/tmp</code>などの重要ディレクトリを監視。書き込み完了(CLOSE_WRITE)や属性変更(ATTRIB)を検知した瞬間にダッシュボードへ通知します。</p></div><div class="guide-card"><div class="guide-card-title">🚨 Webshell動的ヒューリスティック検知</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">ファイルが共有フォルダ等に保存された際、内部のバックドア特徴コードを即座にスキャンします：<br><code>eval(base64_decode(...))</code>, <code>passthru()</code>, <code>shell_exec()</code>, <code>assert()</code>。<br>一致した場合、脅威レベルを最高に引き上げて警告します。</p></div><div class="guide-card"><div class="guide-card-title">🚫 SUID権限昇格・不正SSH鍵の侵入阻止</div><p style="font-size:12.5px; color:var(--text-secondary);">- <code>chmod +s</code>によるローカル特権昇格を厳密に遮断します。<br>- <code>~/.ssh/authorized_keys</code>への不正な書き込みはミリ秒単位で捕捉されます。</p></div>',
     "guide.content_cf": '<div class="guide-card"><div class="guide-card-title">🌐 エッジ脅威インテリジェンス (Cloudflare Intel)</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">Cloudflare GraphQL APIを利用し、外部からのパス探索試行（<code>/.git/config</code>, <code>/wp-login.php</code>, <code>/.env</code>）やWAF遮断イベントをエッジ側から取得します。NASのディスクI/O負荷はゼロです。</p></div><div class="guide-card"><div class="guide-card-title">🔑 APIトークンの権限設定</div><p style="font-size:12.5px; color:var(--text-secondary); margin-bottom:8px;">1. Cloudflare ➔ <strong>My Profile</strong> ➔ <strong>API Tokens</strong>にアクセスします。<br>2. <strong><code>Zone - Analytics - Read</code></strong>の単一権限を持つトークンを作成します。<br>3. ドメイン概要画面の右下から32文字の<strong>Zone ID</strong>をコピーします。</p></div><div class="guide-card"><div class="guide-card-title">🧪 接続テスト機能 (Test Connection)</div><p style="font-size:12.5px; color:var(--text-secondary);">設定画面で入力後、「<strong>🧪 接続テスト</strong>」をクリックしてトークンとZone IDの有効性を事前に確認できます。</p></div>',
@@ -1027,19 +1089,50 @@ const I18N = {
     "cf.btn_test": "🧪 接続テスト",
     "cf.btn_save": "💾 保存して有効化",
     "cf.btn_cancel": "キャンセル",
-    "setup.title": "NAS Sentinel // システム接続・初期設定ウィザード",
-    "setup.sub": "Zero-Footprint Synology DSM リアルタイムセキュリティ監視",
-    "setup.quick_title": "✨ ワンクリック簡単スタート (Quick Setup)",
-    "setup.quick_desc": "Synology NASの内部IPとSSHユーザー名を入力し「⚡ SSH接続テスト & NAS自動検出」をクリックすると、DSMバージョン等を自動検出し基準を作成します。",
+    "setup.title": "NAS Sentinel // 接続ガイドウィザード",
+    "setup.sub": "DSMの画面を数回クリックして監視を開始",
+    "setup.quick_title": "✨ 画面の3ステップでNASに接続",
+    "setup.quick_desc": "まずSynologyのWebデスクトップでリモートログインと管理者権限を有効化し、鍵を生成して認可コマンドをコピーします。その後NASのIPを入力し「接続テスト」を押してください。",
     "setup.ssh_help_header": "💡 初めての方へ：Synology NASのSSH接続と鍵認証を設定する方法",
     "setup.ssh_help_show": "▶ ガイドを開く",
     "setup.ssh_help_hide": "▼ ガイドを閉じる",
-    "setup.host_label": "NAS ホスト IP / ホスト名",
-    "setup.user_label": "SSH ログインユーザー",
-    "setup.port_label": "SSH ポート (変更可)",
-    "setup.key_label": "SSH 秘密鍵パス (認証鍵)",
-    "setup.keygen_link": "🔑 パスフレーズ付き鍵を生成",
-    "setup.btn_test": "SSH接続テスト & NAS自動検出",
+    "setup.step1_title": "DSMでリモートログイン（SSH）を有効化",
+    "setup.step1_body": "ブラウザでSynologyのWebデスクトップを開き → <strong>コントロールパネル</strong> → <strong>ターミナルとSNMP</strong> → <strong>ターミナル</strong> → 「SSHサービスを有効にする」にチェックして適用。ポートは通常 <code>22</code>。変更している場合は下にその番号を入力してください。",
+    "setup.step2_title": "アカウントが管理者グループか確認",
+    "setup.step2_body": "SSHを使えるのは<strong>管理者グループ</strong>（<code>administrators</code>）のユーザーだけです。<strong>コントロールパネル</strong> → <strong>ユーザーとグループ</strong>で対象アカウントが管理者に入っているか確認してください。",
+    "setup.step3_title": "鍵を生成し、NASで1回だけ認可",
+    "setup.step3_body": "「専用鍵を生成」をクリックし、8文字以上の保護パスワードを設定。表示された1行コマンドをコピーし、DSMの<strong>コントロールパネル → タスクスケジューラ</strong>で「ユーザー定義のスクリプト」を追加して貼り付け、<strong>1回実行</strong>すれば完了です（黒いターミナルは不要）。",
+    "setup.step3_hint": "鍵ファイルはこのPCの ~/.ssh/ にだけ保存されます",
+    "setup.form_header": "接続情報を入力（このPC ↔ NAS）",
+    "setup.host_label": "NAS のLAN IP",
+    "setup.user_label": "NAS 管理者アカウント",
+    "setup.port_label": "SSH ポート",
+    "setup.key_label": "このPCのログイン鍵（上で生成推奨）",
+    "setup.keygen_link": "🔑 専用鍵を生成",
+    "setup.btn_test": "接続テスト & NAS検出",
+    "setup.passphrase_hint": "生成後、このPCで鍵を1回アンロック（ssh-agent）すると、バックグラウンド監視が自動接続できます。空パスワードの鍵は自動生成できません。",
+    "setup.err.next": "次にやること：",
+    "setup.err.retry": "もう一度接続テスト",
+    "setup.err.copy_auth": "認可コマンドをコピー",
+    "setup.err.scroll_steps": "上のDSM手順を見る",
+    "setup.err.timeout.title": "NASに届きません（タイムアウト）",
+    "setup.err.timeout.body": "制限時間内にNASからの応答がありませんでした。",
+    "setup.err.timeout.steps": "<ol><li>下のIPがNASの<strong>LANアドレス</strong>か確認（127.0.0.1は不可）。</li><li>SSHポートがDSMのターミナル設定と一致するか確認（多くは22）。</li><li>上の手順1でSSHが有効か確認。</li><li>このPCとNASが同じネットワークか確認。</li></ol>",
+    "setup.err.refused.title": "接続が拒否されました",
+    "setup.err.refused.body": "NASは応答しましたがSSHを拒否しました。SSH未有効化、またはポート違いがよくあります。",
+    "setup.err.refused.steps": "<ol><li>DSM：コントロールパネル → ターミナルとSNMP → SSHを有効にして適用。</li><li>下のポートがDSMと同じか確認。</li><li>「もう一度接続テスト」を押す。</li></ol>",
+    "setup.err.unreachable.title": "このNASが見つかりません",
+    "setup.err.unreachable.body": "IP／ホスト名に到達できないか、名前解決に失敗しています。",
+    "setup.err.unreachable.steps": "<ol><li>DSMの情報センターやルーターで正しいLAN IPを確認。</li><li>先にDSMのWeb画面を開けるか確認（例：http://192.168.x.x:5000）。</li><li>127.0.0.1は使わないでください（このダッシュボード用です）。</li></ol>",
+    "setup.err.auth_failed.title": "アカウントまたは鍵が拒否されました",
+    "setup.err.auth_failed.body": "SSHは届きましたがログインに失敗。鍵未認可、管理者以外、またはこのPCで鍵が未アンロックのことが多いです。",
+    "setup.err.auth_failed.steps": "<ol><li>手順3：認可コマンドをコピーし、DSMタスクスケジューラで<strong>同じ管理者アカウント</strong>として1回実行。</li><li>アカウントが管理者グループか確認（手順2）。</li><li>鍵を生成した直後なら、このPCで鍵をアンロック（ssh-agent）して再試行。</li></ol>",
+    "setup.err.host_key_mismatch.title": "NASの身元指紋が以前と違います",
+    "setup.err.host_key_mismatch.body": "NASの再インストール／機種変更、または想定外のネットワーク変化の可能性があります。自分のNASか確認してください。",
+    "setup.err.host_key_mismatch.steps": "<ol><li>ブラウザでDSMを開き、IPが自分のSynologyか確認。</li><li>再インストールや機種変更後なら、サーバーを止めてローカルの <code>nas-sentinel/data/ssh_known_hosts</code> を削除し、再テストして新しい指紋を受け入れます。</li><li>判断できない場合はこの警告を無視しないでください。</li></ol>",
+    "setup.err.ssh_failed.title": "SSH接続に失敗しました",
+    "setup.err.ssh_failed.body": "接続を完了できませんでした。上の3ステップをもう一度確認してください。",
+    "setup.err.ssh_failed.steps": "<ol><li>SSH有効・管理者アカウント・鍵認可を確認。</li><li>もう一度「接続テスト」。</li><li>先に「接続設定を保存」して、後からオンライン化しても構いません。</li></ol>",
     "setup.cf_header": "🌐 Cloudflare エッジログ監視 (任意・後で設定可)",
     "setup.btn_save": "🛡️ テストしてオンライン化",
     "setup.btn_close": "閉じる",
@@ -1181,16 +1274,16 @@ const I18N = {
     "cf.enable_label": "エッジ脅威情報の自動同期を有効化 (60秒毎)",
     "setup.ssh_help_body_1": "<strong>1. DSM SSHを有効化</strong>：DSMデスクトップ ➔ コントロールパネル ➔ ターミナルとSNMP ➔ 「SSHサービスを有効にする」(Port 22)。",
     "setup.ssh_help_body_2": "<strong>2. 管理者権限を確認</strong>：`administrators` グループのユーザーのみSSH可能です。",
-    "setup.ssh_help_body_3": "<strong>3. SSH鍵を認可</strong>：下の「🔑 パスフレーズ付き鍵を生成」をクリックし、認可コマンドをDSMのタスクスケジューラで1回実行。監視は<code>BatchMode</code>のため<code>ssh-agent</code>で鍵を読み込んでください。",
+    "setup.ssh_help_body_3": "<strong>3. SSH鍵を認可</strong>：「🔑 専用鍵を生成」をクリックし、コマンドをDSMタスクスケジューラで1回実行。このPCで鍵をアンロックしてから接続テスト。",
     "setup.host_ph": "例：192.168.1.100",
-    "setup.user_ph": "例：admin または root",
-    "setup.port_hint": "(変更可)",
-    "setup.port_title": "NASのSSHポートを変更している場合（例：2222、5022）はここに入力",
-        "setup.key_default_opt": "(システム既定鍵 / ~/.ssh/ 自動解決)",
+    "setup.user_ph": "例：admin",
+    "setup.port_hint": "(既定 22)",
+    "setup.port_title": "NASのSSHポートを変更している場合（例：2222）はここに入力",
+    "setup.key_default_opt": "(このPCの ~/.ssh 既定鍵を自動使用)",
     "setup.key_custom_ph": "例：~/.ssh/id_ed25519（~/.ssh内のみ）",
-    "setup.passphrase_ph": "新しい鍵のパスフレーズ（8文字以上・空白不可）",
-    "setup.key_auth_title": "🔑 この鍵をSynology NASへ素早く認可",
-    "setup.key_auth_desc": "NAS端末に1回ログインし、次の1行コマンドを貼り付けて公開鍵を認可：",
+    "setup.passphrase_ph": "新しい鍵の保護パスワード（8文字以上）",
+    "setup.key_auth_title": "🔑 このコマンドをコピーし、DSMタスクスケジューラで1回実行",
+    "setup.key_auth_desc": "タスクの実行ユーザーは管理者アカウントを選んでください。成功したらここに戻り「接続テスト」を押します。",
     "setup.copy_btn": "📋 コピー",
     "setup.cf_expand": "▶ 展開",
     "setup.cf_collapse": "▼ 閉じる",
@@ -1306,11 +1399,11 @@ const I18N = {
     "setup.probe_fail_title": "❌ 接続失敗",
     "setup.unknown_conn": "不明な接続エラー",
     "setup.probe_ex": "❌ 接続リクエスト例外:",
-    "setup.keygen_toast": "🔑 パスフレーズ付きEd25519鍵ペアを生成中...",
-    "setup.keygen_ok": "✅ 新しい鍵を生成しました（ssh-agentでパスフレーズを読込）。認可コマンドをNASへコピー。",
+    "setup.keygen_toast": "🔑 保護付き専用鍵を生成中...",
+    "setup.keygen_ok": "✅ 鍵を生成しました。認可コマンドをDSMタスクスケジューラで1回実行し、このPCで鍵をアンロックしてください。",
     "setup.keygen_fail": "❌ 生成失敗:",
     "setup.req_ex": "❌ リクエスト異常:",
-    "setup.copied": "📋 認可コマンドをクリップボードにコピーしました！",
+    "setup.copied": "📋 認可コマンドをコピーしました！DSMタスクスケジューラに貼り付けて1回実行してください。",
     "setup.copied_short": "📋 コピーしました！",
     "setup.skip_ok": "🚪 オフラインSOCを開きました（既存ホスト/鍵は未変更）",
     "setup.skip_fail": "セットアップをスキップできません",
@@ -3130,14 +3223,54 @@ function onSetupModalOverlayClick(e) {
 }
 
 function toggleSetupSshHelp() {
-  const content = document.getElementById("setupSshHelpContent");
-  const toggle = document.getElementById("setupSshHelpToggle");
-  if (!content) return;
-  const isHidden = content.style.display === "none" || !content.style.display;
-  content.style.display = isHidden ? "block" : "none";
-  if (toggle) {
-    toggle.textContent = isHidden ? t("setup.ssh_help_hide", "▼ 收合教學") : t("setup.ssh_help_show", "▶ 展開教學");
+  // Legacy helper (collapsible guide removed in P1 — steps are always visible).
+  const steps = document.getElementById("setupDsmSteps");
+  if (steps) {
+    try { steps.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (_) {}
   }
+}
+
+function normalizeSshErrorCode(code) {
+  const known = ["timeout", "refused", "unreachable", "auth_failed", "host_key_mismatch", "ssh_failed"];
+  const c = (code || "").trim();
+  return known.includes(c) ? c : "ssh_failed";
+}
+
+function buildSshRecoveryHtml(errorCode, fallbackError) {
+  const code = normalizeSshErrorCode(errorCode);
+  const title = t(`setup.err.${code}.title`, t("setup.probe_fail_title"));
+  const body = t(`setup.err.${code}.body`, fallbackError || t("setup.unknown_conn"));
+  const steps = t(`setup.err.${code}.steps`, "");
+  const detail = fallbackError && fallbackError !== body
+    ? `<div style="margin-top:6px; color:#ffccd7; font-size:11.5px;">${escapeHtml(fallbackError)}</div>`
+    : "";
+  const hasAuthCmd = !!(document.getElementById("setupKeyCommandText") || {}).value;
+  const copyBtn = hasAuthCmd
+    ? `<button type="button" class="btn" onclick="copySetupKeyCmd()" style="padding:4px 10px; font-size:11.5px;">${t("setup.err.copy_auth")}</button>`
+    : "";
+  return `
+    <div style="font-weight:700; font-size:13px; margin-bottom:4px;">❌ ${escapeHtml(title)}</div>
+    <div style="color:#ffccd7; font-size:12px;">${escapeHtml(body)}</div>
+    ${detail}
+    <div class="setup-recovery">
+      <strong>${t("setup.err.next")}</strong>
+      ${steps}
+      <div class="setup-recovery-actions">
+        <button type="button" class="btn" onclick="testNasConnection()" style="padding:4px 10px; font-size:11.5px; border-color:var(--border-cyan); color:var(--accent-secondary);">${t("setup.err.retry")}</button>
+        <button type="button" class="btn" onclick="toggleSetupSshHelp()" style="padding:4px 10px; font-size:11.5px;">${t("setup.err.scroll_steps")}</button>
+        ${copyBtn}
+      </div>
+    </div>
+  `;
+}
+
+function renderSetupProbeFailure(resBox, json) {
+  if (!resBox) return;
+  resBox.style.display = "block";
+  resBox.style.background = "rgba(255, 0, 85, 0.12)";
+  resBox.style.border = "1px solid #ff0055";
+  resBox.style.color = "#ff4d88";
+  resBox.innerHTML = buildSshRecoveryHtml(json && json.error_code, (json && json.error) || t("setup.unknown_conn"));
 }
 
 function onSshKeySelectChange() {
@@ -3268,22 +3401,15 @@ async function testNasConnection() {
         `;
         showToast(t("setup.probe_ok_toast"), "info");
       } else {
-        resBox.style.background = "rgba(255, 0, 85, 0.12)";
-        resBox.style.border = "1px solid #ff0055";
-        resBox.style.color = "#ff4d88";
-        resBox.innerHTML = `
-          <div style="font-weight:700; font-size:13px; margin-bottom:4px;">${t("setup.probe_fail_title")}</div>
-          <div style="color:#ffccd7; font-size:12px;">${escapeHtml(json.error || t("setup.unknown_conn"))}</div>
-        `;
+        renderSetupProbeFailure(resBox, json || {});
       }
     }
   } catch (err) {
     if (resBox) {
-      resBox.style.display = "block";
-      resBox.style.background = "rgba(255, 0, 85, 0.12)";
-      resBox.style.border = "1px solid #ff0055";
-      resBox.style.color = "#ff4d88";
-      resBox.textContent = `${t("setup.probe_ex")} ${err.message || err}`;
+      renderSetupProbeFailure(resBox, {
+        error_code: "ssh_failed",
+        error: `${t("setup.probe_ex")} ${err.message || err}`,
+      });
     }
   } finally {
     if (btn) btn.disabled = false;
@@ -3464,7 +3590,20 @@ async function saveSetupConfig(options) {
         msgBox.style.background = offline ? "rgba(251, 191, 36, 0.12)" : "rgba(0, 255, 65, 0.15)";
         msgBox.style.border = offline ? "1px solid rgba(251, 191, 36, 0.45)" : "1px solid #00ff41";
         msgBox.style.color = offline ? "#fbbf24" : "#00ff41";
-        msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || t("setup.saved_default"));
+        if (offline && (json.error_code || json.warning)) {
+          msgBox.innerHTML =
+            `<div>⚠️ ${escapeHtml(json.message || t("setup.saved_default"))}</div>` +
+            buildSshRecoveryHtml(json.error_code, json.warning || json.error || "");
+        } else {
+          msgBox.textContent = (offline ? "⚠️ " : "✅ ") + (json.message || t("setup.saved_default"));
+        }
+      }
+      const probeBox = document.getElementById("setupProbeResult");
+      if (offline && json.error_code && probeBox) {
+        renderSetupProbeFailure(probeBox, {
+          error_code: json.error_code,
+          error: json.warning || json.error || t("setup.unknown_conn"),
+        });
       }
       showToast(
         live
@@ -3476,10 +3615,12 @@ async function saveSetupConfig(options) {
       );
       appConfig = json.config || { is_configured: true, offline_mode: offline };
       isSetupInitial = false;
+      // Stay open briefly on SSH failure so the novice can read recovery steps.
+      const delay = (offline && json.error_code) ? 2800 : (offline ? 900 : 1200);
       setTimeout(() => {
         closeSetupModal();
         fetchStatus();
-      }, offline ? 900 : 1200);
+      }, delay);
     } else {
       if (msgBox) {
         msgBox.style.display = "block";

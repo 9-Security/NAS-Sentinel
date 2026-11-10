@@ -20,7 +20,7 @@ Equipped with a built-in **Web Setup Wizard**, it requires zero Linux hacking sk
 
 ## 📋 Step 1: Enable SSH Access on Synology DSM (Prerequisites)
 
-NAS Sentinel performs zero-footprint security telemetry over an encrypted SSH connection. Complete these 3 quick checks on your NAS:
+NAS Sentinel performs zero-footprint security telemetry over an encrypted SSH connection. The **Setup Wizard shows these same three steps as on-screen cards** (with a copy-to-clipboard authorize command). You can follow either the wizard or this README.
 
 ### 1. Enable DSM SSH Service
 1. Log in to your Synology DSM web desktop with an administrator account.
@@ -30,22 +30,16 @@ NAS Sentinel performs zero-footprint security telemetry over an encrypted SSH co
 ### 2. Ensure User is in `administrators` Group
 By default, Synology DSM security policies **only allow users in the `administrators` group to log in via SSH**. Ensure your account belongs to the `administrators` group in **Control Panel ➔ User & Group**.
 
-### 3. Set Up Passwordless SSH Key Authentication (Choose One)
-Because NAS Sentinel operates as a silent background daemon, it requires SSH Key authentication (`BatchMode=yes`). Choose whichever method is easiest:
+### 3. Authorize a login key once (choose one)
+Background monitoring needs a key-based login (no password prompt each scan). Prefer the wizard:
 
-- **Method A: Via DSM Web UI (Recommended for Beginners - No Terminal Required)**:
-  1. Retrieve your SSH public key (`~/.ssh/id_ed25519.pub`, beginning with `ssh-ed25519 AAAA...`). *If you don't have one, click "🔑 Generate Passphrase-Protected Key" in the Setup Wizard (empty passphrases are refused; load the key into `ssh-agent` for BatchMode scans).*
-  2. Log in to DSM, open **Control Panel ➔ Task Scheduler**.
-  3. Click **Create ➔ Scheduled Task ➔ User-defined script**:
-     - General: Task Name `Add-SSH-Key`, **User: Select your login username** (e.g., `admin`).
-     - Task Settings: In User-defined script, paste this single line (replace with your actual public key):
-       ```bash
-       mkdir -p ~/.ssh && chmod 700 ~/.ssh && echo "YOUR_PUBLIC_KEY_HERE (e.g. ssh-ed25519 AAAA...)" >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys
-       ```
-  4. Click **OK**, select the task in the list, and click **Run** once. Your key is permanently authorized!
+- **Method A: Setup Wizard + DSM Task Scheduler (recommended for beginners)**:
+  1. In the wizard, click **Generate key**, set a protection password (min 8 characters; empty passwords are refused).
+  2. Click **Copy**, then in DSM open **Control Panel ➔ Task Scheduler**.
+  3. **Create ➔ Scheduled Task ➔ User-defined script** — set the task user to your admin account, paste the copied one-liner, save, and **Run once**.
+  4. Unlock the key once on this PC (`ssh-agent`) so background scans can use it, then click **Test connection**.
 
-- **Method B: Via Your Computer's Terminal (PowerShell / macOS)**:
-  Run this one-liner from your local terminal (enter your NAS password once when prompted):
+- **Method B: Computer terminal (PowerShell / macOS) — backup path**:
   ```bash
   # Windows PowerShell:
   type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh <USER>@<NAS-IP> "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys"
@@ -80,16 +74,16 @@ Your browser will open `http://127.0.0.1:8088`.
 1. **Localhost unlock (preferred):** visiting from this machine auto-loads the API token into the browser (loopback TCP only — `127.0.0.1` / `::1`). You should **not** need to dig `api_token.txt` on the happy path.
 2. **Backup:** the server still prints the token and writes `nas-sentinel/data/api_token.txt` (or set `API_TOKEN` in `.env`) if you must paste manually.
 3. **APIs stay Bearer-protected:** every other `/api/*` call still sends `Authorization: Bearer <token>` from localStorage (CSRF-resistant). Remote / non-loopback clients never receive the bootstrap token.
-4. The **Setup Wizard** then asks for NAS connection details:
-   - **NAS IP / Hostname**: e.g., `192.168.1.100` or your internal domain.
-   - **SSH Username**: e.g., `admin` or your administrative user.
-   - **SSH Port**: Defaults to `22`. **If you customized your Synology SSH port for security (e.g., `2222`, `5022`, `60022`), simply enter it here!**
-   - **SSH Key**: Must be a file under `~/.ssh/`. Generate a **passphrase-protected** Ed25519 key in the wizard, or use an existing key loaded in `ssh-agent`.
-4. **Click "⚡ Test SSH Connection & Probe NAS"**: Validates the connection, shows the SSH host-key fingerprint (pinned on save), and detects DSM/arch.
-5. **Click "🛡️ Save & Launch SOC"**: Done! Saves to `data/config.json` (mode `0600`), establishes baselines, and launches the SOC.
+4. The **Setup Wizard** walks you through DSM steps (enable SSH → admin group → authorize key with copy-to-clipboard), then asks for:
+   - **NAS LAN IP**: e.g., `192.168.1.100` (never `127.0.0.1` — that is this PC’s UI).
+   - **NAS admin username** (must be in `administrators`).
+   - **SSH port** (default `22`; enter yours if customized).
+   - **Login key** on this PC under `~/.ssh/` (prefer **Generate key** in the wizard).
+5. **Click "Test connection & probe NAS"**: On success, shows DSM/arch and pins the SSH host-key fingerprint. On failure, the UI maps the error to **what to do next** (timeout / refused / unreachable / auth / host-key change).
+6. **Click "🛡️ Test & go live"**: Saves to `data/config.json` (mode `0600`), establishes baselines when SSH works, and launches the SOC. You can also **Save connection settings** first and go live later.
 
-> 💡 **Prefer text configuration files? (Optional)**  
-> Copy `.env.example` to `.env` and set `API_TOKEN`, `NAS_HOST`, `NAS_USER`, and `NAS_PORT` prior to Step 2.
+> 💡 **Prefer text configuration files? (Optional / advanced)**  
+> Copy `.env.example` to `.env` and set `API_TOKEN`, `NAS_HOST`, `NAS_USER`, and `NAS_PORT` prior to Step 2. Digging `api_token.txt` is a **backup** only — localhost auto-unlock is the happy path.
 
 ---
 

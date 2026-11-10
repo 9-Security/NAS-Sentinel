@@ -831,6 +831,69 @@
       user-select: all;
     }
 
+    /* Setup wizard — novice DSM step cards */
+    .setup-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .setup-step-card {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: rgba(0, 229, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .setup-step-card .guide-step-badge {
+      margin-top: 1px;
+    }
+    .setup-step-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      font-family: var(--font-mono);
+    }
+    .setup-step-body {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .setup-recovery {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: #fde68a;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .setup-recovery strong {
+      color: var(--warning);
+    }
+    .setup-recovery ol {
+      margin: 6px 0 8px 18px;
+    }
+    .setup-recovery-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    [data-theme="light"] .setup-step-card {
+      background: rgba(2, 132, 199, 0.05);
+      border-color: rgba(2, 132, 199, 0.25);
+    }
+    [data-theme="light"] .setup-recovery {
+      background: rgba(217, 119, 6, 0.08);
+      border-color: rgba(217, 119, 6, 0.3);
+      color: #92400e;
+    }
+
     /* Layout Grids */
     .grid-2 {
       display: grid;
@@ -1957,51 +2020,74 @@
       </div>
 
       <div class="modal-body" style="max-height:75vh; overflow-y:auto; padding-right:6px;">
-        <!-- Setup Guide Steps -->
-        <div style="background:rgba(0, 229, 255, 0.05); border:1px solid rgba(0, 229, 255, 0.2); border-radius:6px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; line-height:1.5;">
-          <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.quick_title">✨ 零技術門檻快速啟用 (Quick Setup)</div>
+        <!-- Novice overview -->
+        <div style="background:rgba(0, 229, 255, 0.05); border:1px solid rgba(0, 229, 255, 0.2); border-radius:6px; padding:12px 14px; margin-bottom:14px; font-size:12.5px; line-height:1.5;">
+          <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.quick_title">✨ 跟著畫面點三步，連上您的 NAS</div>
           <div style="color:var(--text-secondary);" data-i18n="setup.quick_desc">
-            輸入您的 Synology NAS 內部 IP 與 SSH 帳號，點擊「⚡ 測試連線與自動探測 NAS」，系統將自動檢測 DSM 版本、CPU 架構並在背景初始化安全基線。
+            先在 Synology 網頁桌面開啟遠端登入與管理員權限，再產生金鑰並複製授權指令。完成後填入 NAS IP，按「測試連線」即可。
           </div>
         </div>
 
-        <!-- Collapsible First-Time SSH Setup Helper -->
-        <div style="background:rgba(251, 191, 36, 0.07); border:1px solid rgba(251, 191, 36, 0.28); border-radius:6px; padding:10px 14px; margin-bottom:15px; font-size:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleSetupSshHelp()">
-            <span style="font-weight:600; color:var(--warning); display:flex; align-items:center; gap:6px;" data-i18n="setup.ssh_help_header">
-              💡 初次使用？如何取得 Synology NAS 的 SSH 連線與金鑰權限？
-            </span>
-            <span id="setupSshHelpToggle" style="color:var(--text-muted); font-size:11px;" data-i18n="setup.ssh_help_show">▶ 展開教學</span>
+        <!-- Always-visible DSM step cards -->
+        <div id="setupDsmSteps" class="setup-step-list">
+          <div class="setup-step-card" id="setupStepCard1">
+            <span class="guide-step-badge">1</span>
+            <div>
+              <div class="setup-step-title" data-i18n="setup.step1_title">在 DSM 開啟遠端登入（SSH）</div>
+              <div class="setup-step-body" data-i18n="setup.step1_body">用瀏覽器登入 Synology 網頁桌面 → <strong>控制台</strong> → <strong>終端機與 SNMP</strong> → <strong>終端機</strong> → 勾選「啟用 SSH 服務」並套用。連接埠多半是 <code>22</code>；若您改過，請把數字填到下方。</div>
+            </div>
           </div>
-          <div id="setupSshHelpContent" style="display:none; margin-top:8px; color:var(--text-secondary); line-height:1.65; border-top:1px dashed rgba(251, 191, 36, 0.2); padding-top:8px;">
-            <div style="margin-bottom:4px;" data-i18n="setup.ssh_help_body_1"><strong>1. 開啟 DSM SSH 服務</strong>：登入 DSM 桌面 ➔ 控制台 ➔ 終端機與 SNMP ➔ 勾選「啟用 SSH 服務」(Port 22)。</div>
-            <div style="margin-bottom:4px;" data-i18n="setup.ssh_help_body_2"><strong>2. 確認管理員權限</strong>：Synology 規定僅管理員群組 (`administrators`) 使用者可透過 SSH 登入。</div>
-            <div data-i18n="setup.ssh_help_body_3"><strong>3. 授權 SSH 金鑰</strong>：點擊下方「🔑 產生受密碼保護的新金鑰」（需設定 Passphrase），將公鑰授權指令貼至 DSM「任務排程表」執行一次。監控掃描使用 <code>BatchMode</code>，請以 <code>ssh-agent</code> 載入私鑰密碼。</div>
+          <div class="setup-step-card" id="setupStepCard2">
+            <span class="guide-step-badge">2</span>
+            <div>
+              <div class="setup-step-title" data-i18n="setup.step2_title">確認帳號在「管理員」群組</div>
+              <div class="setup-step-body" data-i18n="setup.step2_body">Synology 只允許<strong>管理員群組</strong>（<code>administrators</code>）帳號用 SSH。到 <strong>控制台</strong> → <strong>使用者與群組</strong>，確認您要用的帳號已加入管理員。</div>
+            </div>
+          </div>
+          <div class="setup-step-card" id="setupStepCard3">
+            <span class="guide-step-badge">3</span>
+            <div style="flex:1; min-width:0;">
+              <div class="setup-step-title" data-i18n="setup.step3_title">產生金鑰，並在 NAS 上授權一次</div>
+              <div class="setup-step-body" data-i18n="setup.step3_body">點「產生專用金鑰」並設定一組至少 8 字元的保護密碼。複製出現的一行指令，到 DSM <strong>控制台 → 任務排程表</strong> → 新增「使用者定義的指令碼」，貼上後<strong>執行一次</strong>即可（不必開黑視窗終端機）。</div>
+              <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:12px; color:var(--accent-secondary); text-decoration:none; font-weight:600;" data-i18n="setup.keygen_link">🔑 產生專用金鑰</a>
+                <span style="font-size:11px; color:var(--text-muted);" data-i18n="setup.step3_hint">金鑰檔只會存在這台電腦的 ~/.ssh/</span>
+              </div>
+              <div id="setupKeyHelperPanel" style="display:none; margin-top:10px; background:rgba(0,0,0,0.45); border:1px dashed var(--border-cyan); border-radius:6px; padding:10px 12px; font-size:11.5px;">
+                <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.key_auth_title">🔑 複製這行指令，到 DSM 任務排程表執行一次</div>
+                <div style="color:var(--text-secondary); margin-bottom:6px;" data-i18n="setup.key_auth_desc">任務使用者請選您的管理員帳號。執行成功後回到這裡按「測試連線」。</div>
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="setupKeyCommandText" readonly class="input" style="width:100%; font-size:11px; color:#00ff41; background:rgba(0,0,0,0.7);" />
+                  <button class="btn" onclick="copySetupKeyCmd()" style="white-space:nowrap; padding:4px 10px;" data-i18n="setup.copy_btn">📋 複製</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:600; color:var(--text-main); font-family:var(--font-mono);" data-i18n="setup.form_header">填寫連線資料（本機 ↔ NAS）</div>
           <!-- NAS IP & SSH User Row -->
           <div style="display:grid; grid-template-columns: 1.5fr 1fr 0.8fr; gap:12px;">
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                <span data-i18n="setup.host_label">NAS 主機 IP / 網址</span> <span style="color:var(--danger);">*</span>
+                <span data-i18n="setup.host_label">NAS 區網 IP</span> <span style="color:var(--danger);">*</span>
               </label>
               <input type="text" id="setupNasHost" class="input" placeholder="例如：192.168.1.100" data-i18n-placeholder="setup.host_ph" style="width:100%; font-family:var(--font-mono);" />
             </div>
 
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                <span data-i18n="setup.user_label">SSH 登入帳號</span> <span style="color:var(--danger);">*</span>
+                <span data-i18n="setup.user_label">NAS 管理員帳號</span> <span style="color:var(--danger);">*</span>
               </label>
-              <input type="text" id="setupNasUser" class="input" placeholder="例如：admin 或 root" data-i18n-placeholder="setup.user_ph" style="width:100%; font-family:var(--font-mono);" />
+              <input type="text" id="setupNasUser" class="input" placeholder="例如：admin" data-i18n-placeholder="setup.user_ph" style="width:100%; font-family:var(--font-mono);" />
             </div>
 
             <div>
               <label style="display:block; font-size:12px; font-family:var(--font-mono); color:var(--text-secondary); margin-bottom:4px;">
-                SSH Port <span style="font-size:10.5px; color:var(--accent-secondary);" data-i18n="setup.port_hint">(可自訂)</span>
+                <span data-i18n="setup.port_label">SSH 連接埠</span> <span style="font-size:10.5px; color:var(--accent-secondary);" data-i18n="setup.port_hint">(預設 22)</span>
               </label>
-              <input type="number" id="setupNasPort" class="input" placeholder="22" value="22" title="若您的 NAS 修改過 SSH Port（例如 2222、5022），請在此修改" data-i18n-title="setup.port_title" style="width:100%; font-family:var(--font-mono);" />
+              <input type="number" id="setupNasPort" class="input" placeholder="22" value="22" title="若您的 NAS 修改過 SSH 連接埠（例如 2222），請在此修改" data-i18n-title="setup.port_title" style="width:100%; font-family:var(--font-mono);" />
             </div>
           </div>
 
@@ -2009,38 +2095,27 @@
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <label style="font-size:12px; font-family:var(--font-mono); color:var(--text-secondary);" data-i18n="setup.key_label">
-                SSH 私鑰路徑 (Authentication Key)
+                本機登入金鑰（建議用上方產生）
               </label>
-              <a href="javascript:void(0)" onclick="generateNewSshKey()" style="font-size:11px; color:var(--accent-secondary); text-decoration:none;" data-i18n="setup.keygen_link">🔑 產生受密碼保護的新金鑰</a>
             </div>
             <select id="setupSshKeySelect" class="input" onchange="onSshKeySelectChange()" style="width:100%; font-family:var(--font-mono); margin-bottom:6px;">
-              <option value="" data-i18n="setup.key_default_opt">(系統預設金鑰 / ~/.ssh/ 自動解析)</option>
+              <option value="" data-i18n="setup.key_default_opt">(自動使用本機 ~/.ssh 預設金鑰)</option>
             </select>
             <input type="text" id="setupSshKeyCustom" class="input" placeholder="例如：~/.ssh/id_ed25519（僅允許 ~/.ssh 內檔案）" data-i18n-placeholder="setup.key_custom_ph" style="width:100%; font-family:var(--font-mono); font-size:12px; margin-bottom:6px;" />
-            <input type="password" id="setupKeyPassphrase" class="input" placeholder="新金鑰 Passphrase（至少 8 字元；禁止空白密碼）" data-i18n-placeholder="setup.passphrase_ph" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
-            <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;">Passphrase-protected keys need <code>ssh-agent</code> for BatchMode scans. Empty-passphrase auto-generation is disabled.</div>
+            <input type="password" id="setupKeyPassphrase" class="input" placeholder="新金鑰保護密碼（至少 8 字元）" data-i18n-placeholder="setup.passphrase_ph" style="width:100%; font-family:var(--font-mono); font-size:12px;" />
+            <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;" data-i18n="setup.passphrase_hint">產生後請在這台電腦解鎖金鑰一次（ssh-agent），背景監控才會自動連線。空白密碼的金鑰不允許自動產生。</div>
           </div>
 
           <!-- Quick Test Button & Feedback Panel -->
           <div>
             <button type="button" class="btn" id="btnTestNasConnect" onclick="testNasConnection()" style="width:100%; padding:9px; border-color:var(--border-cyan); color:var(--accent-secondary); font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;">
               <span id="btnTestNasIcon">⚡</span>
-              <span id="btnTestNasText" data-i18n="setup.btn_test">測試 SSH 連線並自動探測 NAS</span>
+              <span id="btnTestNasText" data-i18n="setup.btn_test">測試連線並探測 NAS</span>
             </button>
           </div>
 
-          <!-- Probe Result Badge Box -->
+          <!-- Probe Result + Recovery Box -->
           <div id="setupProbeResult" style="display:none; padding:12px 14px; border-radius:6px; font-size:12px; font-family:var(--font-mono); line-height:1.5;"></div>
-
-          <!-- One-Click Key Copy Helper Panel (hidden by default) -->
-          <div id="setupKeyHelperPanel" style="display:none; background:rgba(0,0,0,0.5); border:1px dashed var(--border-cyan); border-radius:6px; padding:12px 14px; font-size:11.5px;">
-            <div style="font-weight:600; color:var(--accent-secondary); margin-bottom:4px;" data-i18n="setup.key_auth_title">🔑 快速授權此金鑰至 Synology NAS</div>
-            <div style="color:var(--text-secondary); margin-bottom:6px;" data-i18n="setup.key_auth_desc">登入 NAS 終端機一次，貼上下列單行指令即可完成免密碼公鑰授權：</div>
-            <div style="display:flex; gap:6px;">
-              <input type="text" id="setupKeyCommandText" readonly class="input" style="width:100%; font-size:11px; color:#00ff41; background:rgba(0,0,0,0.7);" />
-              <button class="btn" onclick="copySetupKeyCmd()" style="white-space:nowrap; padding:4px 10px;" data-i18n="setup.copy_btn">📋 複製</button>
-            </div>
-          </div>
 
           <!-- Cloudflare (Optional) Collapsible -->
           <div style="border-top:1px solid var(--border-muted); padding-top:12px;">
