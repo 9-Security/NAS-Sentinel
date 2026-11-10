@@ -760,6 +760,19 @@ async function fetchStatus() {
       openSetupModal(true);
       return;
     }
+    if (json.offline_mode && !json.data) {
+      const badge = document.getElementById("threatBadge");
+      if (badge) {
+        badge.className = "badge badge-warn";
+        badge.textContent = "離線模式";
+      }
+      const idEl = document.getElementById("nasIdentity");
+      if (idEl) {
+        idEl.textContent = json.last_error
+          || "Offline mode — finish NAS SSH setup from Admin when ready";
+      }
+      return;
+    }
     if (json.ok && json.data) {
       currentSnapshot = json.data;
       renderDashboard(json.data);
@@ -2101,6 +2114,60 @@ function copySetupKeyCmd() {
     document.execCommand("copy");
     showToast("📋 已複製！", "info");
   });
+}
+
+async function skipSetupOffline() {
+  const btnSkip = document.getElementById("btnSkipSetupOffline");
+  const msgBox = document.getElementById("setupSaveMsg");
+  const host = (document.getElementById("setupNasHost")?.value || "").trim();
+  const user = (document.getElementById("setupNasUser")?.value || "").trim();
+  const port = parseInt(document.getElementById("setupNasPort")?.value || "22", 10);
+
+  if (!getApiToken()) {
+    showApiAuthModal("Enter API token before skipping setup (data/api_token.txt).");
+    return;
+  }
+  if (btnSkip) {
+    btnSkip.disabled = true;
+    btnSkip.textContent = "⏳ 進入離線戰情室...";
+  }
+  try {
+    const res = await apiFetch("/api/setup/skip-offline", {
+      method: "POST",
+      body: JSON.stringify({
+        nas_host: host || undefined,
+        nas_user: user || undefined,
+        nas_port: port || 22,
+      }),
+    });
+    if (res.status === 401) return;
+    const json = await res.json();
+    if (json.ok) {
+      appConfig = json.config || { is_configured: true, offline_mode: true };
+      isSetupInitial = false;
+      if (msgBox) {
+        msgBox.style.display = "block";
+        msgBox.style.background = "rgba(251, 191, 36, 0.12)";
+        msgBox.style.border = "1px solid rgba(251, 191, 36, 0.45)";
+        msgBox.style.color = "#fbbf24";
+        msgBox.textContent = "✅ " + (json.message || "Offline SOC unlocked");
+      }
+      showToast("🚪 已進入離線戰情室（稍後可完成 NAS 設定）", "info");
+      setTimeout(() => {
+        closeSetupModal();
+        fetchStatus();
+      }, 600);
+    } else {
+      showToast("❌ " + (json.error || "無法略過設定"), "crit");
+    }
+  } catch (err) {
+    showToast(`❌ ${err.message || err}`, "crit");
+  } finally {
+    if (btnSkip) {
+      btnSkip.disabled = false;
+      btnSkip.textContent = "🚪 稍後設定，先進入戰情室";
+    }
+  }
 }
 
 async function saveSetupConfig() {

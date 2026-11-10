@@ -70,6 +70,8 @@ def write_secret_text(path: Path, text: str):
 def load_app_config() -> dict:
     default_config = {
         "is_configured": False,
+        # offline_mode: UI unlocked without a live NAS SSH session (skip wizard / local demo).
+        "offline_mode": False,
         "nas_host": os.environ.get("NAS_HOST", "192.168.1.100"),
         "nas_user": os.environ.get("NAS_USER", "admin"),
         "nas_port": int(os.environ.get("NAS_PORT", "22")),
@@ -94,6 +96,12 @@ def load_app_config() -> dict:
 
 def save_app_config(cfg: dict):
     save_json(CONFIG_FILE, cfg, mode=0o600)
+
+
+def nas_live_enabled(cfg: dict = None) -> bool:
+    """True when setup is complete and SSH workers should run (not offline/skip mode)."""
+    c = cfg if cfg is not None else (STATE.config if "STATE" in globals() else {})
+    return bool(c.get("is_configured")) and not bool(c.get("offline_mode"))
 
 
 def ensure_api_token(cfg: dict) -> str:
@@ -1343,7 +1351,7 @@ STATE = MonitorState()
 def inotify_listener_loop():
     """Maintains persistent SSH kernel inotify stream to NAS for millisecond file event detection."""
     while True:
-        if not STATE.config.get("is_configured"):
+        if not nas_live_enabled(STATE.config):
             time.sleep(2)
             continue
         proc = None
@@ -1408,7 +1416,7 @@ def inotify_listener_loop():
 
 
 def background_poller():
-    while not STATE.config.get("is_configured"):
+    while not nas_live_enabled(STATE.config):
         time.sleep(1)
     STATE.perform_scan(mode="deep")
     if STATE.config.get("cloudflare_enabled"):
@@ -1416,7 +1424,7 @@ def background_poller():
     while True:
         poll_int = STATE.config.get("poll_interval_sec", POLL_INTERVAL_SEC)
         time.sleep(poll_int)
-        if not STATE.config.get("is_configured"):
+        if not nas_live_enabled(STATE.config):
             continue
         STATE.deep_scan_counter += 1
         scan_mode = "deep" if (STATE.deep_scan_counter % 20 == 0) else "fast"
@@ -1491,10 +1499,26 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                     self._send_json({
                         "ok": True,
                         "is_configured": False,
+                        "offline_mode": bool(STATE.config.get("offline_mode")),
                         "scan_in_progress": False,
                         "last_error": None,
                         "data": None,
                         "config": public_config_view(STATE.config),
+                    })
+                return
+            # Offline / skip-wizard: unlock UI without blocking on SSH scans.
+            if STATE.config.get("offline_mode"):
+                with STATE.lock:
+                    self._send_json({
+                        "ok": True,
+                        "is_configured": True,
+                        "offline_mode": True,
+                        "scan_in_progress": False,
+                        "last_error": STATE.last_error or (
+                            "Offline mode — NAS SSH not connected. "
+                            "Open Admin → System Connection & Settings to finish setup."
+                        ),
+                        "data": STATE.latest_snapshot,
                     })
                 return
             if STATE.latest_snapshot is None:
@@ -1503,6 +1527,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 self._send_json({
                     "ok": STATE.latest_snapshot is not None,
                     "is_configured": True,
+                    "offline_mode": False,
                     "scan_in_progress": STATE.scan_in_progress,
                     "last_error": STATE.last_error,
                     "data": STATE.latest_snapshot,
@@ -1646,6 +1671,35 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
             })
             return
 
+        if parsed.path == "/api/setup/skip-offline":
+            # Unlock the Cyber SOC UI without a live NAS. Auth still required.
+            # SSH poller / inotify stay paused until a real /api/setup/save succeeds.
+            with STATE.lock:
+                host = (payload.get("nas_host") or STATE.config.get("nas_host") or "192.168.1.100")
+                user = (payload.get("nas_user") or STATE.config.get("nas_user") or "admin")
+                try:
+                    port = int(payload.get("nas_port", STATE.config.get("nas_port", 22)) or 22)
+                except (TypeError, ValueError):
+                    port = 22
+                STATE.config["nas_host"] = str(host).strip() or "192.168.1.100"
+                STATE.config["nas_user"] = str(user).strip() or "admin"
+                STATE.config["nas_port"] = port
+                STATE.config["is_configured"] = True
+                STATE.config["offline_mode"] = True
+                STATE.last_error = (
+                    "Offline mode — NAS SSH not connected. "
+                    "Open Admin → System Connection & Settings to finish setup."
+                )
+                save_app_config(STATE.config)
+                cfg_view = public_config_view(STATE.config)
+            self._send_json({
+                "ok": True,
+                "message": "已略過 NAS 連線，進入離線戰情室（稍後可在管理選單完成設定）",
+                "offline_mode": True,
+                "config": cfg_view,
+            })
+            return
+
         if parsed.path == "/api/setup/save":
             host = (payload.get("nas_host") or "").strip()
             user = (payload.get("nas_user") or "").strip()
@@ -1669,6 +1723,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                 # Persist portable ~/.ssh/<basename> only (M2) — never absolute paths in config/API.
                 STATE.config["ssh_key_path"] = public_ssh_key_ref(key_check.get("path") or key_path)
                 STATE.config["is_configured"] = True
+                STATE.config["offline_mode"] = False
                 if test_res.get("ssh_host_key_fp"):
                     STATE.config["ssh_host_key_fp"] = test_res["ssh_host_key_fp"]
 

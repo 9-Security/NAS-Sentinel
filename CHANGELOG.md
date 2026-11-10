@@ -7,6 +7,10 @@ and this project follows semantic versioning once tagged releases begin.
 
 ## [Unreleased]
 
+### Fixed
+
+- Setup wizard no longer dead-ends without a reachable NAS: added **Skip / offline SOC** (`POST /api/setup/skip-offline` + UI button) that sets `is_configured=true` with `offline_mode=true`, dismisses the modal, and pauses SSH poller/inotify until a real Save & Launch succeeds.
+
 ### Security
 
 Security hardening from the internal code review, shipped across [#1](https://github.com/9-Security/NAS-Sentinel/pull/1) and [#2](https://github.com/9-Security/NAS-Sentinel/pull/2).

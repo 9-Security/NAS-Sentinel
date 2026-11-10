@@ -2083,7 +2083,10 @@
         <div style="font-size:11px; color:var(--text-muted); display:flex; align-items:center; gap:5px;">
           <span>🔒 密鑰僅儲存在本地端 data/ 目錄</span>
         </div>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn" id="btnSkipSetupOffline" onclick="skipSetupOffline()" title="Unlock the SOC UI without a live NAS (SSH workers stay paused)">
+            🚪 稍後設定，先進入戰情室
+          </button>
           <button class="btn" id="btnCancelSetup" onclick="closeSetupModal()">關閉</button>
           <button class="btn btn-primary" id="btnSaveSetup" onclick="saveSetupConfig()" style="box-shadow:var(--shadow-glow-green);">
             🛡️ 儲存並進入戰情室 (Save & Launch)

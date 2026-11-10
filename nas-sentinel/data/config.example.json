@@ -1,5 +1,6 @@
 {
   "is_configured": false,
+  "offline_mode": false,
   "nas_host": "192.168.1.100",
   "nas_user": "admin",
   "nas_port": 22,
