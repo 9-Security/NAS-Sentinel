@@ -24,6 +24,10 @@ import urllib.parse
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import cloudflare_intel
 
+# Under pythonw there is no console, so every console child (ssh.exe, ssh-keygen.exe)
+# would get a fresh visible window. Suppress it on Windows.
+NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+
 # Ensure pythonw background mode compatibility (no console stdout/stderr)
 if sys.stdout is None:
     sys.stdout = open(os.devnull, "w", encoding="utf-8")
@@ -290,7 +294,7 @@ def capture_host_key_fingerprint(host: str, port: int = 22) -> str:
         if port and int(port) != 22:
             scan_cmd.extend(["-p", str(port)])
         scan_cmd.append(host)
-        scan = subprocess.run(scan_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8)
+        scan = subprocess.run(scan_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8, creationflags=NO_WINDOW)
         lines = [ln for ln in scan.stdout.decode("utf-8", errors="replace").splitlines() if ln.strip() and not ln.startswith("#")]
         if not lines:
             return ""
@@ -310,6 +314,7 @@ def capture_host_key_fingerprint(host: str, port: int = 22) -> str:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             timeout=5,
+            creationflags=NO_WINDOW,
         )
         # Typical: "256 SHA256:abcd... host (ED25519)"
         out = fp_proc.stdout.decode("utf-8", errors="replace")
@@ -361,7 +366,7 @@ def test_nas_connection(host: str, user: str, port: int = 22, key_path: str = ""
     cmd.append("uname -s -m -r; python3 -V; cat /etc.defaults/VERSION 2>/dev/null || cat /etc/VERSION 2>/dev/null")
 
     try:
-        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12)
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=12, creationflags=NO_WINDOW)
         if proc.returncode != 0:
             err = proc.stderr.decode("utf-8", errors="replace").strip()
             # Log raw stderr locally for operators; API gets coarse codes only (L1).
@@ -1018,6 +1023,7 @@ class MonitorState:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 timeout=35,
+                creationflags=NO_WINDOW,
             )
             probe_thread.join(timeout=6)
 
@@ -1388,6 +1394,7 @@ def inotify_listener_loop():
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.DEVNULL,
+                creationflags=NO_WINDOW,
             )
             proc.stdin.write(script_bytes)
             proc.stdin.close()
@@ -1725,6 +1732,7 @@ class MonitorHTTPHandler(SimpleHTTPRequestHandler):
                     ],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
+                    creationflags=NO_WINDOW,
                 )
                 if gen_proc.returncode != 0:
                     self._send_json({"ok": False, "error": f"金鑰生成失敗: {gen_proc.stderr.decode('utf-8', errors='replace')}"})
